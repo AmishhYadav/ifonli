@@ -4,7 +4,9 @@ import postgres from "postgres";
 config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
-export const TEST_DB_NAME = "ifonli_test";
+/** Override with IFONLI_TEST_DB to run several integration suites in parallel (one database each). */
+export const TEST_DB_NAME = process.env.IFONLI_TEST_DB || "ifonli_test";
+if (!/^[a-z_][a-z0-9_]*$/.test(TEST_DB_NAME)) throw new Error(`Invalid IFONLI_TEST_DB: ${TEST_DB_NAME}`);
 
 function baseUrl(): URL {
   const raw =
@@ -16,7 +18,7 @@ function baseUrl(): URL {
   return new URL(raw);
 }
 
-/** Connection string for the throwaway test database (same server, database `ifonli_test`). */
+/** Connection string for the throwaway test database (same server, database `TEST_DB_NAME`). */
 export function testDatabaseUrl(): string {
   const url = baseUrl();
   url.pathname = `/${TEST_DB_NAME}`;
