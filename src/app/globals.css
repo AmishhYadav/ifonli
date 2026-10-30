@@ -11,6 +11,7 @@
 @import "../styles/tokens/buy.css";
 @import "../styles/vibe.css";
 @import "../styles/ui.css";
+@import "../styles/admin.css";
 
 /* Colour tokens become Tailwind utilities: bg-bg, bg-surface, text-ink, border-border, ring-focus-ring ... */
 @theme inline {
@@ -76,4 +77,35 @@
 @utility ease-vibe {
   transition-timing-function: var(--motion-ease);
   transition-duration: var(--motion-dur);
+}
+
+/* Admin panel colours (variables live in styles/admin.css under [data-admin]): bg-admin-surface, text-admin-ink ... */
+@theme inline {
+  --color-admin-bg: var(--admin-bg);
+  --color-admin-surface: var(--admin-surface);
+  --color-admin-surface-2: var(--admin-surface-2);
+  --color-admin-border: var(--admin-border);
+  --color-admin-border-strong: var(--admin-border-strong);
+  --color-admin-ink: var(--admin-ink);
+  --color-admin-ink-muted: var(--admin-ink-muted);
+  --color-admin-ink-faint: var(--admin-ink-faint);
+  --color-admin-primary: var(--admin-primary);
+  --color-admin-primary-hover: var(--admin-primary-hover);
+  --color-admin-on-primary: var(--admin-on-primary);
+  --color-admin-primary-soft: var(--admin-primary-soft);
+  --color-admin-ring: var(--admin-ring);
+  --color-admin-danger: var(--admin-danger);
+  --color-admin-danger-soft: var(--admin-danger-soft);
+  --color-admin-success: var(--admin-success);
+  --color-admin-success-soft: var(--admin-success-soft);
+  --color-admin-warning: var(--admin-warning);
+  --color-admin-warning-soft: var(--admin-warning-soft);
+  --color-admin-info: var(--admin-info);
+  --color-admin-info-soft: var(--admin-info-soft);
+  --color-admin-nav-bg: var(--admin-nav-bg);
+  --color-admin-nav-ink: var(--admin-nav-ink);
+  --color-admin-nav-muted: var(--admin-nav-muted);
+  --color-admin-nav-hover: var(--admin-nav-hover);
+  --color-admin-nav-active: var(--admin-nav-active);
+  --color-admin-nav-border: var(--admin-nav-border);
 }

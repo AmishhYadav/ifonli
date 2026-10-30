@@ -1,0 +1,127 @@
+/*
+ * Admin panel styles. The admin is never themed: it sits inside a `data-admin` root that neutralises
+ * the storefront vibe (texture layer, cursor, display fonts, border colour) and uses its own
+ * `--admin-*` colour variables (never the storefront token names such as --border, --bg, --accent).
+ * The variables become Tailwind utilities in globals.css (bg-admin-surface, text-admin-ink, ...).
+ * This file is the only place admin colour literals live.
+ */
+
+/* Namespaced, so safe on :root; also reachable from anything portalled outside the admin root. */
+:root {
+  --admin-bg: oklch(0.975 0.003 260);
+  --admin-surface: oklch(1 0 0);
+  --admin-surface-2: oklch(0.961 0.005 260);
+  --admin-border: oklch(0.915 0.007 260);
+  --admin-border-strong: oklch(0.84 0.01 260);
+  --admin-ink: oklch(0.21 0.02 265);
+  --admin-ink-muted: oklch(0.5 0.02 265);
+  --admin-ink-faint: oklch(0.64 0.015 265);
+
+  --admin-primary: oklch(0.43 0.17 278);
+  --admin-primary-hover: oklch(0.38 0.17 278);
+  --admin-on-primary: oklch(0.99 0 0);
+  --admin-primary-soft: oklch(0.955 0.03 278);
+  --admin-ring: oklch(0.6 0.17 278);
+
+  --admin-danger: oklch(0.55 0.21 27);
+  --admin-danger-soft: oklch(0.96 0.03 25);
+  --admin-success: oklch(0.5 0.13 155);
+  --admin-success-soft: oklch(0.955 0.04 155);
+  --admin-warning: oklch(0.5 0.12 70);
+  --admin-warning-soft: oklch(0.96 0.06 85);
+  --admin-info: oklch(0.45 0.13 245);
+  --admin-info-soft: oklch(0.955 0.03 245);
+
+  --admin-nav-bg: oklch(0.2 0.035 275);
+  --admin-nav-ink: oklch(0.92 0.01 275);
+  --admin-nav-muted: oklch(0.7 0.02 275);
+  --admin-nav-hover: oklch(0.26 0.04 275);
+  --admin-nav-active: oklch(0.32 0.07 278);
+  --admin-nav-border: oklch(0.3 0.03 275);
+}
+
+[data-admin] {
+  color-scheme: light;
+  min-height: 100dvh;
+  background-color: var(--admin-bg);
+  color: var(--admin-ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: default;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* No vibe texture behind the admin; the page background is the admin's own. */
+body:has([data-admin])::before {
+  display: none;
+}
+body:has([data-admin]) {
+  background-color: var(--admin-bg);
+}
+
+@layer base {
+  /* Headings use the body font at a normal weight/tracking (display font, filters and stretch are vibe-specific). */
+  [data-admin] :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: normal;
+    font-stretch: normal;
+    filter: none;
+  }
+
+  /* Default border colour for the admin (storefront sets --border per vibe on `*`). */
+  [data-admin] *,
+  [data-admin] ::before,
+  [data-admin] ::after {
+    border-color: var(--admin-border);
+  }
+
+  [data-admin] :focus-visible {
+    outline: 2px solid var(--admin-ring);
+    outline-offset: 2px;
+  }
+
+  [data-admin] a,
+  [data-admin] button,
+  [data-admin] summary,
+  [data-admin] [role="button"],
+  [data-admin] [role="tab"],
+  [data-admin] [role="menuitem"],
+  [data-admin] [role="option"],
+  [data-admin] label[for] {
+    cursor: pointer;
+  }
+  [data-admin] :disabled,
+  [data-admin] [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+  [data-admin] :is(input, textarea)[type]:not([type="checkbox"], [type="radio"]),
+  [data-admin] textarea {
+    cursor: text;
+  }
+
+  /* Storefront anchors are underlined links; admin anchors opt in with classes. */
+  [data-admin] a:where(:not([class])) {
+    color: var(--admin-primary);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/* Tabular figures for money and counts. */
+[data-admin] .tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Google-style search result preview (SEO tab): fixed light colours, independent of the admin palette. */
+[data-admin] .serp {
+  background: #fff;
+  color: #4d5156;
+  font-family: Arial, Helvetica, sans-serif;
+}
+[data-admin] .serp-title {
+  color: #1a0dab;
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
