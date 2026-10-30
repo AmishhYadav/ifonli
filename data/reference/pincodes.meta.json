@@ -1,0 +1,40 @@
+{
+  "source": {
+    "primary": "https://data.gov.in/sites/default/files/dataurl31052019/Pincode_30052019.csv",
+    "description": "All India Pincode Directory (post-office-wise), Department of Posts, via data.gov.in (snapshot dated 30 May 2019; row count 155,599 offices; direct download, no API key). Also listed on https://data.gov.in/resource/all-india-pincode-directory-till-last-month",
+    "supplement": "https://raw.githubusercontent.com/dropdevrahul/pincodes-india/main/pincode.csv (MIT-licensed repo republishing a newer 2024-05 data.gov.in extract; PARTIAL: 95,040 offices / 12,127 pincodes). Used ONLY to add 40 pincodes absent from the 2019 file (rows flagged gh_only_pins); not used to override anything else."
+  },
+  "licence": "Government Open Data License - India (GODL-India), https://data.gov.in/government-open-data-license-india - attribution to Department of Posts, Government of India / data.gov.in required. The GitHub supplement repo is MIT, its data is the same GODL-India government data.",
+  "downloaded": "2026-10-30",
+  "rows": 19292,
+  "rows_dropped": {
+    "office_rows_with_missing_or_NA_district": 74,
+    "note": "Those 74 office rows were skipped only for district voting; every pincode they belong to still appears via other offices (0 pincodes lost). 0 invalid pincodes (all 6 digits, first digit 1-9)."
+  },
+  "columns": {
+    "pincode": "6-digit string",
+    "district": "Most frequent district among the pincode's offices (ties broken alphabetically), Title Cased; source spelling retained, e.g. 'Ananthapur', 'Ahmadabad' vs 'Ahmedabad' variants are NOT harmonised",
+    "state": "Canonical name matching states.json",
+    "office_count": "Number of post-office rows for the pincode in the source"
+  },
+  "normalisation": [
+    "Source state spellings fixed: Chattisgarh->Chhattisgarh, Megalaya->Meghalaya, Pondicherry->Puducherry, 'Andaman and Nico.In.'->Andaman and Nicobar Islands.",
+    "Dadra and Nagar Haveli + Daman and Diu merged into 'Dadra and Nagar Haveli and Daman and Diu'.",
+    "Ladakh split out of Jammu and Kashmir by district (Leh, Kargil), verified against the 2024 extract (which labels 14 overlapping pincodes Ladakh).",
+    "Chandigarh, Puducherry (incl. Mahe/Yanam/Karaikal enclaves) assigned by district because the 2019 file mislabels some offices.",
+    "State per pincode = district's dominant state when >=90% consistent across the file (fixes dirty rows, e.g. pincode 847202 has offices labelled with 10 different states), otherwise majority vote among the pincode's offices."
+  ],
+  "stats": {
+    "multi_district_pincodes": 1556,
+    "pincodes_where_district_rule_overrode_office_vote": 43,
+    "pincodes_with_ambiguous_state_vote": 9,
+    "pincodes_added_from_2024_supplement": 40
+  },
+  "known_issues": [
+    "Snapshot is from May 2019 (plus 40 newer pincodes): pincodes created since then are missing, and some 2019 district names predate renames/splits (e.g. new Telangana/Andhra districts). Refresh from data.gov.in (browser download requires name/email/captcha) before launch if exact currency matters.",
+    "District spellings are inconsistent in India Post's source; fine for autofill, not for analytics.",
+    "About 1,556 pincodes span more than one district; only the most frequent is kept.",
+    "Some pincodes legitimately cross state lines (e.g. Pondicherry enclaves in Tamil Nadu/Kerala/Andhra); the state shown is the dominant one."
+  ],
+  "official_direct_api": "The data.gov.in API (api.data.gov.in) needs a personal API key; none was used."
+}

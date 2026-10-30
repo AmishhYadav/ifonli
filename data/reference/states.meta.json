@@ -1,0 +1,11 @@
+{
+  "source": "GST portal e-invoice Master Codes, State Codes table",
+  "url": "https://einvoice1.gst.gov.in/Others/MasterCodes",
+  "retrieved": "2026-10-30",
+  "notes": [
+    "Codes 1-27, 29-38 for the 36 current states/UTs cross-checked against the portal table (names as of the portal; Andhra Pradesh 37, Ladakh 38, Telangana 36 confirmed).",
+    "The portal table still lists legacy 25 (Daman and Diu) and 26 (Dadra and Nagar Haveli) separately. After the 26 Jan 2020 merger the merged UT is assigned code 26 here, as in the owner's brief; confirm with the GST portal / your CA before relying on it for invoices (code 25 retired, code 28 = undivided Andhra Pradesh, unused).",
+    "Portal also lists 96/99 (Other Countries) and 97 (Other Territory); excluded (India-only store).",
+    "ISO 3166-2:IN codes: Telangana IN-TS, Uttarakhand IN-UT, Odisha IN-OD, merged DNHDD IN-DH, Ladakh IN-LA (ISO 3166-2 data, not GST-sourced)."
+  ]
+}

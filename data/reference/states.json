@@ -1,0 +1,218 @@
+[
+  {
+    "name": "Andhra Pradesh",
+    "code": "37",
+    "iso": "IN-AP",
+    "type": "state"
+  },
+  {
+    "name": "Arunachal Pradesh",
+    "code": "12",
+    "iso": "IN-AR",
+    "type": "state"
+  },
+  {
+    "name": "Assam",
+    "code": "18",
+    "iso": "IN-AS",
+    "type": "state"
+  },
+  {
+    "name": "Bihar",
+    "code": "10",
+    "iso": "IN-BR",
+    "type": "state"
+  },
+  {
+    "name": "Chhattisgarh",
+    "code": "22",
+    "iso": "IN-CG",
+    "type": "state"
+  },
+  {
+    "name": "Goa",
+    "code": "30",
+    "iso": "IN-GA",
+    "type": "state"
+  },
+  {
+    "name": "Gujarat",
+    "code": "24",
+    "iso": "IN-GJ",
+    "type": "state"
+  },
+  {
+    "name": "Haryana",
+    "code": "06",
+    "iso": "IN-HR",
+    "type": "state"
+  },
+  {
+    "name": "Himachal Pradesh",
+    "code": "02",
+    "iso": "IN-HP",
+    "type": "state"
+  },
+  {
+    "name": "Jharkhand",
+    "code": "20",
+    "iso": "IN-JH",
+    "type": "state"
+  },
+  {
+    "name": "Karnataka",
+    "code": "29",
+    "iso": "IN-KA",
+    "type": "state"
+  },
+  {
+    "name": "Kerala",
+    "code": "32",
+    "iso": "IN-KL",
+    "type": "state"
+  },
+  {
+    "name": "Madhya Pradesh",
+    "code": "23",
+    "iso": "IN-MP",
+    "type": "state"
+  },
+  {
+    "name": "Maharashtra",
+    "code": "27",
+    "iso": "IN-MH",
+    "type": "state"
+  },
+  {
+    "name": "Manipur",
+    "code": "14",
+    "iso": "IN-MN",
+    "type": "state"
+  },
+  {
+    "name": "Meghalaya",
+    "code": "17",
+    "iso": "IN-ML",
+    "type": "state"
+  },
+  {
+    "name": "Mizoram",
+    "code": "15",
+    "iso": "IN-MZ",
+    "type": "state"
+  },
+  {
+    "name": "Nagaland",
+    "code": "13",
+    "iso": "IN-NL",
+    "type": "state"
+  },
+  {
+    "name": "Odisha",
+    "code": "21",
+    "iso": "IN-OD",
+    "type": "state"
+  },
+  {
+    "name": "Punjab",
+    "code": "03",
+    "iso": "IN-PB",
+    "type": "state"
+  },
+  {
+    "name": "Rajasthan",
+    "code": "08",
+    "iso": "IN-RJ",
+    "type": "state"
+  },
+  {
+    "name": "Sikkim",
+    "code": "11",
+    "iso": "IN-SK",
+    "type": "state"
+  },
+  {
+    "name": "Tamil Nadu",
+    "code": "33",
+    "iso": "IN-TN",
+    "type": "state"
+  },
+  {
+    "name": "Telangana",
+    "code": "36",
+    "iso": "IN-TS",
+    "type": "state"
+  },
+  {
+    "name": "Tripura",
+    "code": "16",
+    "iso": "IN-TR",
+    "type": "state"
+  },
+  {
+    "name": "Uttar Pradesh",
+    "code": "09",
+    "iso": "IN-UP",
+    "type": "state"
+  },
+  {
+    "name": "Uttarakhand",
+    "code": "05",
+    "iso": "IN-UT",
+    "type": "state"
+  },
+  {
+    "name": "West Bengal",
+    "code": "19",
+    "iso": "IN-WB",
+    "type": "state"
+  },
+  {
+    "name": "Andaman and Nicobar Islands",
+    "code": "35",
+    "iso": "IN-AN",
+    "type": "ut"
+  },
+  {
+    "name": "Chandigarh",
+    "code": "04",
+    "iso": "IN-CH",
+    "type": "ut"
+  },
+  {
+    "name": "Dadra and Nagar Haveli and Daman and Diu",
+    "code": "26",
+    "iso": "IN-DH",
+    "type": "ut"
+  },
+  {
+    "name": "Delhi",
+    "code": "07",
+    "iso": "IN-DL",
+    "type": "ut"
+  },
+  {
+    "name": "Jammu and Kashmir",
+    "code": "01",
+    "iso": "IN-JK",
+    "type": "ut"
+  },
+  {
+    "name": "Ladakh",
+    "code": "38",
+    "iso": "IN-LA",
+    "type": "ut"
+  },
+  {
+    "name": "Lakshadweep",
+    "code": "31",
+    "iso": "IN-LD",
+    "type": "ut"
+  },
+  {
+    "name": "Puducherry",
+    "code": "34",
+    "iso": "IN-PY",
+    "type": "ut"
+  }
+]

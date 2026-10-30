@@ -64,3 +64,18 @@ Status values:
 | ID   | Decision                                                                             | Needed by    | Status  |
 | ---- | ------------------------------------------------------------------------------------ | ------------ | ------- |
 | P-01 | Written owner approval of the visual direction (tokens, fonts, hand SVGs, copy tone) | Phase 2 exit | pending |
+
+## Domain-logic decisions (Phase 1 domain modules, 2026-10-30, plan-resolved/reversible)
+
+| ID | Decision | Resolution |
+|---|---|---|
+| D-DOM-1 | Customer status label for `rto` / `returned` | `rto` shows "Shipped"; `returned` shows "Cancelled"; `partially_refunded` keeps the underlying label |
+| D-DOM-2 | Extra state transitions beyond plan 7.7 | `expired → confirmed` (late capture), `failed → unpaid/paid` (retry), `cod_pending → failed` (COD never collected), `packed → unfulfilled` (undo), `delivered → returned` |
+| D-DOM-3 | Reservation held at exact expiry instant? | Held only while `expiresAt > now` |
+| D-DOM-4 | Coupon min-subtotal basis | Whole-cart subtotal (not just eligible lines); discount applies to eligible lines only |
+| D-DOM-5 | Coupon start/end | Both inclusive; re-applying the same code is not "stacking" |
+| D-DOM-6 | Discount rounding | Pro-rata floor per eligible line, remainder to largest line (spills to next if capped at line value) |
+| D-DOM-7 | Shipping/COD-fee GST rate | Dominant line rate (largest line-total sum; ties → higher rate), or fixed via setting |
+| D-DOM-8 | Odd paisa in CGST/SGST split | Goes to SGST |
+| D-DOM-9 | Delivery estimate days | Working days from today's IST date; Saturdays count, Sundays skipped |
+| D-DOM-10 | Invoice number | `IFO/YY-YY/NNNNNN` (16 chars = GST max), FY flips at 00:00 IST 1 April |

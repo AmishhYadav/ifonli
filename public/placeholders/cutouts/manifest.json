@@ -1,0 +1,440 @@
+[
+  {
+    "file": "charm-heart.svg",
+    "type": "charm",
+    "name": "Heart charm",
+    "suggestedVibes": [
+      "cute",
+      "funky"
+    ],
+    "palette": [
+      "#FF5C8A"
+    ]
+  },
+  {
+    "file": "charm-star.svg",
+    "type": "charm",
+    "name": "Star charm",
+    "suggestedVibes": [
+      "cute",
+      "bold"
+    ],
+    "palette": [
+      "#FFD23F"
+    ]
+  },
+  {
+    "file": "charm-mushroom.svg",
+    "type": "charm",
+    "name": "Mushroom charm",
+    "suggestedVibes": [
+      "cute",
+      "funky"
+    ],
+    "palette": [
+      "#4A2C2A",
+      "#FF9AA2",
+      "#FFF1DC",
+      "#E84A4A"
+    ]
+  },
+  {
+    "file": "charm-cherries.svg",
+    "type": "charm",
+    "name": "Cherry pair charm",
+    "suggestedVibes": [
+      "cute",
+      "funky"
+    ],
+    "palette": [
+      "#E5243B",
+      "#5DBB63"
+    ]
+  },
+  {
+    "file": "charm-skull.svg",
+    "type": "charm",
+    "name": "Skull charm",
+    "suggestedVibes": [
+      "gothic",
+      "bold"
+    ],
+    "palette": [
+      "#2A2035",
+      "#F5F0E6"
+    ]
+  },
+  {
+    "file": "charm-ghost.svg",
+    "type": "charm",
+    "name": "Ghost charm",
+    "suggestedVibes": [
+      "gothic",
+      "overthinking"
+    ],
+    "palette": [
+      "#2B2140",
+      "#FFB3C7",
+      "#F4F1FF"
+    ]
+  },
+  {
+    "file": "charm-lightning.svg",
+    "type": "charm",
+    "name": "Lightning bolt charm",
+    "suggestedVibes": [
+      "bold",
+      "funky"
+    ],
+    "palette": [
+      "#FFD400"
+    ]
+  },
+  {
+    "file": "charm-smiley.svg",
+    "type": "charm",
+    "name": "Smiley charm",
+    "suggestedVibes": [
+      "funky",
+      "cute"
+    ],
+    "palette": [
+      "#4A2C00",
+      "#FF9AA2",
+      "#FFD84D"
+    ]
+  },
+  {
+    "file": "charm-moon.svg",
+    "type": "charm",
+    "name": "Crescent moon charm",
+    "suggestedVibes": [
+      "gothic",
+      "overthinking"
+    ],
+    "palette": [
+      "#FFD23F",
+      "#FFE9A3"
+    ]
+  },
+  {
+    "file": "charm-evil-eye.svg",
+    "type": "charm",
+    "name": "Evil-eye bead charm",
+    "suggestedVibes": [
+      "gothic",
+      "overthinking"
+    ],
+    "palette": [
+      "#1B4FBF",
+      "#4FC3F7",
+      "#0A1A3F"
+    ]
+  },
+  {
+    "file": "hipper-bow-clip.svg",
+    "type": "hipper",
+    "name": "Bow hair clip",
+    "suggestedVibes": [
+      "cute"
+    ],
+    "palette": [
+      "#FF8FB8",
+      "#F2C14E",
+      "#FF74A8"
+    ]
+  },
+  {
+    "file": "hipper-daisy-pin.svg",
+    "type": "hipper",
+    "name": "Daisy pin",
+    "suggestedVibes": [
+      "cute",
+      "funky"
+    ],
+    "palette": [
+      "#F2C14E",
+      "#FFE3EE",
+      "#FFC93C",
+      "#FFF0A8"
+    ]
+  },
+  {
+    "file": "hipper-flame-pin.svg",
+    "type": "hipper",
+    "name": "Flame pin",
+    "suggestedVibes": [
+      "bold",
+      "gothic"
+    ],
+    "palette": [
+      "#F2C14E",
+      "#2A1B3D",
+      "#FF6A1A",
+      "#FFD23F"
+    ]
+  },
+  {
+    "file": "hipper-crossed-bones-pin.svg",
+    "type": "hipper",
+    "name": "Crossed bones pin",
+    "suggestedVibes": [
+      "gothic",
+      "bold"
+    ],
+    "palette": [
+      "#5A4B66",
+      "#F4EEDF",
+      "#F2C14E",
+      "#17101F"
+    ]
+  },
+  {
+    "file": "hipper-rainbow-pin.svg",
+    "type": "hipper",
+    "name": "Rainbow pin",
+    "suggestedVibes": [
+      "funky",
+      "cute"
+    ],
+    "palette": [
+      "#F2C14E",
+      "#BDE7FF"
+    ]
+  },
+  {
+    "file": "hipper-coffee-pin.svg",
+    "type": "hipper",
+    "name": "Coffee cup pin",
+    "suggestedVibes": [
+      "overthinking",
+      "funky"
+    ],
+    "palette": [
+      "#E9604A",
+      "#F2C14E",
+      "#F6E3C5",
+      "#FFFDF7"
+    ]
+  },
+  {
+    "file": "sticker3d-cloud.svg",
+    "type": "sticker3d",
+    "name": "Puffy cloud sticker",
+    "suggestedVibes": [
+      "cute",
+      "overthinking"
+    ],
+    "palette": [
+      "#3B4A7A",
+      "#FFB3C7",
+      "#CDEBFF"
+    ]
+  },
+  {
+    "file": "sticker3d-strawberry.svg",
+    "type": "sticker3d",
+    "name": "Puffy strawberry sticker",
+    "suggestedVibes": [
+      "cute",
+      "funky"
+    ],
+    "palette": [
+      "#FFE08A",
+      "#FF4D6D",
+      "#58C25D"
+    ]
+  },
+  {
+    "file": "sticker3d-cat-face.svg",
+    "type": "sticker3d",
+    "name": "Puffy cat face sticker",
+    "suggestedVibes": [
+      "cute",
+      "funky"
+    ],
+    "palette": [
+      "#FF9AA2",
+      "#3A2412",
+      "#FFB35C",
+      "#FF7A9C"
+    ]
+  },
+  {
+    "file": "sticker3d-wow.svg",
+    "type": "sticker3d",
+    "name": "WOW bubble letters sticker",
+    "suggestedVibes": [
+      "bold",
+      "funky"
+    ],
+    "palette": []
+  },
+  {
+    "file": "sticker3d-hmm-bubble.svg",
+    "type": "sticker3d",
+    "name": "Thought bubble \"hmm?\" sticker",
+    "suggestedVibes": [
+      "overthinking"
+    ],
+    "palette": [
+      "#EEF2FF",
+      "#3D5A80"
+    ]
+  },
+  {
+    "file": "sticker3d-notebook-doodle.svg",
+    "type": "sticker3d",
+    "name": "Spiral notebook doodle sticker",
+    "suggestedVibes": [
+      "overthinking"
+    ],
+    "palette": [
+      "#FBF7EA",
+      "#FFF59D",
+      "#E8A0A0"
+    ]
+  },
+  {
+    "file": "sticker3d-bat.svg",
+    "type": "sticker3d",
+    "name": "Puffy bat sticker",
+    "suggestedVibes": [
+      "gothic"
+    ],
+    "palette": [
+      "#FF4D8D",
+      "#17102A",
+      "#3B2A5A"
+    ]
+  },
+  {
+    "file": "sticker3d-candle.svg",
+    "type": "sticker3d",
+    "name": "Candle sticker",
+    "suggestedVibes": [
+      "gothic",
+      "overthinking"
+    ],
+    "palette": [
+      "#FFF3D6",
+      "#F2C14E",
+      "#F8D98A",
+      "#FFE9B8"
+    ]
+  },
+  {
+    "file": "sticker3d-groovy-flower.svg",
+    "type": "sticker3d",
+    "name": "Groovy flower sticker",
+    "suggestedVibes": [
+      "funky",
+      "cute"
+    ],
+    "palette": [
+      "#FF8A1F",
+      "#FF5FA2",
+      "#4A2C00",
+      "#FFC800"
+    ]
+  },
+  {
+    "file": "sticker3d-retro-sun.svg",
+    "type": "sticker3d",
+    "name": "Retro sun sticker",
+    "suggestedVibes": [
+      "funky",
+      "bold"
+    ],
+    "palette": [
+      "#FF5E1A",
+      "#FF8A1F",
+      "#FFC800",
+      "#E83F8C"
+    ]
+  },
+  {
+    "file": "diy-bead-strand.svg",
+    "type": "diy",
+    "name": "Bead strand",
+    "suggestedVibes": [
+      "cute",
+      "funky"
+    ],
+    "palette": [
+      "#6B4A3A",
+      "#FF7EB6",
+      "#5FD0C5",
+      "#FFD23F"
+    ]
+  },
+  {
+    "file": "diy-chain-links.svg",
+    "type": "diy",
+    "name": "Chain links",
+    "suggestedVibes": [
+      "bold",
+      "gothic"
+    ],
+    "palette": [
+      "#F2C14E"
+    ]
+  },
+  {
+    "file": "diy-letter-beads-if.svg",
+    "type": "diy",
+    "name": "Letter beads \"IF\"",
+    "suggestedVibes": [
+      "bold",
+      "cute"
+    ],
+    "palette": [
+      "#5FD0C5",
+      "#B79CFF",
+      "#FF7EB6",
+      "#6E0A3A"
+    ]
+  },
+  {
+    "file": "diy-charm-bracelet-kit.svg",
+    "type": "diy",
+    "name": "Charm bracelet kit",
+    "suggestedVibes": [
+      "gothic",
+      "cute"
+    ],
+    "palette": [
+      "#F2C14E",
+      "#FF5C8A",
+      "#FFD23F",
+      "#5FD0C5"
+    ]
+  },
+  {
+    "file": "diy-phone-strap-kit.svg",
+    "type": "diy",
+    "name": "Phone strap kit",
+    "suggestedVibes": [
+      "funky",
+      "bold"
+    ],
+    "palette": [
+      "#FFD23F",
+      "#FF7EB6",
+      "#5FD0C5",
+      "#B79CFF"
+    ]
+  },
+  {
+    "file": "diy-keychain-ring.svg",
+    "type": "diy",
+    "name": "Keychain ring + tag",
+    "suggestedVibes": [
+      "bold",
+      "overthinking"
+    ],
+    "palette": [
+      "#FF7EB6"
+    ]
+  }
+]
