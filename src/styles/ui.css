@@ -1,0 +1,186 @@
+/*
+ * UI primitives: keyframes and the few rules Tailwind utilities cannot express (Radix state attributes,
+ * Radix size variables). Everything is token-driven: motion uses --motion-ease / --motion-dur, and the
+ * global prefers-reduced-motion rule in vibe.css collapses every animation, so nothing is repeated here.
+ * Rules live in @layer components so utility classes on the elements can still override them.
+ */
+
+@keyframes ui-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes ui-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes ui-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes ui-pop-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px)) scale(0.96);
+  }
+}
+@keyframes ui-pop-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.97);
+  }
+}
+@keyframes ui-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes ui-slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes ui-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes ui-slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+@keyframes ui-accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes ui-accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+@keyframes ui-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+@keyframes ui-toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+@keyframes ui-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}
+
+@layer components {
+  .ui-spin {
+    animation: ui-spin 700ms linear infinite;
+    transform-origin: 50% 50%;
+  }
+  .ui-skeleton {
+    animation: ui-pulse 1.4s var(--motion-ease) infinite;
+  }
+
+  .ui-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background-color: color-mix(in srgb, black 55%, transparent);
+  }
+  .ui-overlay[data-state="open"] {
+    animation: ui-fade-in var(--motion-dur) var(--motion-ease);
+  }
+  .ui-overlay[data-state="closed"] {
+    animation: ui-fade-out var(--motion-dur) var(--motion-ease) forwards;
+  }
+
+  .ui-dialog {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: 61;
+    transform: translate(-50%, -50%);
+  }
+  .ui-dialog[data-state="open"] {
+    animation: ui-pop-in var(--motion-dur) var(--motion-ease);
+  }
+  .ui-dialog[data-state="closed"] {
+    animation: ui-pop-out var(--motion-dur) var(--motion-ease) forwards;
+  }
+
+  .ui-drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 61;
+  }
+  .ui-drawer[data-side="right"] {
+    right: 0;
+  }
+  .ui-drawer[data-side="left"] {
+    left: 0;
+  }
+  .ui-drawer[data-side="right"][data-state="open"] {
+    animation: ui-slide-in-right var(--motion-dur) var(--motion-ease);
+  }
+  .ui-drawer[data-side="right"][data-state="closed"] {
+    animation: ui-slide-out-right var(--motion-dur) var(--motion-ease) forwards;
+  }
+  .ui-drawer[data-side="left"][data-state="open"] {
+    animation: ui-slide-in-left var(--motion-dur) var(--motion-ease);
+  }
+  .ui-drawer[data-side="left"][data-state="closed"] {
+    animation: ui-slide-out-left var(--motion-dur) var(--motion-ease) forwards;
+  }
+
+  .ui-accordion-content {
+    overflow: hidden;
+  }
+  .ui-accordion-content[data-state="open"] {
+    animation: ui-accordion-down var(--motion-dur) var(--motion-ease);
+  }
+  .ui-accordion-content[data-state="closed"] {
+    animation: ui-accordion-up var(--motion-dur) var(--motion-ease);
+  }
+
+  .ui-toast[data-state="open"] {
+    animation: ui-toast-in var(--motion-dur) var(--motion-ease);
+  }
+  .ui-toast[data-state="closed"] {
+    animation: ui-toast-out var(--motion-dur) var(--motion-ease) forwards;
+  }
+
+  .ui-tooltip {
+    animation: ui-tip-in var(--motion-dur) var(--motion-ease);
+  }
+
+  /* Native select: hide the platform arrow (an icon is drawn over it). */
+  .ui-select {
+    appearance: none;
+    -webkit-appearance: none;
+  }
+}

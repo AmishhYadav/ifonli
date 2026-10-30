@@ -10,6 +10,7 @@
 /* buy.css must come after every vibe file (see scripts/build-tokens.ts). */
 @import "../styles/tokens/buy.css";
 @import "../styles/vibe.css";
+@import "../styles/ui.css";
 
 /* Colour tokens become Tailwind utilities: bg-bg, bg-surface, text-ink, border-border, ring-focus-ring ... */
 @theme inline {
