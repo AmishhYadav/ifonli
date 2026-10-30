@@ -30,7 +30,21 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    ".next-ui/types/**/*.ts",
+    ".next-ui/dev/types/**/*.ts",
+    ".next-admin/types/**/*.ts",
+    ".next-admin/dev/types/**/*.ts",
+    ".next-shop/types/**/*.ts",
+    ".next-shop/dev/types/**/*.ts",
+    ".next-orch/types/**/*.ts",
+    ".next-orch/dev/types/**/*.ts",
+    ".next-a/types/**/*.ts",
+    ".next-a/dev/types/**/*.ts",
+    ".next-b/types/**/*.ts",
+    ".next-b/dev/types/**/*.ts",
+    ".next-c/types/**/*.ts",
+    ".next-c/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
