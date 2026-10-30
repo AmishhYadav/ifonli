@@ -64,3 +64,116 @@ export const PG = {
   foreignKey: "23503",
   notNull: "23502",
 } as const;
+
+// ---------------------------------------------------------------------------------------------
+// Commerce (Phase 4) helpers
+// ---------------------------------------------------------------------------------------------
+
+/** Seeds the minimal states / pincodes the commerce tests use. */
+export async function seedCommerceReference() {
+  const { pincodes: pincodeTable, states: stateTable } = await import("@/server/db/schema");
+  const db = getDb();
+  await db.insert(stateTable).values([
+    { code: "27", name: "Maharashtra", iso: "IN-MH", type: "state", zone: "rest_of_india" },
+    { code: "07", name: "Delhi", iso: "IN-DL", type: "ut", zone: "metro_region" },
+    { code: "29", name: "Karnataka", iso: "IN-KA", type: "state", zone: "rest_of_india" },
+    { code: "35", name: "Andaman and Nicobar Islands", iso: "IN-AN", type: "ut", zone: "islands" },
+  ]);
+  await db.insert(pincodeTable).values([
+    { pincode: "400001", district: "Mumbai", stateCode: "27", zone: "rest_of_india" },
+    { pincode: "411001", district: "Pune", stateCode: "27", zone: "rest_of_india", codAllowed: false },
+    { pincode: "110001", district: "Central Delhi", stateCode: "07", zone: "metro_region" },
+    { pincode: "560001", district: "Bangalore", stateCode: "29", zone: "rest_of_india" },
+    { pincode: "744101", district: "South Andaman", stateCode: "35", zone: "islands", serviceable: false },
+  ]);
+}
+
+/**
+ * Writes the business settings commerce reads (all non-placeholder). Defaults: store in Maharashtra,
+ * flat shipping 50, free above 500, COD on with a 40 fee up to 5,000, 18% default GST, 15-minute
+ * reservations, max 10 per line.
+ */
+export async function configureCommerce(
+  overrides: Record<string, unknown> = {},
+): Promise<void> {
+  const { setSetting } = await import("@/server/services/settings");
+  const values: Record<string, unknown> = {
+    state: "Maharashtra",
+    flat_fee: 5000,
+    free_threshold: 50000,
+    zone_overrides: {},
+    serviceability_mode: "all_india",
+    processing_days: 1,
+    delivery_estimates_by_zone: {
+      metro_region: { minDays: 2, maxDays: 4 },
+      rest_of_india: { minDays: 3, maxDays: 6 },
+    },
+    cod_enabled: true,
+    cod_fee: 4000,
+    cod_max_order_value: 500000,
+    cod_excluded_pincodes: [],
+    default_gst_rate_bp: 1800,
+    shipping_tax_rule: "dominant_line_rate",
+    reservation_ttl_minutes: 15,
+    max_qty_per_line: 10,
+    ...overrides,
+  };
+  for (const [key, value] of Object.entries(values)) {
+    await (setSetting as (k: string, v: unknown, a: string | null) => Promise<unknown>)(key, value, null);
+  }
+}
+
+let couponSeq = 0;
+export async function makeCoupon(
+  overrides: Partial<typeof import("@/server/db/schema").coupons.$inferInsert> = {},
+) {
+  const { coupons: couponTable } = await import("@/server/db/schema");
+  couponSeq += 1;
+  const [row] = await getDb()
+    .insert(couponTable)
+    .values({ code: `TEST${couponSeq}`, kind: "percent", value: 1000, ...overrides })
+    .returning();
+  return row!;
+}
+
+/** Inserts a cart directly (token, optional owner / coupon) with the given lines. */
+export async function makeCart(
+  items: { variantId: string; qty: number }[] = [],
+  opts: { couponCode?: string | null; userId?: string | null } = {},
+) {
+  const { cartItems: itemTable, carts: cartTable } = await import("@/server/db/schema");
+  const { newCartToken } = await import("@/server/services/cart");
+  const db = getDb();
+  const [cart] = await db
+    .insert(cartTable)
+    .values({
+      token: newCartToken(),
+      couponCode: opts.couponCode ?? null,
+      userId: opts.userId ?? null,
+      expiresAt: new Date(Date.now() + 86_400_000),
+    })
+    .returning();
+  if (items.length > 0) {
+    await db.insert(itemTable).values(items.map((i) => ({ cartId: cart!.id, ...i })));
+  }
+  return cart!;
+}
+
+/** A valid checkout form (raw input of `placeOrderSchema`); each call gets a fresh idempotency key. */
+export function checkoutForm(overrides: Record<string, unknown> = {}) {
+  return {
+    email: "Buyer@Example.com",
+    phone: "98765 43210",
+    shippingAddress: {
+      name: "Asha Rao",
+      line1: "12 Marine Drive",
+      city: "Mumbai",
+      state: "Maharashtra",
+      pincode: "400001",
+    },
+    paymentMethod: "razorpay",
+    policyAck: true,
+    idempotencyKey: crypto.randomUUID(),
+    ...overrides,
+  };
+}

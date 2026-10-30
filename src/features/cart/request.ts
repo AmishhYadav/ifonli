@@ -1,0 +1,53 @@
+import "server-only";
+
+import { createHash } from "node:crypto";
+
+import { cookies, headers } from "next/headers";
+
+import { getAuth } from "@/server/auth/auth";
+
+/** Name of the httpOnly cookie that holds the opaque cart token. */
+export const CART_COOKIE = "cart_token";
+const CART_COOKIE_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+
+export async function readCartToken(): Promise<string | null> {
+  return (await cookies()).get(CART_COOKIE)?.value ?? null;
+}
+
+/** Server Actions / Route Handlers only (cookies cannot be set while rendering). */
+export async function writeCartToken(token: string): Promise<void> {
+  (await cookies()).set(CART_COOKIE, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: CART_COOKIE_MAX_AGE_SECONDS,
+  });
+}
+
+/** Best-effort client IP for rate-limit keys. */
+export async function getRequestIp(): Promise<string> {
+  const h = await headers();
+  const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || h.get("x-real-ip") || "unknown";
+}
+
+export interface SessionUser {
+  id: string;
+  email: string;
+}
+
+/** The logged-in customer, or null for guests (also null if auth is not configured). */
+export async function getSessionUser(): Promise<SessionUser | null> {
+  try {
+    const session = await getAuth().api.getSession({ headers: await headers() });
+    return session ? { id: session.user.id, email: session.user.email } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Short stable digest for rate-limit keys, so secrets such as the cart token are never stored. */
+export function keyDigest(value: string): string {
+  return createHash("sha256").update(value).digest("hex").slice(0, 16);
+}

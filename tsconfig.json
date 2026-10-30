@@ -46,5 +46,5 @@
     ".next-c/types/**/*.ts",
     ".next-c/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", ".next-*"]
 }

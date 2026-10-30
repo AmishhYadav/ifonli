@@ -15,6 +15,7 @@ import {
 
 import { paise, pk, timestamps, createdAt } from "./_common";
 import { user } from "./auth";
+import { carts } from "./cart";
 import { products, variants } from "./catalog";
 
 // Three independent axes (plan 7.7). Allowed transitions live in application code.
@@ -54,6 +55,8 @@ export const orders = pgTable(
     /** Human reference, e.g. IFO-2611-7K3Q. */
     ref: text("ref").notNull().unique(),
     userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    /** Cart the order was placed from: lets a newer checkout supersede it and payment clear the cart. */
+    cartId: uuid("cart_id").references(() => carts.id, { onDelete: "set null" }),
     email: text("email").notNull(),
     phone: text("phone"),
     status: orderStatusEnum("status").notNull().default("pending_payment"),
@@ -88,6 +91,7 @@ export const orders = pgTable(
     index("orders_status_placed_at_idx").on(t.status, t.placedAt),
     index("orders_email_idx").on(sql`lower(${t.email})`),
     index("orders_user_idx").on(t.userId, t.placedAt),
+    index("orders_cart_idx").on(t.cartId),
     index("orders_phone_idx").on(t.phone),
     index("orders_payment_status_idx").on(t.paymentStatus),
     index("orders_fulfillment_status_idx").on(t.fulfillmentStatus),
