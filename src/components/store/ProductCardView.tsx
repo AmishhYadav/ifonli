@@ -123,7 +123,7 @@ export function ProductCardView({
           </Link>
         </h3>
         <Price
-          className={cn("mt-auto pt-2", soldOut && "opacity-70")}
+          className="mt-auto pt-2"
           pricePaise={product.priceFromPaise}
           mrpPaise={product.mrpFromPaise}
           from={hasMultipleVariants}

@@ -1,23 +1,38 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { BODY_FONT_FILE, DEFAULT_VIBE } from "@/features/vibe/config";
+import { ToastProvider } from "@/components/ui";
+import { BODY_FONT_FILE, DEFAULT_VIBE, DEFAULT_VIBE_CYCLE } from "@/features/vibe/config";
 import { VibeFilters } from "@/features/vibe/VibeFilters";
 import { VibeHeadScript } from "@/features/vibe/VibeHeadScript";
 import { VibeUrlSync } from "@/features/vibe/VibeUrlSync";
+import { siteUrl } from "@/lib/seo";
+import { getVibeSettings, type VibeSettings } from "@/server/cache/settings";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "IfOnli",
+  metadataBase: new URL(siteUrl()),
+  title: { default: "IfOnli", template: "%s | IfOnli" },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+/** The cached settings read must never take the whole site down: fall back to the built-in defaults. */
+async function loadVibeSettings(): Promise<VibeSettings> {
+  try {
+    return await getVibeSettings();
+  } catch (error) {
+    console.error("RootLayout: could not read vibe settings, using defaults", error);
+    return { cycle: [...DEFAULT_VIBE_CYCLE], defaultVibe: DEFAULT_VIBE };
+  }
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { cycle, defaultVibe } = await loadVibeSettings();
   return (
     // data-vibe here is only the no-JS fallback; the head script sets the real vibe before first paint.
     <html lang="en-IN" data-vibe={DEFAULT_VIBE} suppressHydrationWarning>
       <head>
-        <VibeHeadScript />
+        <VibeHeadScript cycle={cycle} defaultVibe={defaultVibe} />
         <link
           rel="preload"
           href={BODY_FONT_FILE}
@@ -28,7 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <VibeFilters />
-        {children}
+        <ToastProvider>{children}</ToastProvider>
         <div id="vibe-live" role="status" aria-live="polite" className="sr-only" />
         <Suspense fallback={null}>
           <VibeUrlSync />

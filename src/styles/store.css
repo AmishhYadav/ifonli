@@ -1,0 +1,23 @@
+/*
+ * Storefront-only rules that Tailwind utilities cannot express. Loaded by the (store) layout.
+ * Values come from tokens; nothing here knows a vibe by name.
+ */
+
+/* Below 640px the hand button is icon-only (its aria-label still names the current and next vibe). */
+@media (max-width: 639px) {
+  .header-hand {
+    padding-inline: 0.5rem;
+  }
+  .header-hand > span[data-v]:not(:has(> .vibe-hand)) {
+    display: none !important;
+  }
+}
+
+/* Hero poster tiles lift on hover/focus; the lift is a no-op under reduced motion (vibe.css). */
+.hero-tile {
+  transition-property: transform;
+}
+.hero-tile:hover,
+.hero-tile:has(a:focus-visible) {
+  transform: translateY(-4px) rotate(var(--tile-tilt, 0deg));
+}
