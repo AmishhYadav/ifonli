@@ -177,3 +177,45 @@ export function checkoutForm(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Payments helpers
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Places a prepaid order through the real `createFromCart` with the real payment initiator wired to
+ * `provider` (the in-memory mock). Returns the order, the Checkout.js payload and the raw guest token.
+ */
+export async function placePrepaidOrder(
+  provider: import("@/server/payments/mock").MockPaymentProvider,
+  items: { variantId: string; qty: number }[],
+  opts: { form?: Record<string, unknown>; couponCode?: string | null; now?: Date } = {},
+) {
+  const { createFromCart } = await import("@/server/services/orders");
+  const { initiateOrderPayment } = await import("@/server/payments/initiate");
+  const cart = await makeCart(items, { couponCode: opts.couponCode ?? null });
+  const r = await createFromCart(getDb(), {
+    cartToken: cart.token,
+    form: checkoutForm(opts.form),
+    now: opts.now,
+    initiatePayment: (ctx) => initiateOrderPayment(ctx, { provider }),
+  });
+  if (!r.ok) throw new Error(`placePrepaidOrder failed: ${r.error.code} ${r.error.message}`);
+  if (!r.payment) throw new Error("placePrepaidOrder: no payment payload");
+  return { cart, order: r.order, payment: r.payment, token: r.order.accessToken };
+}
+
+/** The body Checkout.js' success handler would POST to the verify endpoint. */
+export function verifyBody(
+  provider: import("@/server/payments/mock").MockPaymentProvider,
+  placed: Awaited<ReturnType<typeof placePrepaidOrder>>,
+  payment: import("@/server/payments/provider").ProviderPayment,
+  overrides: Record<string, unknown> = {},
+) {
+  return {
+    ...provider.checkoutResponse(payment),
+    ref: placed.order.ref,
+    token: placed.token,
+    ...overrides,
+  };
+}

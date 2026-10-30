@@ -20,6 +20,17 @@ export interface RazorpayCheckoutPayload {
   prefill: { name: string; email: string; contact: string };
   /** Brand colour for the Checkout.js theme (optional). */
   themeColor?: string;
+  /** Checkout.js `name` (shown in the header), e.g. the brand name. */
+  name?: string;
+  /** Checkout.js `description`, e.g. `Order IFO-2611-7K3Q`. */
+  description?: string;
+  /** Checkout.js `notes` (our order ref); no personal data. */
+  notes?: Record<string, string>;
+  /**
+   * True when the dev mock provider issued this payload (no Razorpay keys, development only). The UI
+   * must NOT load Checkout.js then; it drives `POST /api/dev/mock-checkout` instead.
+   */
+  mock?: boolean;
 }
 
 /** Everything the initiator may need about the freshly created prepaid order. */

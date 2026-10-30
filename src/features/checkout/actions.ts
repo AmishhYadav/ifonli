@@ -12,7 +12,8 @@ import {
   type PincodeLookup,
 } from "@/server/services/checkout";
 import { loadCommerceSettings } from "@/server/services/commerce/settings";
-import type { PaymentInitiator } from "@/server/services/commerce/payment-hook";
+import { initiateRazorpayPayment, retryOrderPayment } from "@/server/payments/initiate";
+import type { PaymentInitiator, RazorpayCheckoutPayload } from "@/server/services/commerce/payment-hook";
 import { createFromCart } from "@/server/services/orders";
 import { consumeRateLimit } from "@/server/services/rate-limit";
 
@@ -26,14 +27,8 @@ import type { ActionResult } from "../cart/types";
 import type { PlaceOrderResult } from "./types";
 import { checkoutQuoteSchema, pincodeLookupSchema } from "./schema";
 
-/**
- * TODO(payments): wire the Razorpay Order creation here, e.g.
- *   import { initiateRazorpayPayment } from "@/server/payments/razorpay-order";
- *   const initiatePayment: PaymentInitiator = initiateRazorpayPayment;
- * Until then prepaid orders are created (stock reserved) but `payment` is null and
- * `paymentPending` is true.
- */
-const initiatePayment: PaymentInitiator | undefined = undefined;
+/** Creates (or re-opens) the Razorpay order for prepaid checkouts; idempotent per order. */
+const initiatePayment: PaymentInitiator = initiateRazorpayPayment;
 
 const SERVER_ERROR = {
   code: "server_error" as const,
@@ -176,6 +171,53 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
   } catch (e) {
     unstable_rethrow(e);
     console.error("placeOrder failed", e);
+    return { ok: false, error: SERVER_ERROR };
+  }
+}
+
+export type RetryPaymentActionResult =
+  | { ok: true; data: { payment: RazorpayCheckoutPayload; expiresAt: string } }
+  | {
+      ok: false;
+      error: {
+        code: "not_found" | "not_retryable" | "expired" | "already_paid" | "payment_init_failed" | "rate_limited" | "server_error";
+        message: string;
+        retryAfterSeconds?: number;
+      };
+    };
+
+/**
+ * "Payment not completed - Retry" (plan 7.6): re-opens Checkout.js on the SAME Razorpay order while
+ * the reservation is still valid. `ref` and `token` are the order reference and the guest `?t=` token
+ * from the order link. Rate limited by IP and order.
+ */
+export async function retryPayment(ref: string, token: string): Promise<RetryPaymentActionResult> {
+  try {
+    if (typeof ref !== "string" || typeof token !== "string" || ref.length > 32 || token.length > 128) {
+      return { ok: false, error: { code: "not_found", message: "We couldn't find that order." } };
+    }
+    const db = getDb();
+    const decisions = await Promise.all([
+      consumeRateLimit(db, `payretry:ip:${await getRequestIp()}`, { limit: 20, windowSeconds: 600 }),
+      consumeRateLimit(db, `payretry:ref:${keyDigest(ref.trim().toUpperCase())}`, { limit: 10, windowSeconds: 600 }),
+    ]);
+    const blocked = decisions.find((d) => !d.allowed);
+    if (blocked) {
+      return {
+        ok: false,
+        error: {
+          code: "rate_limited",
+          message: "Too many attempts. Please wait a moment and try again.",
+          retryAfterSeconds: blocked.retryAfterSeconds,
+        },
+      };
+    }
+    const result = await retryOrderPayment(db, { ref, token });
+    if (!result.ok) return { ok: false, error: { code: result.code, message: result.message } };
+    return { ok: true, data: { payment: result.payload, expiresAt: result.expiresAt.toISOString() } };
+  } catch (e) {
+    unstable_rethrow(e);
+    console.error("retryPayment failed", e);
     return { ok: false, error: SERVER_ERROR };
   }
 }
