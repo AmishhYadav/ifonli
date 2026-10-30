@@ -1,0 +1,148 @@
+---
+title: "Privacy Notice"
+slug: privacy
+version: 0.1-draft
+status: "DRAFT — requires legal review before publishing"
+lastReviewed: null
+---
+
+> **Draft notice:** This page is a draft and is waiting for legal review. It is not legal advice. It is written to align with India's Digital Personal Data Protection Act, 2023 (DPDP Act) and its rules, and must be checked against the final legal position before publishing.
+
+# Privacy Notice
+
+This notice explains what personal data we collect when you use our store, why we collect it, who we share it with, how long we keep it and what you can do about it. We have tried to keep it simple. If anything is unclear, ask us.
+
+## 1. Who we are
+
+The data fiduciary (the entity that decides how your data is used) is:
+
+**{{settings.legal_name}}**, trading as {{settings.brand_name}}
+Registered address: {{settings.registered_address}}
+Email: {{settings.support_email}} | Phone: {{settings.support_phone}}
+
+For privacy questions and requests, contact our Grievance Officer (see section 12).
+
+## 2. What we collect
+
+**You give us:**
+
+- Contact details: your name, email address and phone number.
+- Delivery and billing address, including pincode.
+- Order details: what you bought, the amounts, and the coupon you used, if any.
+- Messages you send us through the Help page or by email, and photos you upload when you report a problem.
+- If you use Cash on Delivery refunds: a UPI ID or bank account details, only when needed to send you a refund.
+- Account details if you create an account: your email address (we use a one-time code to sign you in, not a password), saved addresses and wishlist.
+- Marketing choice, if you tell us you would like offers from us.
+
+**We do not collect your card, UPI PIN or net-banking details.** Payments are handled by Razorpay on their secure page. We receive only the result of the payment (for example, paid or failed) and a payment reference.
+
+**Collected automatically:**
+
+- Technical data such as IP address and browser type, used for security, preventing abuse and keeping the site working.
+- A cart identifier cookie so your cart is remembered.
+- Your theme (vibe) choice, which is a setting and not personal data.
+- Anonymous usage information (for example, which pages are viewed) if you agree to analytics. See section 9.
+
+## 3. Why we use your data
+
+| Purpose | Data used |
+|---|---|
+| Take, confirm, pack, ship and deliver your order | Contact, address, order data, phone (for the courier to reach you) |
+| Take payment and give refunds | Order data, payment status and reference, refund details |
+| Tell you about your order (confirmation, dispatch, delivery, refund) | Email, phone, order data |
+| Answer your questions and resolve problems | Messages, photos, order data |
+| Keep accounts secure and prevent fraud and abuse | Email, IP address, technical data |
+| Issue invoices and meet tax, accounting and other legal duties | Name, address, order and payment data |
+| Send you offers (only if you opt in) | Email, name |
+| Understand how the site is used and improve it (only if you agree) | Anonymous usage data |
+
+We do not sell your personal data.
+
+## 4. Our basis for using your data
+
+- **You gave it to us for a purpose, and we use it for that purpose.** When you place an order, you give us your details so we can deliver it. This covers order, payment, delivery and support messages.
+- **Legal duties.** We keep some records, such as invoices and payment records, because the law requires it.
+- **Your consent.** We ask for your consent for things that are optional: marketing messages and non-essential analytics. These boxes are never pre-ticked. You can withdraw consent at any time, and withdrawing is as easy as giving it. Withdrawing does not affect your orders.
+
+## 5. Who we share your data with
+
+We share data only as needed to run the store. Our service providers act on our instructions and may not use your data for their own purposes. They fall into these groups:
+
+- **Payment gateway** (Razorpay): to process payments and refunds.
+- **Courier and shipping partners:** your name, address and phone so they can deliver.
+- **Email and messaging providers:** to send order updates and, if you opt in, offers.
+- **Hosting, database and file storage providers:** to run the site and store data safely.
+- **Analytics providers** (only if you agree): to measure how the site is used.
+
+Current providers: {{settings.policy.processors}}
+
+We may also share data when the law requires, for example with a court, tax authority or government body, or to protect our rights or prevent fraud.
+
+## 6. How long we keep your data
+
+- Order and invoice records: {{settings.policy.retention_order_records}}
+- Other data, such as account details, support messages and photos: {{settings.policy.retention_period}}
+- When we no longer need data and the law does not require us to keep it, we delete it or make it anonymous.
+
+## 7. Your rights
+
+Under the DPDP Act you have the right to:
+
+- **Access.** Get a summary of the personal data we hold about you and how we use it, and who we have shared it with.
+- **Correction and updating.** Ask us to correct wrong or incomplete data and to update it.
+- **Erasure.** Ask us to delete your data. We will do so unless we need to keep it for a legal reason. We will tell you if we must keep some of it.
+- **Grievance redressal.** Raise a complaint with us about how your data is handled. See section 12.
+- **Nomination.** Name another person who can exercise these rights for you if you die or cannot act for yourself.
+- **Withdraw consent** that you gave us at any time.
+
+If you are not happy with our response, you may also complain to the Data Protection Board of India. We ask that you contact us first so we have a chance to fix it.
+
+## 8. How to use your rights
+
+- **In your account:** if you have an account, go to your account settings to edit your details and addresses, export your data, or delete your account.
+- **By email:** write to {{settings.grievance_officer.email}} or {{settings.support_email}} with the subject "Privacy request". Tell us what you want us to do. We may ask you to confirm your identity so that your data does not reach the wrong person.
+- We reply within {{settings.response_time}} and aim to finish your request within the time the law allows.
+
+## 9. Cookies and similar technologies
+
+**Essential (always on).** These are needed for the store to work. They do not track you across other sites.
+
+| Name / type | What it does | Personal data? |
+|---|---|---|
+| Cart cookie | Remembers your cart | No, it is a random code |
+| Sign-in session cookie | Keeps you signed in, if you have an account | Linked to your account |
+| Vibe preference (cookie and local storage) | Remembers the theme you chose on the site | No |
+| Wishlist on this device (local storage) | Saves your wishlist if you have no account | Stays on your device |
+| Cookie choice | Remembers your answer to the analytics question | No |
+
+**Optional (only if you agree).** We use anonymous usage analytics to see which pages and products are popular, so we can improve the store. They use a random session code, not your name or email.
+{{#if settings.ga4_measurement_id}}
+We also use Google Analytics 4. Google may process this data on servers outside India. It is switched on only if you accept analytics.
+{{/if}}
+
+If you do not agree, optional analytics stays off and the store works the same way. You can change your choice at any time from the cookie settings link in the footer.
+
+## 10. Children
+
+Our store is not directed at children under 18. If you are under 18, please ask a parent or guardian to place orders for you and to read this notice. We do not knowingly collect personal data from children without a parent or guardian's consent, and we do not track or target children with ads. If you think a child has given us data without consent, contact us and we will delete it.
+
+## 11. Security and data transfers
+
+- Our site uses encrypted connections (HTTPS). Staff access is limited to those who need it and protected with extra verification.
+- No system is completely secure. If a breach affects your personal data, we will tell you and the authorities as the law requires.
+- Some of our service providers may store or process data on servers outside India. We use such providers only for the purposes in this notice, and we expect them to protect your data. We transfer data outside India only as permitted by Indian law.
+
+## 12. Grievance Officer
+
+For privacy questions, requests and complaints:
+
+**{{settings.grievance_officer.name}}**, {{settings.grievance_officer.designation}}
+{{settings.legal_name}}, {{settings.registered_address}}
+Email: {{settings.grievance_officer.email}}
+Phone: {{settings.grievance_officer.phone}}
+
+We acknowledge complaints within 48 hours and aim to resolve them within one month. See our [Grievance Redressal](/policies/grievance) page.
+
+## 13. Changes to this notice
+
+We may update this notice. The version and date appear on this page. If we make an important change, we will tell you by a notice on the site or by email. We will not use data you gave us for a new purpose without telling you, and asking for your consent where the law requires it.

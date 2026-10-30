@@ -1,0 +1,182 @@
+[
+  {
+    "category": "delivery",
+    "question": "Do you deliver to my pincode?",
+    "answerMd": "Enter your pincode on any product page or at checkout and we will tell you straight away whether we can deliver, and what the estimate is. This check happens before you pay.\n\n{{#if settings.serviceability_mode == \"all_india\"}}We deliver across India, wherever our courier partners can reach. A few remote pincodes may not be covered.{{else}}We deliver to selected areas of India. The pincode check shows if yours is covered.{{/if}}",
+    "position": 1
+  },
+  {
+    "category": "delivery",
+    "question": "How long will delivery take?",
+    "answerMd": "Orders are usually processed within {{settings.processing_days}} working days. After dispatch, estimated delivery times are:\n\n- Metro region: {{settings.delivery_estimates_by_zone.metro_region}}\n- Rest of India: {{settings.delivery_estimates_by_zone.rest_of_india}}\n- North East: {{settings.delivery_estimates_by_zone.north_east}}\n- Jammu & Kashmir and Ladakh: {{settings.delivery_estimates_by_zone.jk_ladakh}}\n- Islands: {{settings.delivery_estimates_by_zone.islands}}\n\nThese are estimates, not guarantees. Your exact estimate appears when you enter your pincode. See our [Shipping Policy](/policies/shipping).",
+    "position": 2
+  },
+  {
+    "category": "delivery",
+    "question": "How much is shipping?",
+    "answerMd": "Shipping is {{settings.flat_fee}} per order. It is free on orders of {{settings.free_threshold}} or more, after discounts. You see the shipping fee in your cart before you check out, and prices already include GST. There are no extra charges added after you place your order.",
+    "position": 3
+  },
+  {
+    "category": "delivery",
+    "question": "How do I track my order?",
+    "answerMd": "When your order is handed to the courier, we email you the courier name, tracking number and a link. You can also use our [Track order](/track) page with your order reference and the email or phone number you used at checkout. You do not need an account.",
+    "position": 4
+  },
+  {
+    "category": "delivery",
+    "question": "My order is late. What should I do?",
+    "answerMd": "First check the tracking link in your dispatch email. If there is no update, write to {{settings.support_email}} with your order reference and we will check with the courier. We usually reply within {{settings.response_time}}.\n\n{{#if settings.delay_message}}**Current delivery notice:** {{settings.delay_message}}{{/if}}",
+    "position": 5
+  },
+  {
+    "category": "delivery",
+    "question": "Can I change my delivery address after ordering?",
+    "answerMd": "Contact us as soon as possible at {{settings.support_email}} or through the [Help page](/help), with your order reference. We can change the address only if the order has not yet been handed to the courier.",
+    "position": 6
+  },
+  {
+    "category": "delivery",
+    "question": "What if I am not home when the courier comes?",
+    "answerMd": "The courier will try to deliver {{settings.policy.delivery_attempts}} time(s). Please keep your phone reachable. If delivery fails, the parcel may be sent back to us. See the failed-delivery section of our [Shipping Policy](/policies/shipping).",
+    "position": 7
+  },
+  {
+    "category": "payment",
+    "question": "Which payment methods do you accept?",
+    "answerMd": "You can pay online by UPI, debit or credit card, net banking or wallet. Payments are processed securely by Razorpay.{{#if settings.cod_enabled}} Cash on Delivery is also available for eligible orders.{{/if}}",
+    "position": 1
+  },
+  {
+    "category": "payment",
+    "question": "Is Cash on Delivery available?",
+    "answerMd": "{{#if settings.cod_enabled}}Yes, for eligible orders. COD is not available for every pincode, and it is available for orders up to {{settings.cod_max_order_value}}. COD fee: {{settings.cod_fee}}. Checkout shows if COD is available for your address and order.{{else}}Not right now. You can pay online by UPI, card, net banking or wallet.{{/if}}",
+    "position": 2
+  },
+  {
+    "category": "payment",
+    "question": "Do the prices include GST?",
+    "answerMd": "Yes. All prices on the site are in rupees and include all taxes, including GST. Your cart and checkout show how much GST is included. We never add tax on top.",
+    "position": 3
+  },
+  {
+    "category": "payment",
+    "question": "Is it safe to pay on your site?",
+    "answerMd": "Online payments are handled by Razorpay on their secure payment page. We never see or store your card number, UPI PIN or net-banking details.",
+    "position": 4
+  },
+  {
+    "category": "payment",
+    "question": "My payment failed but money was deducted. What now?",
+    "answerMd": "Please do not pay again straight away. When a payment fails, the money is normally reversed to your account automatically by your bank. This can take {{settings.policy.refund_bank_days}}.\n\nIf you were charged and your order was not confirmed, we also refund the amount to your original payment method. Write to {{settings.support_email}} with your order reference (or payment reference) and we will check. We start any refund within {{settings.policy.refund_initiation_days}} working days.",
+    "position": 5
+  },
+  {
+    "category": "payment",
+    "question": "My coupon code is not working. Why?",
+    "answerMd": "Coupons have rules, for example dates, a minimum order value, or which products they apply to. When you apply a code, the message tells you why it did not work and what to do, for example \"add a little more to your cart\". Only one coupon can be used per order. If the message is unclear, contact {{settings.support_email}} with the code and we will look.",
+    "position": 6
+  },
+  {
+    "category": "payment",
+    "question": "How are refunds paid?",
+    "answerMd": "Prepaid orders are refunded to the same payment method. We start refunds within {{settings.policy.refund_initiation_days}} working days of approval, and your bank may take {{settings.policy.refund_bank_days}} to show it. For Cash on Delivery orders we refund by UPI or bank transfer within {{settings.policy.cod_refund_days}} working days of getting your details. See our [Returns and Refunds Policy](/policies/returns-refunds).",
+    "position": 7
+  },
+  {
+    "category": "payment",
+    "question": "Why does my cart show a hold on items while I pay?",
+    "answerMd": "To stop items selling out while you pay, we hold them for about {{settings.reservation_ttl_minutes}} minutes at checkout. If you do not complete payment in that time, the hold ends. Nothing is charged unless your payment succeeds.",
+    "position": 8
+  },
+  {
+    "category": "product",
+    "question": "What are Hippers?",
+    "answerMd": "{{settings.policy.hippers_definition}}",
+    "position": 1
+  },
+  {
+    "category": "product",
+    "question": "What are vibes?",
+    "answerMd": "Vibes are moods: Cute, Bold, Overthinking, Gothic and Funky. Every product belongs to one or more vibes, so you can shop by how you feel. You can also browse by product type.",
+    "position": 2
+  },
+  {
+    "category": "product",
+    "question": "What does the hand button do?",
+    "answerMd": "The hand button at the top left changes the look of the site to the next vibe. It changes colours, fonts and style only. The products and prices stay exactly the same on every theme. Your choice is remembered on this device.",
+    "position": 3
+  },
+  {
+    "category": "product",
+    "question": "What are the sizes and materials?",
+    "answerMd": "Each product page lists its size and net quantity. Materials: {{settings.policy.materials_note}}\n\nIf you cannot find a detail you need, write to {{settings.support_email}} and tell us the product name.",
+    "position": 4
+  },
+  {
+    "category": "product",
+    "question": "Will the colours look exactly like the photos?",
+    "answerMd": "We try to match the photos as closely as we can, but screens and lighting differ, so colours may look a little different in real life.",
+    "position": 5
+  },
+  {
+    "category": "product",
+    "question": "What is in a DIY kit?",
+    "answerMd": "The product page lists what comes in each kit and the net quantity. A kit is sold as a single item with its own stock. Some parts are small, so keep them away from young children unless the product page says otherwise.",
+    "position": 6
+  },
+  {
+    "category": "product",
+    "question": "Can I save products without an account?",
+    "answerMd": "Yes. Tap the heart on a product and it is saved on this device. If you later sign in, we add your saved items to your account. Clearing your browser data on this device removes the guest list.",
+    "position": 7
+  },
+  {
+    "category": "orders",
+    "question": "Do I need an account to order?",
+    "answerMd": "No. You can check out as a guest. An account is optional. It lets you see past orders, save addresses and keep your wishlist across devices. You sign in with a one-time code sent to your email, so there is no password to remember.",
+    "position": 1
+  },
+  {
+    "category": "orders",
+    "question": "How do I cancel my order?",
+    "answerMd": "Open your order page and choose **Cancel order**, if cancellation is still available. You can cancel while the fulfilment status is: {{settings.cancellable_statuses}}. Otherwise, contact {{settings.support_email}}. Prepaid orders are refunded automatically to the original payment method. See our [Cancellation Policy](/policies/cancellation).",
+    "position": 2
+  },
+  {
+    "category": "orders",
+    "question": "Can I return an item?",
+    "answerMd": "{{#if settings.return_policy_type == \"no_returns\"}}We do not accept returns for change of mind. If an item arrives damaged, defective, wrong or missing, you can report it within {{settings.damaged_claim_window_hours}} hours of delivery and we will refund or replace it. See our [Returns and Refunds Policy](/policies/returns-refunds).{{else}}Yes. You can ask to return an item within {{settings.returns_window_days}} days of delivery, subject to the conditions in our [Returns and Refunds Policy](/policies/returns-refunds). If an item arrives damaged, defective, wrong or missing, use Report a problem within {{settings.damaged_claim_window_hours}} hours of delivery.{{/if}}",
+    "position": 3
+  },
+  {
+    "category": "orders",
+    "question": "My item arrived damaged or wrong. What do I do?",
+    "answerMd": "Use **Report a problem** on your order page within {{settings.damaged_claim_window_hours}} hours of delivery. Add your order reference and clear photos of the parcel, the label and the item. We reply within {{settings.response_time}} and offer a refund or a replacement. Your legal rights do not end after this window, so contact us even if you notice a problem later.",
+    "position": 4
+  },
+  {
+    "category": "orders",
+    "question": "How do I download my invoice?",
+    "answerMd": "Open your order page and choose **Download invoice**. A copy is also attached to your order confirmation email. {{#if settings.gstin}}Our invoices are tax invoices that show our GSTIN.{{else}}Our invoices are bills of supply.{{/if}}",
+    "position": 5
+  },
+  {
+    "category": "orders",
+    "question": "I did not get an order confirmation email.",
+    "answerMd": "Check your spam or promotions folder. Then try our [Track order](/track) page with your order reference or the email you used. If you still cannot find it, contact {{settings.support_email}} and we will resend it.",
+    "position": 6
+  },
+  {
+    "category": "orders",
+    "question": "How do I contact support?",
+    "answerMd": "Use the contact form on the [Help page](/help), email {{settings.support_email}} or call {{settings.support_phone}} ({{settings.support_hours}}). Please include your order reference. We usually reply within {{settings.response_time}}.",
+    "position": 7
+  },
+  {
+    "category": "orders",
+    "question": "How do I delete my account or my data?",
+    "answerMd": "If you have an account, go to your account settings to export your data or delete your account. You can also email {{settings.grievance_officer.email}} with the subject \"Privacy request\". See our [Privacy Notice](/policies/privacy).",
+    "position": 8
+  }
+]
