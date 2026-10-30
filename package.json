@@ -18,7 +18,9 @@
     "db:seed": "tsx --conditions=react-server scripts/seed.ts",
     "contrast": "tsx scripts/contrast-check.ts",
     "test:integration": "vitest run --project integration",
-    "db:import-reference": "tsx --conditions=react-server scripts/import-reference.ts"
+    "db:import-reference": "tsx --conditions=react-server scripts/import-reference.ts",
+    "db:seed-products": "tsx --conditions=react-server scripts/seed-products.ts",
+    "storage:setup": "tsx --conditions=react-server scripts/setup-storage.ts"
   },
   "dependencies": {
     "better-auth": "^1.7.14",
