@@ -1,2 +1,12 @@
-// Schema tables are added in Phase 3+. Re-export each schema module from here.
-export {};
+export * from "./auth";
+export * from "./reference";
+export * from "./catalog";
+export * from "./orders";
+export * from "./inventory";
+export * from "./customers";
+export * from "./cart";
+export * from "./payments";
+export * from "./promotions";
+export * from "./content";
+export * from "./ops";
+export * from "./analytics";

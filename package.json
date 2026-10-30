@@ -9,14 +9,16 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
     "e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx scripts/seed.ts",
-    "contrast": "tsx scripts/contrast-check.ts"
+    "db:seed": "tsx --conditions=react-server scripts/seed.ts",
+    "contrast": "tsx scripts/contrast-check.ts",
+    "test:integration": "vitest run --project integration",
+    "db:import-reference": "tsx --conditions=react-server scripts/import-reference.ts"
   },
   "dependencies": {
     "better-auth": "^1.7.14",

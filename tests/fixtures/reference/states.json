@@ -1,0 +1,5 @@
+[
+  { "name": "Delhi", "code": "07", "iso": "IN-DL", "type": "ut" },
+  { "name": "Karnataka", "code": "29", "iso": "IN-KA", "type": "state" },
+  { "name": "Maharashtra", "code": "27", "iso": "IN-MH", "type": "state" }
+]

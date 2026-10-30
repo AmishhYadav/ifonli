@@ -1,0 +1,534 @@
+import { z } from "zod";
+
+/**
+ * Pure settings registry (plan section 14): one definition per business-rule key, with a Zod
+ * schema, a clearly fake placeholder, and a launch gate flag. No DB or server-only imports so it
+ * can be unit-tested and reused by admin forms.
+ *
+ * Conventions
+ *  - Money values are integer paise; durations carry their unit in the key or description.
+ *  - Every owner-supplied value ships with a placeholder and is stored with `isPlaceholder: true`.
+ *    Placeholder strings start with "PLACEHOLDER" so they are obvious in any UI or email.
+ *  - Placeholders always satisfy their own schema, so reads never fail on a fresh database.
+ *  - `locked` settings cannot be changed (legal / product decisions); `confirmed` ones are seeded
+ *    with `isPlaceholder: false` because the owner already decided them.
+ */
+
+export const SETTING_GROUPS = [
+  "store",
+  "pricing",
+  "shipping",
+  "cod",
+  "inventory",
+  "returns",
+  "accounts",
+  "vibes",
+  "notifications",
+  "analytics",
+] as const;
+export type SettingGroup = (typeof SETTING_GROUPS)[number];
+
+export interface SettingDefinition<S extends z.ZodType = z.ZodType> {
+  key: string;
+  group: SettingGroup;
+  label: string;
+  description: string;
+  schema: S;
+  /** Obviously-fake starting value, valid under `schema`. */
+  placeholder: z.input<S>;
+  /** Production refuses orders while a required setting is still a placeholder. */
+  requiredForLaunch: boolean;
+  /** Not editable (decided and fixed). */
+  locked?: true;
+  /** Owner already decided the value: seeded as non-placeholder. */
+  confirmed?: true;
+}
+
+function define<S extends z.ZodType>(
+  key: string,
+  def: Omit<SettingDefinition<S>, "key">,
+): SettingDefinition<S> & { key: string } {
+  return { key, ...def };
+}
+
+const PH = "PLACEHOLDER";
+const nonEmpty = z.string().trim().min(1);
+const paise = z.number().int().nonnegative();
+const PLACEHOLDER_EMAIL = "placeholder@example.invalid";
+
+// Shipping zones come from data/reference/zones.json.
+export const SHIPPING_ZONES = [
+  "metro_region",
+  "rest_of_india",
+  "north_east",
+  "jk_ladakh",
+  "islands",
+] as const;
+const zoneSchema = z.enum(SHIPPING_ZONES);
+
+export const FULFILLMENT_STATUSES = [
+  "unfulfilled",
+  "packed",
+  "shipped",
+  "out_for_delivery",
+  "delivered",
+  "rto",
+  "returned",
+] as const;
+
+export const NOTIFICATION_EVENTS = [
+  "order_confirmed",
+  "cod_order_placed",
+  "payment_failed",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "refund_initiated",
+  "refund_processed",
+  "support_case_update",
+  "contact_ack",
+] as const;
+
+const channelFlags = z.object({ email: z.boolean(), whatsapp: z.boolean() });
+const GSTIN = /^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+
+export const SETTINGS = {
+  // ---------------------------------------------------------------- Store / legal
+  legal_name: define("legal_name", {
+    group: "store",
+    label: "Legal entity name",
+    description: "Registered legal name shown in the footer, invoices and policy pages.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Legal entity name`,
+    requiredForLaunch: true,
+  }),
+  brand_name: define("brand_name", {
+    group: "store",
+    label: "Brand name",
+    description: "Customer-facing brand name.",
+    schema: nonEmpty,
+    placeholder: "IfOnli",
+    requiredForLaunch: false,
+  }),
+  registered_address: define("registered_address", {
+    group: "store",
+    label: "Registered address",
+    description: "Registered office address (E-Commerce Rules 2020).",
+    schema: nonEmpty,
+    placeholder: `${PH} — Registered address`,
+    requiredForLaunch: true,
+  }),
+  state: define("state", {
+    group: "store",
+    label: "Business state (place of supply)",
+    description:
+      "Indian state/UT name of the seller; decides CGST+SGST versus IGST. Must match a name in `states`.",
+    schema: nonEmpty,
+    placeholder: `${PH} — State`,
+    requiredForLaunch: true,
+  }),
+  gstin: define("gstin", {
+    group: "store",
+    label: "GSTIN",
+    description: "Leave empty if not GST-registered; invoices become 'Bill of supply'.",
+    schema: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(GSTIN, "Not a valid 15-character GSTIN")
+      .nullable(),
+    placeholder: null,
+    requiredForLaunch: false,
+  }),
+  support_email: define("support_email", {
+    group: "store",
+    label: "Customer-care email",
+    description: "Shown on every page footer and in emails.",
+    schema: z.email(),
+    placeholder: PLACEHOLDER_EMAIL,
+    requiredForLaunch: true,
+  }),
+  support_phone: define("support_phone", {
+    group: "store",
+    label: "Customer-care phone",
+    description: "Customer-care phone number (E-Commerce Rules 2020).",
+    schema: nonEmpty,
+    placeholder: `${PH} — Phone number`,
+    requiredForLaunch: true,
+  }),
+  support_hours: define("support_hours", {
+    group: "store",
+    label: "Support hours",
+    description: "e.g. 'Mon–Sat, 10:00–18:00 IST'.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Support hours`,
+    requiredForLaunch: true,
+  }),
+  response_time: define("response_time", {
+    group: "store",
+    label: "Response time promise",
+    description: "Shown on the Help page, e.g. 'within 24 hours'.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Response time`,
+    requiredForLaunch: true,
+  }),
+  grievance_officer: define("grievance_officer", {
+    group: "store",
+    label: "Grievance officer",
+    description: "Name, designation and contact; mandatory under the E-Commerce Rules 2020.",
+    schema: z.object({ name: nonEmpty, designation: nonEmpty, email: z.email(), phone: nonEmpty }),
+    placeholder: {
+      name: `${PH} — Officer name`,
+      designation: `${PH} — Designation`,
+      email: PLACEHOLDER_EMAIL,
+      phone: `${PH} — Phone number`,
+    },
+    requiredForLaunch: true,
+  }),
+  default_manufacturer: define("default_manufacturer", {
+    group: "store",
+    label: "Default manufacturer / packer / importer",
+    description: "Legal Metrology default; products may override.",
+    schema: z.object({ name: nonEmpty, address: nonEmpty }),
+    placeholder: { name: `${PH} — Manufacturer name`, address: `${PH} — Manufacturer address` },
+    requiredForLaunch: true,
+  }),
+  default_country_of_origin: define("default_country_of_origin", {
+    group: "store",
+    label: "Default country of origin",
+    description: "Used when a product does not set its own.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Country of origin`,
+    requiredForLaunch: true,
+  }),
+
+  // ---------------------------------------------------------------- Pricing / tax
+  prices_include_gst: define("prices_include_gst", {
+    group: "pricing",
+    label: "Prices include GST",
+    description: "Locked true: B2C prices must be shown inclusive of all taxes (Legal Metrology).",
+    schema: z.literal(true),
+    placeholder: true,
+    requiredForLaunch: false,
+    locked: true,
+    confirmed: true,
+  }),
+  default_gst_rate_bp: define("default_gst_rate_bp", {
+    group: "pricing",
+    label: "Default GST rate (basis points)",
+    description: "Used when a product has no rate. 1800 = 18%. Set by the owner's CA.",
+    schema: z.number().int().min(0).max(10000),
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  shipping_tax_rule: define("shipping_tax_rule", {
+    group: "pricing",
+    label: "Shipping / COD fee tax rule",
+    description: "How GST on shipping and COD fees is computed. CA to confirm.",
+    schema: z.enum(["dominant_line_rate", "exempt", "default_rate"]),
+    placeholder: "dominant_line_rate",
+    requiredForLaunch: true,
+  }),
+
+  // ---------------------------------------------------------------- Shipping
+  serviceability_mode: define("serviceability_mode", {
+    group: "shipping",
+    label: "Serviceability mode",
+    description:
+      "all_india: every pincode with serviceable=true; allowlist/denylist: managed pincode lists.",
+    schema: z.enum(["all_india", "allowlist", "denylist"]),
+    placeholder: "all_india",
+    requiredForLaunch: true,
+  }),
+  flat_fee: define("flat_fee", {
+    group: "shipping",
+    label: "Flat shipping fee (paise)",
+    description: "Charged when the discounted subtotal is below the free-shipping threshold.",
+    schema: paise,
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  free_threshold: define("free_threshold", {
+    group: "shipping",
+    label: "Free-shipping threshold (paise)",
+    description: "Discounted subtotal at or above which shipping is free. 0 = always free.",
+    schema: paise,
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  zone_overrides: define("zone_overrides", {
+    group: "shipping",
+    label: "Per-zone shipping fee overrides (paise)",
+    description: "Optional fee per shipping zone, replacing the flat fee.",
+    schema: z.partialRecord(zoneSchema, paise),
+    placeholder: {},
+    requiredForLaunch: false,
+  }),
+  processing_days: define("processing_days", {
+    group: "shipping",
+    label: "Processing time (days)",
+    description: "Days from order to dispatch.",
+    schema: z.number().int().min(0).max(60),
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  delivery_estimates_by_zone: define("delivery_estimates_by_zone", {
+    group: "shipping",
+    label: "Delivery estimates by zone (days)",
+    description: "Transit-time range per zone, shown on the PDP and in checkout.",
+    schema: z.partialRecord(
+      zoneSchema,
+      z
+        .object({ minDays: z.number().int().min(0), maxDays: z.number().int().min(0) })
+        .refine((v) => v.maxDays >= v.minDays, {
+          message: "maxDays must be >= minDays",
+        }),
+    ),
+    placeholder: {},
+    requiredForLaunch: true,
+  }),
+  delay_message: define("delay_message", {
+    group: "shipping",
+    label: "Delay banner message",
+    description: "Optional notice shown on product and cart pages during delays. Empty = hidden.",
+    schema: z.string().trim(),
+    placeholder: "",
+    requiredForLaunch: false,
+  }),
+
+  // ---------------------------------------------------------------- COD
+  cod_enabled: define("cod_enabled", {
+    group: "cod",
+    label: "Cash on delivery enabled",
+    description: "Master COD switch.",
+    schema: z.boolean(),
+    placeholder: false,
+    requiredForLaunch: true,
+  }),
+  cod_fee: define("cod_fee", {
+    group: "cod",
+    label: "COD fee (paise)",
+    description: "Added to COD orders as its own line. 0 = no fee.",
+    schema: paise,
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  cod_max_order_value: define("cod_max_order_value", {
+    group: "cod",
+    label: "COD maximum order value (paise)",
+    description: "Orders above this cannot use COD. 0 = no COD.",
+    schema: paise,
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  cod_excluded_pincodes: define("cod_excluded_pincodes", {
+    group: "cod",
+    label: "COD-excluded pincodes",
+    description: "Pincodes where COD is never offered, on top of the per-pincode flag.",
+    schema: z.array(z.string().regex(/^\d{6}$/)),
+    placeholder: [],
+    requiredForLaunch: false,
+  }),
+
+  // ---------------------------------------------------------------- Inventory
+  reservation_ttl_minutes: define("reservation_ttl_minutes", {
+    group: "inventory",
+    label: "Stock reservation window (minutes)",
+    description: "How long prepaid checkout holds stock while payment is pending.",
+    schema: z.number().int().min(1).max(1440),
+    placeholder: 15,
+    requiredForLaunch: true,
+  }),
+  backorders: define("backorders", {
+    group: "inventory",
+    label: "Allow backorders",
+    description: "Locked false: sold-out items cannot be bought (FR-06).",
+    schema: z.literal(false),
+    placeholder: false,
+    requiredForLaunch: false,
+    locked: true,
+    confirmed: true,
+  }),
+  default_low_stock_threshold: define("default_low_stock_threshold", {
+    group: "inventory",
+    label: "Default low-stock threshold",
+    description:
+      "Variants without their own threshold use this. Low-stock badges only show from real stock.",
+    schema: z.number().int().min(0),
+    placeholder: 5,
+    requiredForLaunch: true,
+  }),
+  max_qty_per_line: define("max_qty_per_line", {
+    group: "inventory",
+    label: "Max quantity per cart line",
+    description: "Hard cap on a single line's quantity.",
+    schema: z.number().int().min(1).max(999),
+    placeholder: 10,
+    requiredForLaunch: true,
+  }),
+
+  // ---------------------------------------------------------------- Cancellation / returns
+  cancellable_statuses: define("cancellable_statuses", {
+    group: "returns",
+    label: "Cancellable fulfilment statuses",
+    description: "Customers may cancel while the order's fulfilment status is one of these.",
+    schema: z.array(z.enum(FULFILLMENT_STATUSES)),
+    placeholder: ["unfulfilled"],
+    requiredForLaunch: true,
+  }),
+  return_policy_type: define("return_policy_type", {
+    group: "returns",
+    label: "Return policy type",
+    description:
+      "no_returns or returns_window. Statutory rights for damaged/wrong goods always apply.",
+    schema: z.enum(["no_returns", "returns_window"]),
+    placeholder: "no_returns",
+    requiredForLaunch: true,
+  }),
+  returns_window_days: define("returns_window_days", {
+    group: "returns",
+    label: "Returns window (days)",
+    description: "Only used when the policy type is returns_window.",
+    schema: z.number().int().min(0).max(365),
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  damaged_claim_window_hours: define("damaged_claim_window_hours", {
+    group: "returns",
+    label: "Damaged-goods claim window (hours)",
+    description: "How long after delivery a customer can report a damaged/defective/wrong item.",
+    schema: z
+      .number()
+      .int()
+      .min(0)
+      .max(24 * 365),
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+
+  // ---------------------------------------------------------------- Accounts
+  guest_checkout_enabled: define("guest_checkout_enabled", {
+    group: "accounts",
+    label: "Guest checkout enabled",
+    description: "Owner decision: guests can check out without an account.",
+    schema: z.boolean(),
+    placeholder: true,
+    requiredForLaunch: false,
+    confirmed: true,
+  }),
+  login_methods: define("login_methods", {
+    group: "accounts",
+    label: "Customer login methods",
+    description: "Passwordless email OTP at launch.",
+    schema: z.array(z.enum(["email_otp"])).min(1),
+    placeholder: ["email_otp"],
+    requiredForLaunch: false,
+  }),
+
+  // ---------------------------------------------------------------- Vibes
+  vibe_cycle: define("vibe_cycle", {
+    group: "vibes",
+    label: "Hand-button vibe order",
+    description: "Ordered list of vibe slugs the hand button cycles through. Wraps at the end.",
+    schema: z.array(nonEmpty).min(1),
+    placeholder: ["cute", "bold", "overthinking", "gothic", "funky"],
+    requiredForLaunch: true,
+  }),
+  default_vibe: define("default_vibe", {
+    group: "vibes",
+    label: "Default vibe",
+    description: "A vibe slug, or 'random'.",
+    schema: nonEmpty,
+    placeholder: "cute",
+    requiredForLaunch: true,
+  }),
+  hero_enabled: define("hero_enabled", {
+    group: "vibes",
+    label: "Animated hero enabled",
+    description: "When off, only the static poster hero is shown.",
+    schema: z.boolean(),
+    placeholder: true,
+    requiredForLaunch: false,
+  }),
+  custom_cursor_enabled: define("custom_cursor_enabled", {
+    group: "vibes",
+    label: "Custom cursors enabled",
+    description: "Per-vibe cursors (never on touch or reduced motion).",
+    schema: z.boolean(),
+    placeholder: false,
+    requiredForLaunch: false,
+  }),
+
+  // ---------------------------------------------------------------- Notifications
+  notification_channels: define("notification_channels", {
+    group: "notifications",
+    label: "Notification channels per event",
+    description: "Which channel(s) each customer event uses. Email is required at launch.",
+    schema: z.object(
+      Object.fromEntries(NOTIFICATION_EVENTS.map((e) => [e, channelFlags])) as Record<
+        (typeof NOTIFICATION_EVENTS)[number],
+        typeof channelFlags
+      >,
+    ),
+    placeholder: Object.fromEntries(
+      NOTIFICATION_EVENTS.map((e) => [e, { email: true, whatsapp: false }]),
+    ) as Record<(typeof NOTIFICATION_EVENTS)[number], { email: boolean; whatsapp: boolean }>,
+    requiredForLaunch: false,
+  }),
+  admin_alert_emails: define("admin_alert_emails", {
+    group: "notifications",
+    label: "Admin alert emails",
+    description: "Recipients of new-order, low-stock and payment-anomaly alerts.",
+    schema: z.array(z.email()).min(1),
+    placeholder: [PLACEHOLDER_EMAIL],
+    requiredForLaunch: true,
+  }),
+
+  // ---------------------------------------------------------------- Analytics
+  ga4_measurement_id: define("ga4_measurement_id", {
+    group: "analytics",
+    label: "GA4 measurement ID",
+    description: "Optional. Loads only after consent.",
+    schema: z
+      .string()
+      .trim()
+      .regex(/^G-[A-Z0-9]+$/)
+      .nullable(),
+    placeholder: null,
+    requiredForLaunch: false,
+  }),
+  consent_required: define("consent_required", {
+    group: "analytics",
+    label: "Analytics consent banner",
+    description: "Show the consent banner before loading GA4.",
+    schema: z.boolean(),
+    placeholder: true,
+    requiredForLaunch: false,
+  }),
+  event_retention_months: define("event_retention_months", {
+    group: "analytics",
+    label: "Raw event retention (months)",
+    description: "Raw analytics events are deleted after this long.",
+    schema: z.number().int().min(1).max(60),
+    placeholder: 13,
+    requiredForLaunch: false,
+  }),
+} as const;
+
+export type SettingKey = keyof typeof SETTINGS;
+export type SettingValue<K extends SettingKey> = z.output<(typeof SETTINGS)[K]["schema"]>;
+export type SettingInput<K extends SettingKey> = z.input<(typeof SETTINGS)[K]["schema"]>;
+
+export const SETTING_KEYS = Object.keys(SETTINGS) as SettingKey[];
+
+export function isSettingKey(key: string): key is SettingKey {
+  return Object.prototype.hasOwnProperty.call(SETTINGS, key);
+}
+
+export function getDefinition<K extends SettingKey>(key: K): (typeof SETTINGS)[K] {
+  return SETTINGS[key];
+}
+
+export function settingsInGroup(group: SettingGroup): SettingKey[] {
+  return SETTING_KEYS.filter((k) => SETTINGS[k].group === group);
+}

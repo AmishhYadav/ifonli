@@ -1,0 +1,5 @@
+{
+  "_PLACEHOLDER": "Test fixture only.",
+  "zones": ["metro_region", "rest_of_india"],
+  "stateZones": { "Delhi": "metro_region", "Karnataka": "metro_region", "Maharashtra": "rest_of_india" }
+}
