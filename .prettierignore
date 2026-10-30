@@ -10,3 +10,4 @@ pnpm-lock.yaml
 supabase/.temp
 *.pdf
 docs/PLAN.md
+src/styles/tokens

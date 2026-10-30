@@ -1,0 +1,215 @@
+/*
+ * Vibe runtime styles: base element styles, the texture layer, copy-variant visibility, the hand glyph,
+ * icon tokens, view transition and reduced motion. All values come from tokens (src/styles/tokens).
+ */
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--bg);
+    color: var(--ink);
+    min-height: 100dvh;
+    cursor: var(--cursor);
+  }
+
+  [data-vibe],
+  [data-vibe-scope] {
+    cursor: var(--cursor);
+  }
+
+  /* Any element carrying data-vibe is a local re-skin (VibeScope). */
+  [data-vibe]:not(:root) {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--bg);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    font-stretch: var(--display-stretch);
+  }
+
+  a:where(:not([class])) {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  a,
+  button,
+  summary,
+  [role="button"],
+  label[for] {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Texture layer: a mask painted with --texture-ink. Fixed behind the whole page, absolute inside a scope. */
+body::before,
+[data-vibe]:not(:root)::before {
+  content: "";
+  pointer-events: none;
+  background-color: var(--texture-ink);
+  opacity: var(--texture-opacity);
+  -webkit-mask-image: var(--texture-url);
+  mask-image: var(--texture-url);
+  -webkit-mask-size: var(--texture-size);
+  mask-size: var(--texture-size);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+}
+
+[data-vibe]:not(:root)::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+/* Buy pages take palette only: no texture. */
+body:has(main[data-vibe-scope="buy"])::before {
+  display: none;
+}
+
+/*
+ * Copy variants (VibeText) and hand/name variants: every variant is in the DOM, the nearest [data-vibe]
+ * decides which one has a box. --dv-* flags are generated per vibe in tokens/*.css.
+ * Unlayered on purpose: utility classes must not be able to un-hide an inactive variant.
+ */
+[data-v="cute"] {
+  display: var(--dv-cute, none);
+}
+[data-v="bold"] {
+  display: var(--dv-bold, none);
+}
+[data-v="overthinking"] {
+  display: var(--dv-overthinking, none);
+}
+[data-v="gothic"] {
+  display: var(--dv-gothic, none);
+}
+[data-v="funky"] {
+  display: var(--dv-funky, none);
+}
+
+/* Hand glyphs are CSS masks so they take currentColor. Art: /public/vibe/hands/{vibe}.svg */
+.vibe-hand {
+  display: inline-block;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  background-color: currentColor;
+  scale: var(--hand-scale);
+  transform-origin: 50% 90%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.vibe-hand[data-hand="cute"] {
+  -webkit-mask-image: url("/vibe/hands/cute.svg");
+  mask-image: url("/vibe/hands/cute.svg");
+}
+.vibe-hand[data-hand="bold"] {
+  -webkit-mask-image: url("/vibe/hands/bold.svg");
+  mask-image: url("/vibe/hands/bold.svg");
+}
+.vibe-hand[data-hand="overthinking"] {
+  -webkit-mask-image: url("/vibe/hands/overthinking.svg");
+  mask-image: url("/vibe/hands/overthinking.svg");
+}
+.vibe-hand[data-hand="gothic"] {
+  -webkit-mask-image: url("/vibe/hands/gothic.svg");
+  mask-image: url("/vibe/hands/gothic.svg");
+}
+.vibe-hand[data-hand="funky"] {
+  -webkit-mask-image: url("/vibe/hands/funky.svg");
+  mask-image: url("/vibe/hands/funky.svg");
+}
+
+@keyframes vibe-flick {
+  0% {
+    rotate: 0deg;
+  }
+  25% {
+    rotate: -18deg;
+  }
+  65% {
+    rotate: 8deg;
+  }
+  100% {
+    rotate: 0deg;
+  }
+}
+[data-flick="1"] .vibe-hand {
+  animation: vibe-flick 250ms var(--motion-ease) 1;
+}
+
+/* Icons (sprite at /icons/sprite.svg): stroke geometry comes from tokens. */
+.icon {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke);
+  stroke-linecap: var(--icon-linecap);
+  stroke-linejoin: var(--icon-linejoin);
+  filter: var(--icon-filter);
+}
+
+/* Vibe switch cross-fade (document.startViewTransition in HandButton). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 250ms;
+  animation-timing-function: var(--motion-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

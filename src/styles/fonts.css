@@ -1,0 +1,130 @@
+/* Self-hosted fonts (SIL OFL 1.1, see /public/fonts/LICENSES). Latin subset woff2.
+   Only the font a rendered element actually uses is downloaded; display fonts are per vibe. */
+
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/fonts/figtree-wght400-800-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 500 700;
+  font-stretch: 100%;
+  font-display: swap;
+  src: url("/fonts/fredoka-wght500-700-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Archivo";
+  font-style: normal;
+  font-weight: 900;
+  font-stretch: 125%;
+  font-display: swap;
+  src: url("/fonts/archivo-wdth125-wght900-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Kalam";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/kalam-wght700-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Grenze Gotisch";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/grenze-gotisch-wght700-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Shrikhand";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/shrikhand-wght400-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Metric-matched fallbacks (Arial based) so the swap from fallback to web font causes no layout shift. */
+
+@font-face {
+  font-family: "Figtree Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica");
+  size-adjust: 102.61%;
+  ascent-override: 92.58%;
+  descent-override: 24.36%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Fredoka Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica");
+  size-adjust: 103.39%;
+  ascent-override: 94.21%;
+  descent-override: 22.83%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Archivo Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica");
+  size-adjust: 146.51%;
+  ascent-override: 59.93%;
+  descent-override: 14.33%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Kalam Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica");
+  size-adjust: 102.67%;
+  ascent-override: 103.54%;
+  descent-override: 51.72%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Grenze Gotisch Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica");
+  size-adjust: 85.18%;
+  ascent-override: 129.14%;
+  descent-override: 44.61%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Shrikhand Fallback";
+  src: local("Arial"), local("ArialMT"), local("Helvetica");
+  size-adjust: 120.84%;
+  ascent-override: 84.9%;
+  descent-override: 35.75%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --font-body: "Figtree", "Figtree Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
+}

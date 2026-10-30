@@ -1,1 +1,78 @@
 @import "tailwindcss";
+
+@import "../styles/fonts.css";
+@import "../styles/tokens/base.css";
+@import "../styles/tokens/cute.css";
+@import "../styles/tokens/bold.css";
+@import "../styles/tokens/overthinking.css";
+@import "../styles/tokens/gothic.css";
+@import "../styles/tokens/funky.css";
+/* buy.css must come after every vibe file (see scripts/build-tokens.ts). */
+@import "../styles/tokens/buy.css";
+@import "../styles/vibe.css";
+
+/* Colour tokens become Tailwind utilities: bg-bg, bg-surface, text-ink, border-border, ring-focus-ring ... */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-border: var(--border);
+  --color-focus-ring: var(--focus-ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-price: var(--price);
+  --color-sale: var(--sale);
+  --color-link: var(--link);
+  --color-texture-ink: var(--texture-ink);
+}
+
+/*
+ * Non-colour tokens as utilities. Defined with @utility (not @theme) because the CSS variable names
+ * intentionally match the token names (--radius-card, --font-display) and a self-referencing theme
+ * variable would be a cycle.
+ */
+@utility rounded-card {
+  border-radius: var(--radius-card);
+}
+@utility rounded-button {
+  border-radius: var(--radius-button);
+}
+@utility rounded-input {
+  border-radius: var(--radius-input);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility shadow-button {
+  box-shadow: var(--shadow-button);
+}
+@utility border-token {
+  border-style: solid;
+  border-width: var(--border-w);
+  border-color: var(--border);
+}
+@utility font-body {
+  font-family: var(--font-body);
+}
+/* Display font + its weight, tracking and stretch travel together. */
+@utility font-display {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-stretch: var(--display-stretch);
+}
+/* Large display headings only (Funky warps them with an SVG filter; keep text >= 32px). */
+@utility display-fx {
+  filter: var(--display-filter);
+}
+@utility ease-vibe {
+  transition-timing-function: var(--motion-ease);
+  transition-duration: var(--motion-dur);
+}
