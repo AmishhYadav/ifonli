@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+build
+coverage
+test-results
+playwright-report
+drizzle
+pnpm-lock.yaml
+supabase/.temp
+*.pdf
+docs/PLAN.md
