@@ -79,3 +79,9 @@ Status values:
 | D-DOM-8 | Odd paisa in CGST/SGST split | Goes to SGST |
 | D-DOM-9 | Delivery estimate days | Working days from today's IST date; Saturdays count, Sundays skipped |
 | D-DOM-10 | Invoice number | `IFO/YY-YY/NNNNNN` (16 chars = GST max), FY flips at 00:00 IST 1 April |
+
+## Auth decision (2026-10-30, plan-resolved/reversible)
+
+| ID | Decision | Resolution |
+|---|---|---|
+| D-AUTH-1 | Mandatory admin TOTP vs email-OTP login | Better Auth's twoFactor hook does not fire on `/sign-in/email-otp`. **Admins (owner/admin/fulfilment) sign in with email + password + TOTP** (native Better Auth credential flow with 2FA); **customers use passwordless email OTP**. Enable `emailAndPassword` but reject credential sign-in for `customer` role and reject email-OTP sign-in for admin roles. Phase 3 admin gate additionally checks `twoFactorEnabled` and forces TOTP enrolment on first admin login. |
