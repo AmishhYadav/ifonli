@@ -28,7 +28,11 @@ export function StatCard({
       >
         {value}
       </p>
-      {hint ? <p className="mt-1 text-xs text-admin-ink-muted">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-1 text-xs text-admin-ink-muted" data-visual-mask>
+          {hint}
+        </p>
+      ) : null}
     </Card>
   );
   return href ? (

@@ -121,7 +121,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   <div className="min-w-0">
                     <Link
                       href={`/types/${product.type.slug}`}
-                      className="inline-flex min-h-8 items-center text-sm font-bold tracking-wide text-ink-muted uppercase underline-offset-4 hover:underline"
+                      className="inline-flex min-h-11 items-center text-sm font-bold tracking-wide md:min-h-8 text-ink-muted uppercase underline-offset-4 hover:underline"
                     >
                       {product.type.name}
                     </Link>

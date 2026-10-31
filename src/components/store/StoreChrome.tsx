@@ -21,7 +21,7 @@ export function StoreChrome({ children }: { children: ReactNode }) {
       </a>
       <AnnouncementBar />
       <Header />
-      <main id="main" className="min-h-[60dvh]">
+      <main id="main" tabIndex={-1} className="min-h-[60dvh] focus:outline-none">
         {children}
       </main>
       <Footer />

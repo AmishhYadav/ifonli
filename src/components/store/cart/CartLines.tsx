@@ -71,7 +71,7 @@ export function CartLines({ cart, onQuantity, onRemove, layout }: CartLinesProps
                 <div className="min-w-0">
                   <Link
                     href={`/products/${line.productSlug}`}
-                    className="block text-base leading-snug font-semibold text-ink underline-offset-4 hover:underline"
+                    className="-my-3 block py-3 text-base leading-snug font-semibold text-ink underline-offset-4 hover:underline"
                     data-testid="cart-line-name"
                   >
                     {line.productName}

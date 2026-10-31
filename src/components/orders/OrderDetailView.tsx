@@ -210,7 +210,7 @@ export function OrderDetailView({ order, extras, access, signedIn }: OrderDetail
                 ))}
               </address>
               {extras.delivery ? (
-                <p className="mt-2 flex items-start gap-2 text-sm text-ink-muted">
+                <p className="mt-2 flex items-start gap-2 text-sm text-ink-muted" data-visual-mask>
                   <Icon name="truck" className="mt-0.5 size-4 flex-none" />
                   Estimated delivery {formatDateRange(extras.delivery.fromDate, extras.delivery.toDate)}
                 </p>

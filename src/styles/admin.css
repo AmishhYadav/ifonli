@@ -15,7 +15,7 @@
   --admin-border-strong: oklch(0.84 0.01 260);
   --admin-ink: oklch(0.21 0.02 265);
   --admin-ink-muted: oklch(0.5 0.02 265);
-  --admin-ink-faint: oklch(0.64 0.015 265);
+  --admin-ink-faint: oklch(0.53 0.015 265); /* >= 4.5:1 on white and --admin-bg: it carries real text (times, counts) */
 
   --admin-primary: oklch(0.43 0.17 278);
   --admin-primary-hover: oklch(0.38 0.17 278);

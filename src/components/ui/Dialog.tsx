@@ -6,6 +6,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 import { IconButton } from "./Button";
+import { useFocusReturn } from "./focus-return";
 import { ScopeProvider, useOverlayScope } from "./ScopeSentinel";
 
 /** Modal dialog root. Also records the surrounding vibe / Buy scope so the portalled content keeps it. */
@@ -47,14 +48,18 @@ export function DialogContent({
   hideClose,
   className,
   children,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
   ...rest
 }: DialogContentProps) {
   const scope = useOverlayScope();
+  const focus = useFocusReturn(onOpenAutoFocus, onCloseAutoFocus);
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="ui-overlay" />
       <DialogPrimitive.Content
         {...scope}
+        {...focus}
         {...(description ? {} : { "aria-describedby": rest["aria-describedby"] })}
         className={cn(
           "ui-dialog flex max-h-[min(85dvh,44rem)] w-[calc(100vw-2rem)] max-w-lg flex-col rounded-card border-token bg-surface text-ink shadow-card",

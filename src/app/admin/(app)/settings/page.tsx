@@ -109,7 +109,7 @@ export default async function SettingsPage({
             ))}
           </ul>
         </nav>
-        <div className="min-w-0">
+        <div className="min-w-0" data-visual-mask>
           {group === null ? (
             <LaunchPanel readiness={readiness} />
           ) : (

@@ -19,7 +19,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
                 </span>
               ) : (
                 <>
-                  <Link href={crumb.path} className="inline-flex min-h-8 items-center underline underline-offset-4 hover:no-underline">
+                  <Link href={crumb.path} className="inline-flex min-h-11 items-center underline underline-offset-4 hover:no-underline max-md:min-w-11 max-md:justify-center md:min-h-8">
                     {crumb.name}
                   </Link>
                   <Icon name="chevron-right" className="size-3.5" />

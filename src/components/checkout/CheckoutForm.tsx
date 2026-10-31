@@ -600,7 +600,7 @@ export function CheckoutForm({
               <Icon name="truck" className="mt-0.5 size-6 flex-none" />
               <div className="min-w-0 flex-1">
                 <p className="text-base font-semibold">Standard delivery</p>
-                <p className="text-sm text-ink-muted">
+                <p className="text-sm text-ink-muted" data-visual-mask>
                   {delivery
                     ? `Estimated delivery ${formatDateRange(delivery.fromDate, delivery.toDate)}`
                     : "We'll confirm the delivery date once your order is placed."}
@@ -694,7 +694,7 @@ export function CheckoutForm({
         />
 
         <p className="-mt-2 text-sm">
-          <Link href="/cart" className="text-link underline underline-offset-4 hover:no-underline">
+          <Link href="/cart" className="inline-flex min-h-11 items-center text-link underline underline-offset-4 hover:no-underline">
             Edit your cart
           </Link>
         </p>

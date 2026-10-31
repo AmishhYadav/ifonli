@@ -47,7 +47,7 @@ export async function Footer() {
           <ul className="flex flex-wrap gap-x-4">
             {collections.vibes.map((v) => (
               <li key={v.slug}>
-                <Link href={`/vibes/${v.slug}`} className={linkClass}>
+                <Link href={`/vibes/${v.slug}`} className={`${linkClass} min-w-11 justify-center`}>
                   {v.name}
                 </Link>
               </li>
