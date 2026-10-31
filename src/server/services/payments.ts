@@ -1,11 +1,10 @@
 import "server-only";
 
-import { and, asc, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, gt, isNull } from "drizzle-orm";
 
 import { formatINR } from "@/lib/money";
 import {
   couponRedemptions,
-  invoiceCounters,
   invoices,
   orderItems,
   orders,
@@ -17,8 +16,6 @@ import {
   AmountMismatchError,
   assertAmountMatches,
   assertTransition,
-  financialYear,
-  formatInvoiceNumber,
 } from "@/server/domain";
 import { enqueueAdminAlert, enqueueCustomerNotification } from "@/server/notify/outbox";
 import type { PaymentProvider } from "@/server/payments/provider";
@@ -28,6 +25,7 @@ import { clearCartForOrder } from "./cart";
 import { confirmRedemption } from "./coupons";
 import { adjustStock } from "./inventory";
 import { addOrderEvent } from "./order-events";
+import { nextInvoiceNumber } from "./invoice-number";
 import { expireOrder } from "./orders";
 import type { DbClient } from "./queries/shared";
 import { readSettings } from "./queries/shared";
@@ -100,25 +98,7 @@ function paymentRaw(p: CapturedPayment, extra: Record<string, unknown> = {}): Re
 /* Invoice numbers                                                                            */
 /* ------------------------------------------------------------------------------------------ */
 
-/**
- * Next sequential invoice number for the financial year of `now` (`IFO/26-27/000123`).
- *
- * The counter is one row per FY in `invoice_counters`. `INSERT ... ON CONFLICT DO NOTHING` makes the
- * row exist, then `UPDATE ... SET last_number = last_number + 1 RETURNING` takes its row lock, so
- * concurrent finalisations queue on it and each gets a distinct value. The increment lives in the
- * caller's transaction: a rollback gives the number back, so numbers are gapless as well as unique.
- * Call it as late in the transaction as possible to keep the lock short.
- */
-export async function nextInvoiceNumber(tx: DbClient, now: Date): Promise<string> {
-  const fy = financialYear(now).label;
-  await tx.insert(invoiceCounters).values({ financialYear: fy, lastNumber: 0 }).onConflictDoNothing();
-  const [row] = await tx
-    .update(invoiceCounters)
-    .set({ lastNumber: sql`${invoiceCounters.lastNumber} + 1`, updatedAt: now })
-    .where(eq(invoiceCounters.financialYear, fy))
-    .returning({ n: invoiceCounters.lastNumber });
-  return formatInvoiceNumber(row!.n, now);
-}
+export { nextInvoiceNumber };
 
 /* ------------------------------------------------------------------------------------------ */
 /* finalizePaidOrder (plan 7.6)                                                               */

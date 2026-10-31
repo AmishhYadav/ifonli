@@ -35,6 +35,7 @@ import { composeIdempotencyKey, checkoutFingerprint } from "./commerce/idempoten
 import type { PaymentInitiator, RazorpayCheckoutPayload } from "./commerce/payment-hook";
 import { loadCommerceSettings } from "./commerce/settings";
 import { adjustStock, InsufficientStockError } from "./inventory";
+import { ensureInvoiceNumber } from "./invoice-number";
 import { loadVariantSnapshots, toCartLine } from "./pricing";
 import type { DbClient } from "./queries/shared";
 import { loadVariantStock } from "./queries/stock";
@@ -727,6 +728,10 @@ async function runOrderTransaction(
     await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));
     await tx.update(carts).set({ couponCode: null }).where(eq(carts.id, cart.id));
   }
+
+  // COD is confirmed on placement, so it is invoiced now (prepaid orders: `finalizePaidOrder`).
+  // Last: the invoice counter row lock is held until commit.
+  if (isCod) await ensureInvoiceNumber(tx, order.id, now);
 
   if (input.hooks?.onPlacedInTransaction) {
     await input.hooks.onPlacedInTransaction(tx, toPlacedOrder(order, token));

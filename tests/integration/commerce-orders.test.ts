@@ -400,7 +400,12 @@ describe("createFromCart: COD", () => {
     expect((await db().select().from(carts).where(eq(carts.id, cart.id)))[0]!.couponCode).toBeNull();
 
     const events = await db().select().from(orderEvents).where(eq(orderEvents.orderId, r.order.orderId));
-    expect(events.map((e) => e.type).sort()).toEqual(["coupon_confirmed", "order_placed", "stock_decremented"]);
+    expect(events.map((e) => e.type).sort()).toEqual([
+      "coupon_confirmed",
+      "invoice_assigned",
+      "order_placed",
+      "stock_decremented",
+    ]);
   });
 
   it("does not call the payment initiator", async () => {

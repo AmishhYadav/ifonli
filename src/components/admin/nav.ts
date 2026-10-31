@@ -65,7 +65,7 @@ export const NAV: NavGroupDef[] = [
         label: "Collections",
         icon: "collections",
         permission: "collection:view",
-        built: false,
+        built: true,
         blurb: "Vibe and type copy, and the order of featured products per vibe.",
       },
       {
@@ -73,7 +73,7 @@ export const NAV: NavGroupDef[] = [
         label: "Inventory",
         icon: "inventory",
         permission: "inventory:view",
-        built: false,
+        built: true,
         blurb: "On-hand, reserved and available stock, adjustments with a reason, and CSV export.",
       },
     ],
@@ -86,7 +86,7 @@ export const NAV: NavGroupDef[] = [
         label: "Orders",
         icon: "orders",
         permission: "order:view",
-        built: false,
+        built: true,
         blurb: "Order list, fulfilment updates, tracking, packing slips and refunds.",
       },
       {
@@ -94,7 +94,7 @@ export const NAV: NavGroupDef[] = [
         label: "Discounts",
         icon: "discounts",
         permission: "coupon:view",
-        built: false,
+        built: true,
         blurb: "Coupon codes, limits and scope.",
       },
       {
