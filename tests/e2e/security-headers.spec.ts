@@ -244,7 +244,7 @@ test.describe("security: no violations in a real browser", () => {
     expect(violations).toEqual([]);
   });
 
-  test("collection, search, guest tracking, help and a policy page", async ({ page }) => {
+  test("collection, search, guest tracking, help, policy, wishlist and account login", async ({ page }) => {
     const violations = await trackViolations(page);
     for (const path of [
       "/shop",
@@ -253,6 +253,8 @@ test.describe("security: no violations in a real browser", () => {
       "/track",
       "/help",
       "/policies/shipping",
+      "/wishlist",
+      "/account/login",
     ]) {
       await page.goto(path);
       await settle(page);
@@ -376,12 +378,12 @@ test.describe("security: dev mock payment dialog", () => {
 test.describe("security: signed-in admin pages", () => {
   test.skip(!process.env.E2E_ADMIN_FLOW, "set E2E_ADMIN_FLOW=1 (needs the dev database)");
 
-  test("dashboard, products, orders, inventory and discounts have no violations", async ({
+  test("every admin module has no violations", async ({
     page,
     isMobile,
   }) => {
     test.skip(isMobile, "desktop only");
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
     const stamp = Date.now();
     const email = `e2e-csp-admin-${stamp}@ifonli.local`;
     const password = `E2e-Csp-${stamp}!`;
@@ -429,6 +431,18 @@ test.describe("security: signed-in admin pages", () => {
       "/admin/discounts",
       "/admin/discounts/new",
       "/admin/collections",
+      "/admin/customers",
+      "/admin/support",
+      "/admin/support?tab=cases",
+      "/admin/content",
+      "/admin/faq",
+      "/admin/policies",
+      "/admin/policies/shipping",
+      "/admin/settings",
+      "/admin/users",
+      "/admin/audit",
+      "/admin/reports",
+      "/admin/insights",
     ]) {
       await page.goto(path);
       await settle(page);
