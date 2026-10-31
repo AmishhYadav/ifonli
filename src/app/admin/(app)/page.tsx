@@ -68,7 +68,13 @@ export default async function DashboardPage() {
           href="/admin/inventory?filter=low"
           tone={stats.outOfStock > 0 ? "danger" : stats.lowStock > 0 ? "warning" : undefined}
         />
-        <StatCard label="Open support cases" value={String(stats.openSupportCases)} hint="Damaged, defective, missing" />
+        <StatCard
+          label="Open support cases"
+          value={String(stats.openSupportCases)}
+          hint="Open or in progress"
+          href="/admin/support?tab=cases"
+          tone={stats.openSupportCases > 0 ? "warning" : undefined}
+        />
       </section>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
