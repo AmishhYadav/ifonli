@@ -5,6 +5,7 @@
  * Money: the UI works in rupees as text ("199", "1,299.50"); everything stored and validated on
  * the server is integer paise. `parseRupees` never goes through floats.
  */
+import "@/lib/zod-csp";
 import { z } from "zod";
 
 export const PRODUCT_STATUSES = ["draft", "active", "archived"] as const;
