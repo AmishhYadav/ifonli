@@ -202,6 +202,48 @@ test.describe("cart", () => {
     await expect(page.getByRole("link", { name: "Funky" })).toHaveAttribute("href", "/vibes/funky");
   });
 
+  test("the header badge shows the real count on a fresh page load (the Suspense fallback does not seed 0)", async ({ page }) => {
+    await addFromPdp(page, "star-charm");
+    await page.goto("/shop");
+    await expect(cartCount(page)).toHaveText("1");
+    await page.goto("/vibes/gothic");
+    await expect(cartCount(page)).toHaveText("1");
+  });
+
+  test("the cart drawer shows an error with Try again when the first load fails", async ({ page }) => {
+    await page.goto("/shop");
+    await settle(page);
+    // Server Actions are POSTs with a Next-Action header: fail them all, as if the connection dropped.
+    const fail = (route: import("@playwright/test").Route) =>
+      route.request().headers()["next-action"] ? route.abort() : route.continue();
+    await page.route("**/*", fail);
+    await page.getByTestId("cart-button").first().click();
+    const drawer = page.getByTestId("cart-drawer");
+    await expect(drawer.getByTestId("cart-drawer-error")).toContainText("couldn't reach the shop");
+    await expect(drawer.getByTestId("cart-drawer-loading")).toHaveCount(0);
+    await page.unroute("**/*", fail);
+    await drawer.getByRole("button", { name: "Try again" }).click();
+    await expect(drawer.getByTestId("cart-drawer-error")).toHaveCount(0);
+    await expect(drawer.getByText("Continue shopping")).toBeVisible();
+  });
+
+  test("the buy header: shop links on /cart and /track (no self-link), the secure header only on /checkout", async ({ page }) => {
+    await page.goto("/cart");
+    const header = page.locator("header").first();
+    await expect(header.getByRole("link", { name: "Shop", exact: true })).toBeVisible();
+    await expect(header.getByRole("link", { name: "Back to cart" })).toHaveCount(0);
+    await expect(header.getByRole("link", { name: /^Cart/ })).toHaveCount(0);
+    await expect(header.getByText("Secure checkout")).toHaveCount(0);
+
+    await page.goto("/track");
+    await expect(page.locator("header").first().getByRole("link", { name: "Track an order" })).toHaveCount(0);
+    await expect(page.locator("header").first().getByRole("link", { name: /^Cart/ })).toBeVisible();
+
+    await page.goto("/checkout");
+    await expect(page.locator("header").first().getByText("Secure checkout")).toBeVisible();
+    await expect(page.locator("header").first().getByRole("link", { name: "Back to cart" })).toBeVisible();
+  });
+
   test("a quantity above what can be bought is capped with the server's message", async ({ page }) => {
     await openProduct(page, "heart-charm");
     await page.getByTestId("option-value").filter({ hasText: "Red" }).click();

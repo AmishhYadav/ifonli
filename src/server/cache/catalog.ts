@@ -39,7 +39,8 @@ import {
 export async function listProducts(params: ListProductsParams = {}): Promise<ProductListResult> {
   "use cache";
   cacheLife("hours");
-  cacheTag(...listingTags(params, []));
+  // `settings`: low-stock badges and "Made in" facets use default_low_stock_threshold / default_country_of_origin.
+  cacheTag(SETTINGS_TAG, ...listingTags(params, []));
   const result = await catalog.listProducts(getDb(), params);
   cacheTag(...listingTags(params, result.items.map((i) => i.id)));
   return result;
@@ -77,7 +78,7 @@ export async function getFeaturedForAllVibes(
 ): Promise<Record<string, ProductCard[]>> {
   "use cache";
   cacheLife("hours");
-  cacheTag(CATALOG_TAG, CONTENT_TAG);
+  cacheTag(CATALOG_TAG, CONTENT_TAG, SETTINGS_TAG); // settings: the cards' low-stock flag
   const sets = await catalog.getFeaturedForAllVibes(getDb(), limitPerVibe);
   cacheTag(...stockTagsFor(Object.values(sets).flatMap((cards) => cards.map((c) => c.id))));
   return sets;
@@ -93,7 +94,7 @@ export async function getHeroTilesForAllVibes(limit = 14): Promise<Record<string
 export async function getRelatedProducts(productId: string, limit = 8): Promise<ProductCard[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag(CATALOG_TAG, productTag(productId));
+  cacheTag(CATALOG_TAG, SETTINGS_TAG, productTag(productId)); // settings: the cards' low-stock flag
   const related = await catalog.getRelatedProducts(getDb(), productId, limit);
   cacheTag(...stockTagsFor(related.map((c) => c.id)));
   return related;

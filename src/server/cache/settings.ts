@@ -2,7 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
-import { DEFAULT_VIBE, DEFAULT_VIBE_CYCLE, isVibe, type DefaultVibeSetting, type Vibe } from "@/features/vibe/config";
+import { resolveVibeSettings, type VibeSettings } from "@/features/vibe/settings";
 import { getSettings } from "@/server/services/settings";
 
 import { SETTINGS_TAG } from "./tags";
@@ -12,10 +12,7 @@ import { SETTINGS_TAG } from "./tags";
  * Only the keys the storefront shell shows are exposed, as plain serialisable data.
  */
 
-export interface VibeSettings {
-  cycle: Vibe[];
-  defaultVibe: DefaultVibeSetting;
-}
+export type { VibeSettings };
 
 export interface StoreValue {
   value: string;
@@ -44,15 +41,12 @@ export async function getVibeSettings(): Promise<VibeSettings> {
   cacheLife("hours");
   cacheTag(SETTINGS_TAG);
   const entries = await getSettings("vibes");
-  const rawCycle = entries.find((e) => e.key === "vibe_cycle")?.value;
-  const rawDefault = entries.find((e) => e.key === "default_vibe")?.value;
-  const cycle: Vibe[] = Array.isArray(rawCycle) ? (rawCycle as unknown[]).filter(isVibe) : [];
-  const defaultVibe: DefaultVibeSetting =
-    rawDefault === "random" ? "random" : isVibe(rawDefault) ? rawDefault : DEFAULT_VIBE;
-  return {
-    cycle: cycle.length > 0 ? cycle : [...DEFAULT_VIBE_CYCLE],
-    defaultVibe,
-  };
+  const value = (key: string) => entries.find((e) => e.key === key)?.value;
+  return resolveVibeSettings({
+    cycle: value("vibe_cycle"),
+    defaultVibe: value("default_vibe"),
+    heroEnabled: value("hero_enabled"),
+  });
 }
 
 export async function getStoreInfo(): Promise<StoreInfo> {

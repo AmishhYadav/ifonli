@@ -131,3 +131,12 @@ describe("head script", () => {
     expect(run(random, { storage: "gothic", random: 0 }).vibe).toBe("gothic");
   });
 });
+
+describe("head script with a default vibe outside the cycle", () => {
+  it("falls back to the first vibe of the cycle and still sets the font preload and theme colour", () => {
+    const script = buildHeadScript({ cycle: ["bold", "funky"], defaultVibe: "gothic" });
+    const r = run(script);
+    expect(r.vibe).toBe("bold");
+    expect(r.head.map((el) => el.tag)).toEqual(["link", "meta"]);
+  });
+});

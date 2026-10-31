@@ -13,6 +13,11 @@ over the poster cells without moving anything (no layout shift), then replaces t
 - `navigator.connection.saveData` is false and `effectiveType` is not `slow-2g` or `2g` (`stage/eligibility.ts`);
 - the hero is in the viewport (IntersectionObserver), then after `requestIdleCallback` (300 ms timeout fallback on Safari).
 
+The admin setting `hero_enabled` (Settings > Vibes, default on) is checked first, on the server: when it is off
+`HeroPoster` does not mount `HeroEnhancer` at all, so the poster is the whole hero, the stage chunk is never
+requested and no `hero_impression` is reported. The cached vibe settings carry the `settings` tag, so saving the
+setting takes effect without a redeploy.
+
 The chunk (GSAP core + CSSPlugin + DrawSVGPlugin + the stage code) is **about 43 KB gzip / 39 KB brotli** (measured by
 bundling `HeroStage.tsx` with esbuild, React and Next external; the plan budget is 70 KB). Flip is not used: tile
 poses are computed (pure functions), so Flip's DOM-state diffing would add 8 KB for nothing. The Web Animations API

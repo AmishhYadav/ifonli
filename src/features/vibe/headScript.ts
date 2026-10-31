@@ -40,7 +40,9 @@ export function buildHeadScript({
     const base = file.slice(FONT_PREFIX.length, -FONT_SUFFIX.length);
     return `${v}:[${JSON.stringify(resolveTokens(v).palette.bg.toLowerCase())},${JSON.stringify(base)}]`;
   });
-  const fallback = defaultVibe === "random" ? "0" : JSON.stringify(defaultVibe);
+  // A default outside the cycle would make `M[v]` undefined below, so it falls back to the cycle's first vibe.
+  const fallback =
+    defaultVibe === "random" ? "0" : JSON.stringify(cycle.includes(defaultVibe) ? defaultVibe : cycle[0]);
   const s = JSON.stringify(VIBE_STORAGE_KEY);
 
   return [

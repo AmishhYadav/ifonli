@@ -8,7 +8,10 @@ export interface PriceProps {
   mrpPaise?: number | null;
   /** Prefix "From" (variable price: the cheapest variant). */
   from?: boolean;
-  /** Show "incl. of all taxes" under the price. */
+  /**
+   * Show "incl. of all taxes" under the price. When the price IS the MRP (no strike-through to carry the
+   * word), the line reads "MRP incl. of all taxes" so the legal wording (Legal Metrology) is always on screen.
+   */
   inclusiveOfTaxes?: boolean;
   /** Show "N% off", computed from the real MRP (only when there is a real discount). */
   showDiscount?: boolean;
@@ -58,7 +61,11 @@ export function Price({
           </>
         ) : null}
       </span>
-      {inclusiveOfTaxes ? <span className="text-xs text-ink-muted">incl. of all taxes</span> : null}
+      {inclusiveOfTaxes ? (
+        <span className="text-xs text-ink-muted">
+          {mrpPaise != null && mrpPaise === pricePaise ? "MRP incl. of all taxes" : "incl. of all taxes"}
+        </span>
+      ) : null}
     </span>
   );
 }

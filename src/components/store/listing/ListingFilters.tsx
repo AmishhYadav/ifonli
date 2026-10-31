@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useId, useRef, useTransition, type FormEvent } from "react";
+import { useId, useRef, useState, useTransition, type FormEvent } from "react";
 
 import { Button, Checkbox, Input, Switch, VibeDot } from "@/components/ui";
 import { VIBE_NAMES, isVibe } from "@/features/vibe/config";
@@ -73,6 +73,20 @@ export function ListingFilters({
 
   const currentHref = buildListingHref(basePath, query, { search, q });
 
+  // The inputs are uncontrolled, so a ticked box stays ticked when the URL changes underneath it. For a
+  // change this form did not ask for (a removed chip, "Clear all", back/forward) the form is remounted
+  // with the URL's values; otherwise the sidebar keeps showing filters the results no longer use and the
+  // next toggle re-adds them. Changes the form asked for itself keep the form (and focus) as they are.
+  // (`form.reset()` would not do: React's value tracking then swallows the next click on a box.)
+  const [sync, setSync] = useState({ href: currentHref, expected: currentHref, generation: 0 });
+  if (sync.href !== currentHref) {
+    setSync({
+      href: currentHref,
+      expected: currentHref,
+      generation: currentHref === sync.expected ? sync.generation : sync.generation + 1,
+    });
+  }
+
   const navigate = () => {
     const form = formRef.current;
     if (!form) return;
@@ -102,6 +116,7 @@ export function ListingFilters({
       { search, q },
     );
     if (href === currentHref) return;
+    setSync((prev) => ({ ...prev, expected: href }));
     startTransition(() => router.replace(href, { scroll: false }));
   };
 
@@ -114,6 +129,7 @@ export function ListingFilters({
 
   return (
     <form
+      key={sync.generation}
       ref={formRef}
       method="get"
       action={basePath}

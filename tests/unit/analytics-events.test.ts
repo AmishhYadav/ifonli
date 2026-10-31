@@ -11,6 +11,8 @@ import {
   scrollDepthPercent,
   toGa4Event,
 } from "@/lib/analytics/events";
+import { positionAmongVisible } from "@/features/analytics/impressions";
+import { addedQuantity, removedQuantity } from "@/lib/analytics/cart-events";
 import { parseConsent, shouldLoadGa4, shouldShowBanner, readConsent } from "@/features/analytics/consent";
 
 describe("normalizePath", () => {
@@ -21,6 +23,9 @@ describe("normalizePath", () => {
   });
   it("masks order references so confirmation URLs are never stored", () => {
     expect(normalizePath("/orders/IFO-2611-7K3Q?t=secret")).toBe("/orders/:ref");
+    expect(normalizePath("/account/orders/IFO-2611-7K3Q")).toBe("/account/orders/:ref");
+    expect(normalizePath("/account/orders/IFO-2611-7K3Q/?x=1#top")).toBe("/account/orders/:ref");
+    expect(normalizePath("/account/orders")).toBe("/account/orders");
   });
   it("caps the length", () => {
     expect(normalizePath(`/${"a".repeat(500)}`).length).toBe(200);
@@ -111,5 +116,43 @@ describe("consent", () => {
     expect(shouldShowBanner({ ga4Id: "G-ABC123", consentRequired: true, choice: "denied" })).toBe(false);
     expect(shouldShowBanner({ ga4Id: null, consentRequired: true, choice: null })).toBe(false);
     expect(shouldShowBanner({ ga4Id: "G-ABC123", consentRequired: false, choice: null })).toBe(false);
+  });
+});
+
+describe("positionAmongVisible", () => {
+  const cards = [
+    { id: "hidden-a", visible: false },
+    { id: "hidden-b", visible: false },
+    { id: "one", visible: true },
+    { id: "hidden-c", visible: false },
+    { id: "two", visible: true },
+  ];
+  const isVisible = (c: { visible: boolean }) => c.visible;
+  it("counts only the cards that are visible", () => {
+    expect(positionAmongVisible(cards, cards[2]!, isVisible)).toBe(0);
+    expect(positionAmongVisible(cards, cards[4]!, isVisible)).toBe(1);
+  });
+  it("is 0 for a card that is not in the list", () => {
+    expect(positionAmongVisible(cards, { id: "x", visible: true }, isVisible)).toBe(0);
+  });
+});
+
+describe("cart quantity helpers", () => {
+  it("addedQuantity reports what the cart really took, capped by the request", () => {
+    expect(addedQuantity(null, 3, 3)).toBe(3);
+    expect(addedQuantity(0, 2, 5)).toBe(2); // stock cap: asked for 5, got 2
+    expect(addedQuantity(2, 5, 5)).toBe(3);
+    expect(addedQuantity(4, 4, 2)).toBe(0); // already at the cap
+    expect(addedQuantity(null, 9, 2)).toBe(2);
+    expect(addedQuantity(3, 1, 2)).toBe(0);
+  });
+  it("removedQuantity is the drop in the line, never negative", () => {
+    expect(removedQuantity(3, 0)).toBe(3);
+    expect(removedQuantity(3, 2)).toBe(1);
+    expect(removedQuantity(2, 4)).toBe(0);
+  });
+  it("remove_from_cart carries its quantity to GA4 like add_to_cart", () => {
+    const call = toGa4Event({ event: "remove_from_cart", productId: "p1", value: 2 });
+    expect(call).toEqual({ name: "remove_from_cart", params: { items: [{ item_id: "p1", quantity: 2 }] } });
   });
 });

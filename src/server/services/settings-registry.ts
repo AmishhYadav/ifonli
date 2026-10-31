@@ -41,6 +41,11 @@ export interface SettingDefinition<S extends z.ZodType = z.ZodType> {
   requiredForLaunch: boolean;
   /** Not editable (decided and fixed). */
   locked?: true;
+  /**
+   * Nothing in this version reads the value (kept for a later release). Always set together with `locked`;
+   * the admin UI says "Not used in this version" instead of offering an editor that would do nothing.
+   */
+  unused?: true;
   /** Owner already decided the value: seeded as non-placeholder. */
   confirmed?: true;
   /**
@@ -425,19 +430,25 @@ export const SETTINGS = {
   guest_checkout_enabled: define("guest_checkout_enabled", {
     group: "accounts",
     label: "Guest checkout enabled",
-    description: "Owner decision: guests can check out without an account.",
+    description:
+      "Not used in this version. Guests can always check out without an account (owner decision); this switch is not read anywhere.",
     schema: z.boolean(),
     placeholder: true,
     requiredForLaunch: false,
     confirmed: true,
+    locked: true,
+    unused: true,
   }),
   login_methods: define("login_methods", {
     group: "accounts",
     label: "Customer login methods",
-    description: "Passwordless email OTP at launch.",
+    description:
+      "Not used in this version. Customers always sign in with a passwordless email code; this list is not read anywhere.",
     schema: z.array(z.enum(["email_otp"])).min(1),
     placeholder: ["email_otp"],
     requiredForLaunch: false,
+    locked: true,
+    unused: true,
   }),
 
   // ---------------------------------------------------------------- Vibes
@@ -460,7 +471,7 @@ export const SETTINGS = {
   hero_enabled: define("hero_enabled", {
     group: "vibes",
     label: "Animated hero enabled",
-    description: "When off, only the static poster hero is shown.",
+    description: "When off, only the static poster hero is shown and the animated hero is never loaded.",
     schema: z.boolean(),
     placeholder: true,
     requiredForLaunch: false,
@@ -468,10 +479,13 @@ export const SETTINGS = {
   custom_cursor_enabled: define("custom_cursor_enabled", {
     group: "vibes",
     label: "Custom cursors enabled",
-    description: "Per-vibe cursors (never on touch or reduced motion).",
+    description:
+      "Not used in this version. Custom cursors are not built yet, so this switch does nothing.",
     schema: z.boolean(),
     placeholder: false,
     requiredForLaunch: false,
+    locked: true,
+    unused: true,
   }),
 
   // ---------------------------------------------------------------- Notifications

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { OrderDetailView } from "@/components/orders/OrderDetailView";
+import { RefreshCartBadge } from "@/components/orders/RefreshCartBadge";
 import { Button, EmptyState, Skeleton } from "@/components/ui";
 import { getOptionalCustomer } from "@/server/auth/session";
 import { getDb } from "@/server/db";
@@ -73,12 +74,15 @@ async function OrderContent({
 
   const [extras, customer] = await Promise.all([loadOrderPageExtras(db, order), getOptionalCustomer()]);
   return (
-    <OrderDetailView
-      order={order}
-      extras={extras}
-      access={{ kind: "token", token }}
-      signedIn={customer !== null}
-    />
+    <>
+      <RefreshCartBadge />
+      <OrderDetailView
+        order={order}
+        extras={extras}
+        access={{ kind: "token", token }}
+        signedIn={customer !== null}
+      />
+    </>
   );
 }
 

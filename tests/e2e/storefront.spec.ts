@@ -127,6 +127,26 @@ test.describe("collections", () => {
     // The chip removes the filter again.
     await page.getByRole("link", { name: "Remove filter: Hippers" }).click();
     await expect(page.getByTestId("result-count")).toHaveText("32 products");
+    if (!isMobile) {
+      // The sidebar follows the URL: the box is no longer ticked, and the next tick filters again.
+      const hippers = page.getByRole("complementary", { name: "Filters" }).getByRole("checkbox", { name: /Hippers/ });
+      await expect(hippers).not.toBeChecked();
+      await hippers.check();
+      await expect(page).toHaveURL(/types=hippers/);
+      await expect(page.getByTestId("result-count")).toHaveText("6 products");
+      await page.getByRole("link", { name: "Clear all" }).click();
+      await expect(page.getByTestId("result-count")).toHaveText("32 products");
+      await expect(hippers).not.toBeChecked();
+    }
+  });
+
+  test("offline notice appears and goes away with the connection", async ({ page, context }) => {
+    await page.goto("/shop");
+    await expect(page.getByTestId("offline-notice")).toHaveCount(0);
+    await context.setOffline(true);
+    await expect(page.getByTestId("offline-notice")).toBeVisible();
+    await context.setOffline(false);
+    await expect(page.getByTestId("offline-notice")).toHaveCount(0);
   });
 
   test('"Wear this vibe" on a vibe page switches the whole site', async ({ page }) => {

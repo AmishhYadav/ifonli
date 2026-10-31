@@ -86,12 +86,13 @@ describe("buildContentSecurityPolicy", () => {
     expect(directive(none, "connect-src").some((v) => v.includes("supabase"))).toBe(false);
   });
 
-  it("only allows Google Analytics when GA4 is configured", () => {
-    expect(csp).not.toContain("googletagmanager");
-    expect(csp).not.toContain("google-analytics");
-    const ga = buildContentSecurityPolicy({ ...base, ga4Id: "G-ABC123" });
-    expect(directive(ga, "script-src")).toContain("https://www.googletagmanager.com");
-    expect(directive(ga, "connect-src")).toContain("https://www.google-analytics.com");
+  it("always allows the Google Analytics origins, so a GA4 id saved in admin settings works", () => {
+    // No NEXT_PUBLIC_GA4_ID at build: the id can still come from the admin setting at request time.
+    expect(directive(csp, "script-src")).toContain("https://www.googletagmanager.com");
+    expect(directive(csp, "connect-src")).toContain("https://www.google-analytics.com");
+    expect(directive(csp, "img-src")).toContain("https://www.google-analytics.com");
+    const withEnv = buildContentSecurityPolicy({ ...base, ga4Id: "G-ABC123" });
+    expect(withEnv).toBe(buildContentSecurityPolicy(base));
   });
 
   it("does not upgrade insecure requests on an http site (local next start)", () => {

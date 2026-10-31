@@ -101,7 +101,8 @@ export interface WireEvent extends TrackProps {
 export function normalizePath(input: string): string {
   let p = input.split("#")[0]!.split("?")[0]!.trim();
   if (!p.startsWith("/")) p = `/${p}`;
-  p = p.replace(/^\/orders\/[^/]+/, "/orders/:ref");
+  // Guest confirmation pages and the signed-in account pages both carry the order reference in the path.
+  p = p.replace(/^\/orders\/[^/]+/, "/orders/:ref").replace(/^\/account\/orders\/[^/]+/, "/account/orders/:ref");
   if (p.length > 1) p = p.replace(/\/+$/, "");
   return p.slice(0, LIMITS.maxPathLength) || "/";
 }
@@ -163,7 +164,7 @@ export function toGa4Event(e: WireEvent): { name: string; params: Record<string,
   if (!name) return null;
   const params: Record<string, unknown> = {};
   if (e.productId) {
-    params.items = [{ item_id: e.productId, ...(e.event === "add_to_cart" && e.value ? { quantity: e.value } : {}) }];
+    params.items = [{ item_id: e.productId, ...((e.event === "add_to_cart" || e.event === "remove_from_cart") && e.value ? { quantity: e.value } : {}) }];
   }
   if (e.event === "search" && typeof e.meta?.q === "string") params.search_term = e.meta.q;
   if (e.event === "pdp_scroll_depth" && e.value) params.percent_scrolled = e.value;

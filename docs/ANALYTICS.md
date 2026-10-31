@@ -12,7 +12,7 @@ track("hero_play");
 track("hero_pause", { meta: { by: "user" } });
 ```
 
-`track(event, props?)` batches events, sends them with `navigator.sendBeacon` (falling back to `fetch` with `keepalive`), never throws and does nothing on the server. `path` defaults to the current pathname (query and hash are never sent; `/orders/<ref>` is masked) and `vibe` to the active vibe. For `vibe_switch` the `vibe` is the vibe switched TO.
+`track(event, props?)` batches events, sends them with `navigator.sendBeacon` (falling back to `fetch` with `keepalive`), never throws and does nothing on the server. `path` defaults to the current pathname (query and hash are never sent; `/orders/<ref>` and `/account/orders/<ref>` are masked) and `vibe` to the active vibe. For `vibe_switch` the `vibe` is the vibe switched TO.
 
 `props`: `productId` (uuid), `vibe`, `path`, `value` (integer 0 to 1,000,000), `meta` (up to 8 keys, key `[A-Za-z][A-Za-z0-9_]{0,23}`, value string up to 100 characters, number or boolean). Do not put personal data in `meta`.
 
@@ -21,17 +21,18 @@ track("hero_pause", { meta: { by: "user" } });
 | Event | Sent by | `value` / `meta` |
 |---|---|---|
 | `page_view` | `AnalyticsProvider` (every client navigation) | |
-| `product_impression` | impression observer: card at least 50% visible for 1 s, once per page view | `meta.pos` (position on the page) |
-| `product_click` | delegated click on a product card link | `meta.pos` |
+| `product_impression` | impression observer: card at least 50% visible for 1 s, once per page view | `meta.pos` (position among the cards that are visible: the home page renders the sets of all five vibes and only one is shown) |
+| `product_click` | delegated click on a product card link | `meta.pos` (same counting) |
 | `pdp_view` | `PdpTracker` on the product page | |
 | `pdp_scroll_depth` | `PdpTracker`: 25 / 50 / 75 / 100 % of `<main>`, each once | `value` = milestone |
-| `add_to_cart` | `StockControls` (product page) | `value` = quantity |
+| `add_to_cart` | `StockControls` (product page) | `value` = units the cart actually took (after stock and per-line caps; nothing is sent when 0 were added) |
+| `remove_from_cart` | cart drawer and cart page (`useOptimisticCart`), after the server confirmed a remove or a lower quantity | `value` = units taken out |
 | `view_cart`, `begin_checkout` | `AnalyticsProvider`, on `/cart` and `/checkout` | |
 | `vibe_switch` | `AnalyticsProvider`, from the vibe store event (hand, "Wear this vibe", API; not restore or `?vibe=`) | `vibe` = target, `meta.from`, `meta.source` |
 | `search` | `SearchTracker` on `/search` | `value` = result count (0 feeds "no results"), `meta.q` = normalised term (dropped if it looks like an e-mail or phone number) |
 | `wishlist_add` | `WishlistHeart` | |
 | `hero_play`, `hero_pause`, `hero_tile_click` | hero workstream (call `track`) | `meta.tile` |
-| `remove_from_cart`, `add_shipping_info`, `add_payment_info` | accepted by the endpoint, not wired yet | |
+| `add_shipping_info`, `add_payment_info` | `trackShippingInfo()` / `trackPaymentInfo(method)` from `src/features/analytics/checkout-events.ts`, to be called by the checkout form when it is submitted with valid details | `meta.method` = `razorpay` or `cod` (payment only) |
 | `purchase`, `purchase_item`, `order_placed` | **server only**, inside the order transactions; the endpoint rejects them | see below |
 
 Product cards carry `data-product-id` (set in `ProductCardView`), which is all the observer needs; any card that mounts later is picked up by a `MutationObserver`.
@@ -44,7 +45,7 @@ Body `{ sessionId, events: [...] }`, at most 20 events and 8 KB. Order of checks
 
 - The session id is random (128 bits), kept in `sessionStorage` (per tab) and renewed after 30 idle minutes. It is mirrored into a **session cookie** `ifonli_sid` (no Max-Age, `SameSite=Lax`) only so the checkout can tie an order to its visit for the funnel. It identifies a visit, not a person.
 - First-party counting is anonymous and aggregate, so it is **not** gated by consent (D-23). The privacy policy template discloses it (section 9, "Visit counter").
-- **GA4 is optional**: nothing loads unless an id is configured (`NEXT_PUBLIC_GA4_ID`, falling back to the admin setting `ga4_measurement_id`) and, while the setting `consent_required` is on (default), the visitor allowed it. The choice is stored in the `ifonli_consent` cookie (`granted` or `denied`, 180 days). The banner shows only when GA4 is configured and nothing was chosen; "Cookie settings" in the footer reopens it. Both answers have equal weight and neutral wording (no dark patterns). GA4 receives the mirrored event names (`view_item_list`, `select_item`, `view_item`, `add_to_cart`, `begin_checkout`, `search`, `add_to_wishlist`, ...) with product ids only; Google signals and ad personalisation are off.
+- **GA4 is optional**: nothing loads unless an id is configured (`NEXT_PUBLIC_GA4_ID`, falling back to the admin setting `ga4_measurement_id`) and, while the setting `consent_required` is on (default), the visitor allowed it. The Content-Security-Policy always allows the Google Tag Manager / Analytics origins (`src/lib/security/headers.ts`), not only when `NEXT_PUBLIC_GA4_ID` is set at build, because the admin setting is read at request time and the build cannot see it; the origins do nothing until gtag is loaded. The choice is stored in the `ifonli_consent` cookie (`granted` or `denied`, 180 days). The banner shows only when GA4 is configured and nothing was chosen; "Cookie settings" in the footer reopens it. Both answers have equal weight and neutral wording (no dark patterns). GA4 receives the mirrored event names (`view_item_list`, `select_item`, `view_item`, `add_to_cart`, `begin_checkout`, `search`, `add_to_wishlist`, ...) with product ids only; Google signals and ad personalisation are off.
 
 ## Purchases
 

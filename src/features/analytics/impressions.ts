@@ -9,6 +9,28 @@ export const IMPRESSION_VISIBLE_RATIO = 0.5;
 export const IMPRESSION_DWELL_MS = 1000;
 export const PRODUCT_SELECTOR = "[data-product-id]";
 
+/**
+ * 0-based position of `target` among the cards that are on the page, skipping hidden ones. The home page
+ * renders the product sets of all five vibes and shows only one, so counting hidden cards would give
+ * every visible card a position that depends on how many hidden cards come before it.
+ */
+export function positionAmongVisible<T>(cards: Iterable<T>, target: T, isVisible: (card: T) => boolean): number {
+  let position = 0;
+  for (const card of cards) {
+    if (card === target) return position;
+    if (isVisible(card)) position += 1;
+  }
+  return 0;
+}
+
+/** Hidden with `display: none` (an inactive vibe's set) means no layout boxes at all. */
+const takesPartInLayout = (el: Element) => el.getClientRects().length > 0;
+
+/** Position of a product card among the visible cards in the document. */
+export function cardPosition(card: Element): number {
+  return positionAmongVisible(document.querySelectorAll(PRODUCT_SELECTOR), card, takesPartInLayout);
+}
+
 export interface ImpressionObserver {
   /** Forget which products were counted (call on every client-side page view). */
   reset: () => void;
@@ -31,8 +53,7 @@ export function startImpressionObserver(
     const id = el instanceof HTMLElement ? el.dataset.productId : undefined;
     if (!id || counted.has(id) || document.visibilityState !== "visible") return;
     counted.add(id);
-    const position = Array.from(document.querySelectorAll(PRODUCT_SELECTOR)).indexOf(el);
-    onImpression(id, Math.max(0, position));
+    onImpression(id, cardPosition(el));
   };
 
   const io = new IntersectionObserver(

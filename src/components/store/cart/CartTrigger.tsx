@@ -12,14 +12,16 @@ import { useCartStore } from "./useCart";
 /**
  * The header's cart entry. A real link to `/cart` (works without JavaScript and for middle-click); a plain
  * click opens the cart drawer instead. The badge shows the live item count: the server-rendered value
- * first (`initialCount`), then whatever the client store knows after any cart change.
+ * first (`initialCount`), then whatever the client store knows after any cart change. `initialCount={null}`
+ * is the Suspense fallback ("not known yet"): it shows no badge and does not seed the store, so the real
+ * count can still seed it once the cart cookie has been read.
  */
-export function CartTrigger({ initialCount, className }: { initialCount: number; className?: string }) {
+export function CartTrigger({ initialCount, className }: { initialCount: number | null; className?: string }) {
   const { count } = useCartStore();
-  const shown = count ?? initialCount;
+  const shown = count ?? initialCount ?? 0;
 
   useEffect(() => {
-    seedCartCount(initialCount);
+    if (initialCount !== null) seedCartCount(initialCount);
   }, [initialCount]);
 
   const onClick = (event: MouseEvent<HTMLAnchorElement>) => {

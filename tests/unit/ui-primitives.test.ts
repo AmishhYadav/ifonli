@@ -50,6 +50,17 @@ describe("Price", () => {
     expect(html(createElement(Price, { pricePaise: 34900 }))).not.toContain("From");
   });
 
+  it("says MRP in the tax line when the price equals the MRP (no strike-through to carry the word)", () => {
+    const same = html(createElement(Price, { pricePaise: 17900, mrpPaise: 17900, inclusiveOfTaxes: true }));
+    expect(same).toContain("MRP incl. of all taxes");
+    expect(same).not.toMatch(/<s[ >]/);
+    const discounted = html(createElement(Price, { pricePaise: 14900, mrpPaise: 17900, inclusiveOfTaxes: true }));
+    expect(discounted).toMatch(/<s[ >]/);
+    expect(discounted).not.toContain("MRP incl. of all taxes");
+    const cardLayout = html(createElement(Price, { pricePaise: 17900, mrpPaise: 17900 }));
+    expect(cardLayout).not.toContain("MRP incl.");
+  });
+
   it("never reports a discount without a real MRP above the price", () => {
     expect(discountPercent(100, 100)).toBe(0);
     expect(discountPercent(100, 50)).toBe(0);

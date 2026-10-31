@@ -26,7 +26,7 @@ async function loadVibeSettings(): Promise<VibeSettings> {
     return await getVibeSettings();
   } catch (error) {
     console.error("RootLayout: could not read vibe settings, using defaults", error);
-    return { cycle: [...DEFAULT_VIBE_CYCLE], defaultVibe: DEFAULT_VIBE };
+    return { cycle: [...DEFAULT_VIBE_CYCLE], defaultVibe: DEFAULT_VIBE, heroEnabled: true };
   }
 }
 

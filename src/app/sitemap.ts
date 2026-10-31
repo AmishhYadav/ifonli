@@ -1,14 +1,18 @@
 import type { MetadataRoute } from "next";
 
-import { POLICY_LINKS } from "@/components/store/footer/Footer";
 import { absoluteUrl } from "@/lib/seo";
 import { getAllProductSlugsForSitemap, getCollections } from "@/server/cache/catalog";
+import { getPolicyIndex } from "@/server/content/cached";
 
-/** Home, collections, products and policies (plan section 12). Cached reads, so the sitemap stays static. */
+/**
+ * Home, collections, products and published policies (plan section 12). Cached reads, so the sitemap stays
+ * static. Drafts are left out: their pages are marked noindex, so listing them would contradict that.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [collections, products] = await Promise.all([
+  const [collections, products, policies] = await Promise.all([
     getCollections(),
     getAllProductSlugsForSitemap(),
+    getPolicyIndex(),
   ]);
   return [
     { url: absoluteUrl("/"), changeFrequency: "daily", priority: 1 },
@@ -29,11 +33,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),
-    ...POLICY_LINKS.map((p) => ({
-      url: absoluteUrl(`/policies/${p.slug}`),
-      changeFrequency: "yearly" as const,
-      priority: 0.3,
-    })),
+    ...policies
+      .filter((p) => p.published)
+      .map((p) => ({
+        url: absoluteUrl(`/policies/${p.slug}`),
+        changeFrequency: "yearly" as const,
+        priority: 0.3,
+      })),
     { url: absoluteUrl("/help"), changeFrequency: "yearly", priority: 0.3 },
   ];
 }

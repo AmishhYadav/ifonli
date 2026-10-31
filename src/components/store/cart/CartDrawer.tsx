@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
-import { Drawer, DrawerContent, EmptyState, Skeleton, buttonVariants, useToast } from "@/components/ui";
+import { Button, Drawer, DrawerContent, EmptyState, Skeleton, buttonVariants, useToast } from "@/components/ui";
 import type { CartView } from "@/features/cart/types";
 
-import { setCartOpen, takeCartOpener } from "./cart-store";
+import { refreshCart, setCartOpen, takeCartOpener } from "./cart-store";
 import { CartLines } from "./CartLines";
 import { CartNotices } from "./CartNotices";
 import { CartTotals } from "./CartTotals";
@@ -62,7 +62,7 @@ export function CartDrawer({ emptyTitle, emptyBody, returnPolicyText }: CartDraw
         }
       >
         {!loaded ? (
-          <DrawerSkeleton />
+          error ? <DrawerLoadError message={error} /> : <DrawerSkeleton />
         ) : empty ? (
           <div className="flex flex-col gap-4">
             <CartNotices notices={notices} error={error} />
@@ -81,6 +81,18 @@ export function CartDrawer({ emptyTitle, emptyBody, returnPolicyText }: CartDraw
         </p>
       </DrawerContent>
     </Drawer>
+  );
+}
+
+/** The first load failed: say so and let the shopper try again, rather than a skeleton that never ends. */
+function DrawerLoadError({ message }: { message: string }) {
+  return (
+    <div role="alert" className="flex flex-col items-start gap-3" data-testid="cart-drawer-error">
+      <p className="text-base text-ink">{message}</p>
+      <Button variant="secondary" onClick={() => void refreshCart()}>
+        Try again
+      </Button>
+    </div>
   );
 }
 

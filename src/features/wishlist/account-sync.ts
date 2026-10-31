@@ -6,8 +6,12 @@ import { pullWishlistAction, pushWishlistAction } from "./sync-actions";
  * Browser side of the account wishlist (D-20). `bootAccountWishlist` runs when the page loads with the
  * "customer session" hint cookie; `endAccountWishlist` runs when the customer signs out.
  *
- *  - First time this device meets this account: UNION of the device list and the account list (a guest's
- *    hearts are never lost on sign-in), pushed back so both sides hold it.
+ *  - First time this device meets this account, and the device list is guest-only (no marker): UNION of the
+ *    device list and the account list (a guest's hearts are never lost on sign-in), pushed back so both sides
+ *    hold it.
+ *  - The device still holds ANOTHER account's list (its marker names a different user: that session expired
+ *    without a sign-out): REPLACE with this account's list, so one customer's hearts never leak into
+ *    another's account.
  *  - Every later load: the account list is the source of truth and the device follows it, so a heart
  *    removed on another device does not come back.
  *  - From then on every local change is pushed (`set` in the store calls the registered sync).
@@ -67,12 +71,15 @@ export async function bootAccountWishlist(): Promise<boolean> {
     return false;
   }
   registerWishlistSync(createAccountWishlistSync());
-  if (readMarker() !== res.userId) {
+  const marker = readMarker();
+  if (marker === null) {
     // `mergeIntoWishlist` unions and pushes the result through the registered sync.
     mergeIntoWishlist(res.entries);
     writeMarker(res.userId);
   } else {
+    // Same account: the account list is the truth. Another account's leftovers: drop them, do not union.
     replaceWishlistLocal(res.entries);
+    if (marker !== res.userId) writeMarker(res.userId);
   }
   return true;
 }

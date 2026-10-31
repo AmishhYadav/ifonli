@@ -96,6 +96,9 @@ test.describe("security: headers", () => {
       expect(full).toContain("default-src 'self'");
       expect(full).toContain("https://checkout.razorpay.com");
       expect(full).toContain("https://api.razorpay.com");
+      // A GA4 id saved in admin settings (no NEXT_PUBLIC_GA4_ID at build) must still be able to load.
+      expect(full).toContain("https://www.googletagmanager.com");
+      expect(full).toContain("https://www.google-analytics.com");
       expect(full).toContain("report-uri /api/csp-report");
       expect(h["reporting-endpoints"]).toContain("/api/csp-report");
     });

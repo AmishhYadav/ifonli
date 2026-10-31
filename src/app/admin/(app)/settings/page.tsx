@@ -10,7 +10,7 @@ import { requireAdmin } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { getLaunchReadiness } from "@/server/services/admin/launch";
 import { listSettingsAdmin } from "@/server/services/admin/settings";
-import { SETTING_GROUPS, type SettingGroup } from "@/server/services/settings-registry";
+import { SETTINGS, SETTING_GROUPS, type SettingGroup } from "@/server/services/settings-registry";
 
 /** Session-gated and dynamic: exempt from instant-navigation validation (see admin/layout.tsx). */
 export const instant = false;
@@ -67,6 +67,7 @@ export default async function SettingsPage({
       blocksLaunch: r.blocksLaunch,
       requiredForLaunch: r.requiredForLaunch,
       locked: r.locked,
+      unused: "unused" in SETTINGS[r.key] && SETTINGS[r.key].unused === true,
       updated:
         r.updatedAt && r.updatedByName && !r.isPlaceholder
           ? `Last changed by ${r.updatedByName} on ${dateTime.format(r.updatedAt)}`
@@ -82,8 +83,9 @@ export default async function SettingsPage({
         title="Settings"
         description="Business rules, store details and the launch checklist. Only the owner can change them; every change is recorded in the audit log."
       />
-      <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
-        <nav aria-label="Settings sections" className="lg:sticky lg:top-4 lg:self-start">
+      {/* minmax(0,1fr) also below lg: an `auto` column grows to the nav pills' full width (about 1600px) and widens the whole page on phones. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <nav aria-label="Settings sections" className="min-w-0 lg:sticky lg:top-4 lg:self-start">
           <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
             <li>
               <Link

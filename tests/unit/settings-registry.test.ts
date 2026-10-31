@@ -65,6 +65,15 @@ describe("settings registry", () => {
     expect(SETTINGS.backorders.schema.safeParse(true).success).toBe(false);
   });
 
+  it("settings nothing reads are locked and marked unused; hero_enabled stays editable", () => {
+    for (const key of ["guest_checkout_enabled", "login_methods", "custom_cursor_enabled"] as const) {
+      expect(SETTINGS[key]).toMatchObject({ locked: true, unused: true });
+      expect(SETTINGS[key].description).toMatch(/^Not used in this version/);
+    }
+    expect(SETTINGS.hero_enabled).not.toHaveProperty("locked");
+    expect(SETTINGS.hero_enabled).not.toHaveProperty("unused");
+  });
+
   it("schemas reject bad input", () => {
     expect(SETTINGS.support_email.schema.safeParse("nope").success).toBe(false);
     expect(SETTINGS.gstin.schema.safeParse("123").success).toBe(false);
