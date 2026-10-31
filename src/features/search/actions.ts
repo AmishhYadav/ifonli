@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { getDb } from "@/server/db";
+import { limitByIp } from "@/server/security/action-limit";
 import { imageProps } from "@/server/services/media";
 import { quickSearch } from "@/server/services/search";
 
@@ -34,6 +35,10 @@ const EMPTY: QuickResults = { query: "", products: [], collections: [] };
 export async function quickSearchAction(q: string): Promise<QuickResults> {
   const parsed = inputSchema.safeParse(q);
   if (!parsed.success || parsed.data.trim().length < 2) return EMPTY;
+
+  // Search-as-you-type is debounced client side; this only stops scripted hammering of the trigram search.
+  const limit = await limitByIp("search", { limit: 90, windowSeconds: 60 });
+  if (limit && !limit.allowed) return EMPTY;
 
   const result = await quickSearch(getDb(), parsed.data, 6);
   return {

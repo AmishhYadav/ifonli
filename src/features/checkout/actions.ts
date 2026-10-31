@@ -17,6 +17,7 @@ import { loadCommerceSettings } from "@/server/services/commerce/settings";
 import { initiateRazorpayPayment, retryOrderPayment } from "@/server/payments/initiate";
 import type { PaymentInitiator, RazorpayCheckoutPayload } from "@/server/services/commerce/payment-hook";
 import { createFromCart } from "@/server/services/orders";
+import { limitByIp } from "@/server/security/action-limit";
 import { consumeRateLimit } from "@/server/services/rate-limit";
 
 import {
@@ -44,6 +45,17 @@ export async function getCheckoutQuote(input: {
   email?: string;
 }): Promise<ActionResult<CheckoutQuote>> {
   try {
+    const limit = await limitByIp("quote", { limit: 240, windowSeconds: 600 });
+    if (limit && !limit.allowed) {
+      return {
+        ok: false,
+        error: {
+          code: "rate_limited",
+          message: "Too many requests. Please wait a moment and try again.",
+          retryAfterSeconds: limit.retryAfterSeconds,
+        },
+      };
+    }
     const parsed = checkoutQuoteSchema.parse(input ?? {});
     const [token, user] = await Promise.all([readCartToken(), getSessionUser()]);
     const db = getDb();
