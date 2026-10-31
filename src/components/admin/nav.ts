@@ -152,7 +152,7 @@ export const NAV: NavGroupDef[] = [
         label: "Reports",
         icon: "reports",
         permission: "report:view",
-        built: false,
+        built: true,
         blurb: "Sales, GST and stock reports.",
       },
       {
@@ -160,7 +160,7 @@ export const NAV: NavGroupDef[] = [
         label: "Insights",
         icon: "insights",
         permission: "insight:view",
-        built: false,
+        built: true,
         blurb: "Product engagement and conversion signals.",
       },
     ],
