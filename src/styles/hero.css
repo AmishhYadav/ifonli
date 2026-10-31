@@ -1,0 +1,279 @@
+/*
+ * Animated hero stage (plan section 9). Loaded with the lazy stage chunk, so visitors who never get the
+ * animation never download it. Everything is painted from vibe tokens; the timeline only moves transforms
+ * and opacity (plus DrawSVG on a few small paths). `will-change` is scoped to the running state.
+ */
+
+/* While the stage runs, the server-rendered poster tiles under it are made transparent. The Director also marks
+   them `inert`, which removes them from the tab order and the accessibility tree (the stage tiles are the
+   links). They keep their layout, so nothing shifts. */
+[data-hero][data-stage="on"] [data-poster-list] {
+  opacity: 0;
+}
+
+.hero-stage {
+  position: absolute;
+  inset: 0;
+  --u: 160px;
+  pointer-events: none;
+  visibility: hidden;
+}
+.hero-stage[data-ready="true"] {
+  visibility: visible;
+}
+
+/* Everything animated lives in one clipped, isolated layer so the text card (z-10) stays above it. */
+.stage-content {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  overflow: clip;
+  overflow-clip-margin: 24px;
+}
+
+.stage-canvas {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bg);
+  pointer-events: none;
+}
+/* Design-tool grid. */
+.stage-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--ink) 10%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--ink) 10%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 32px 32px;
+}
+/* Paper texture: the vibe's own texture mask. */
+.stage-canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--texture-ink);
+  opacity: var(--texture-opacity);
+  -webkit-mask-image: var(--texture-url);
+  mask-image: var(--texture-url);
+  -webkit-mask-size: var(--texture-size);
+  mask-size: var(--texture-size);
+}
+
+.stage-veil {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.stage-veil-dark {
+  background-color: var(--ink);
+}
+/* Gothic's ink is light: its "dark" is a deeper black than the page. */
+.hero-stage[data-dark="bg"] .stage-veil-dark {
+  background-color: color-mix(in oklab, var(--bg) 30%, black);
+}
+.stage-veil-solid {
+  background-color: var(--accent);
+}
+
+.stage-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 100%, var(--accent) 0%, transparent 65%);
+}
+
+.stage-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.stage-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+.stage-spoke {
+  stroke: var(--ink-muted);
+  stroke-width: 1.5;
+}
+.stage-link {
+  stroke-width: 3;
+}
+.stage-handle {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 2;
+  opacity: 0;
+}
+.stage-anchor {
+  fill: var(--accent);
+  stroke: var(--ink);
+  stroke-width: 2;
+  opacity: 0;
+}
+
+.stage-tiles {
+  position: absolute;
+  inset: 0;
+  perspective: 1200px;
+  pointer-events: none;
+}
+.stage-tile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: var(--u);
+  height: var(--u);
+  margin: calc(var(--u) / -2) 0 0 calc(var(--u) / -2);
+  opacity: 0;
+  pointer-events: auto;
+  backface-visibility: hidden;
+}
+.stage-tile:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 5px;
+  border-radius: var(--radius-card);
+}
+.stage-bk {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+}
+.stage-ring {
+  border: 4px solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 3px var(--surface);
+}
+.stage-img {
+  position: absolute;
+  inset: 14%;
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.stage-badge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  padding: 0.25em 0.8em;
+  font-size: clamp(1.5rem, calc(var(--u) * 0.28), 3.25rem);
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--on-accent);
+  border: var(--border-w) solid var(--on-accent);
+  border-radius: var(--radius-card);
+  pointer-events: none;
+}
+
+.stage-sil {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--u);
+  height: var(--u);
+  margin: calc(var(--u) / -2) 0 0 calc(var(--u) / -2);
+  opacity: 0;
+  pointer-events: none;
+  background-color: var(--accent);
+  -webkit-mask-image: var(--sil-src);
+  mask-image: var(--sil-src);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.stage-sil[data-sil="1"] {
+  background-color: var(--accent-2);
+}
+.stage-sil[data-sil="2"] {
+  background-color: var(--accent-3);
+}
+.stage-sil[data-sil="3"] {
+  background-color: var(--ink);
+}
+
+.stage-streak {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 55%;
+  height: 0.75rem;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+/* Product name shown while a tile is hovered or focused (the timeline is paused then). */
+.stage-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 20;
+  max-width: 16rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--bg);
+  background-color: var(--ink);
+  border-radius: var(--radius-button);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms linear;
+}
+.stage-label[data-open="true"] {
+  opacity: 1;
+}
+
+/* Pause/Play (WCAG 2.2.2), bottom-right of the hero, in the strip the poster reserves under the grid (pb-14),
+   so it never covers a tile or the text card. */
+.stage-toggle {
+  position: absolute;
+  right: 0;
+  bottom: -3rem;
+  z-index: 20;
+  gap: 0.4rem;
+  padding-inline: 0.9rem;
+  pointer-events: auto;
+}
+.stage-toggle-play {
+  display: none;
+}
+.hero-stage[data-user-paused="true"] .stage-toggle-pause {
+  display: none;
+}
+.hero-stage[data-user-paused="true"] .stage-toggle-play {
+  display: inline-block;
+}
+
+/* will-change only while the timeline is actually running. */
+.hero-stage[data-running="true"] .stage-tile,
+.hero-stage[data-running="true"] .stage-tiles,
+.hero-stage[data-running="true"] .stage-sil {
+  will-change: transform, opacity;
+}
