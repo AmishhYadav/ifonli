@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import zones from "../../data/reference/zones.json";
 import {
   SETTINGS,
   SETTING_GROUPS,
   SETTING_KEYS,
+  SHIPPING_ZONES,
+  isRequiredForLaunch,
   settingsInGroup,
 } from "@/server/services/settings-registry";
 
@@ -73,5 +76,93 @@ describe("settings registry", () => {
       }).success,
     ).toBe(false);
     expect(SETTINGS.cod_excluded_pincodes.schema.safeParse(["12345"]).success).toBe(false);
+  });
+
+  describe("policy copy keys (content/README.md)", () => {
+    const POLICY_KEYS = [
+      "policy.jurisdiction_city",
+      "policy.processors",
+      "policy.hippers_definition",
+      "policy.materials_note",
+      "policy.handmade_note",
+      "policy.working_days",
+      "policy.courier_partners",
+      "policy.delivery_attempts",
+      "policy.rto_handling",
+      "policy.refund_initiation_days",
+      "policy.refund_bank_days",
+      "policy.cod_refund_days",
+      "policy.replacement_days",
+      "policy.return_conditions",
+      "policy.non_returnable_items",
+      "policy.return_shipping_rule",
+      "policy.shipping_fee_refund_rule",
+      "policy.retention_order_records",
+      "policy.retention_period",
+    ] as const;
+
+    it("registers every NEW key in the policies group", () => {
+      for (const key of POLICY_KEYS) {
+        expect(SETTINGS[key].group, key).toBe("policies");
+        expect(SETTING_KEYS).toContain(key);
+      }
+      expect(settingsInGroup("policies").sort()).toEqual([...POLICY_KEYS].sort());
+    });
+
+    it("has fake-looking placeholders for owner text and valid typed numbers", () => {
+      for (const key of POLICY_KEYS) {
+        const def = SETTINGS[key];
+        if (typeof def.placeholder === "string" && key !== "policy.handmade_note") {
+          expect(def.placeholder, key).toMatch(/^PLACEHOLDER/);
+        }
+      }
+      expect(SETTINGS["policy.delivery_attempts"].schema.safeParse(0).success).toBe(false);
+      expect(SETTINGS["policy.refund_initiation_days"].schema.safeParse(2.5).success).toBe(false);
+      expect(SETTINGS["policy.cod_refund_days"].schema.safeParse(3).success).toBe(true);
+      expect(SETTINGS["policy.jurisdiction_city"].schema.safeParse("  ").success).toBe(false);
+    });
+
+    it("marks Markdown strings, and only handmade_note is optional for launch", () => {
+      for (const key of [
+        "policy.processors",
+        "policy.hippers_definition",
+        "policy.materials_note",
+        "policy.rto_handling",
+        "policy.return_conditions",
+        "policy.non_returnable_items",
+        "policy.return_shipping_rule",
+        "policy.shipping_fee_refund_rule",
+      ] as const) {
+        expect(SETTINGS[key].format, key).toBe("md");
+      }
+      for (const key of POLICY_KEYS) {
+        expect(SETTINGS[key].requiredForLaunch, key).toBe(key !== "policy.handmade_note");
+      }
+    });
+
+    it("return-policy copy is required only when returns are enabled", () => {
+      const def = SETTINGS["policy.return_conditions"];
+      expect(def.requiredUnless).toEqual({ key: "return_policy_type", equals: "no_returns" });
+      expect(isRequiredForLaunch(def, () => "no_returns")).toBe(false);
+      expect(isRequiredForLaunch(def, () => "returns_window")).toBe(true);
+      expect(isRequiredForLaunch(SETTINGS["policy.working_days"], () => "no_returns")).toBe(true);
+      expect(isRequiredForLaunch(SETTINGS.brand_name, () => undefined)).toBe(false);
+    });
+
+    it("tags money and status-list keys for the template renderer", () => {
+      for (const key of ["flat_fee", "free_threshold", "cod_fee", "cod_max_order_value"] as const) {
+        expect(SETTINGS[key].format).toBe("money");
+      }
+      expect(SETTINGS.cancellable_statuses.format).toBe("fulfillment_statuses");
+    });
+
+    it("delivery_estimates_by_zone accepts exactly the zones from zones.json", () => {
+      expect([...SHIPPING_ZONES]).toEqual(zones.zones);
+      const schema = SETTINGS.delivery_estimates_by_zone.schema;
+      for (const zone of zones.zones) {
+        expect(schema.safeParse({ [zone]: { minDays: 2, maxDays: 5 } }).success, zone).toBe(true);
+      }
+      expect(schema.safeParse({ mars: { minDays: 2, maxDays: 5 } }).success).toBe(false);
+    });
   });
 });

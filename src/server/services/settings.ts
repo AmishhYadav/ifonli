@@ -9,6 +9,7 @@ import { adminAuditLog, settings } from "@/server/db/schema";
 import {
   SETTINGS,
   SETTING_KEYS,
+  isRequiredForLaunch,
   settingsInGroup,
   type SettingGroup,
   type SettingInput,
@@ -92,6 +93,13 @@ export async function getSettings(group: SettingGroup): Promise<SettingEntry[]> 
   return keys.map((k) => toEntry(k, byKey.get(k)));
 }
 
+/** Every registry key (registry order) in one query, for pages that mix many settings (policies). */
+export async function getAllSettingEntries(): Promise<SettingEntry[]> {
+  const rows = await getDb().select().from(settings);
+  const byKey = new Map(rows.map((r) => [r.key, r]));
+  return SETTING_KEYS.map((k) => toEntry(k, byKey.get(k)));
+}
+
 /**
  * Validates and stores a setting, clears its placeholder flag and writes an audit-log row
  * (before/after) in the same transaction. `actorId` is a Better Auth user id, or null for system.
@@ -142,9 +150,13 @@ export async function getLaunchBlockers(): Promise<LaunchBlocker[]> {
   const rows = await getDb().select().from(settings);
   const byKey = new Map(rows.map((r) => [r.key, r]));
   const blockers: LaunchBlocker[] = [];
+  const valueOf = (key: string) =>
+    (SETTING_KEYS as readonly string[]).includes(key)
+      ? toEntry(key as SettingKey, byKey.get(key)).value
+      : undefined;
   for (const key of SETTING_KEYS) {
     const def = SETTINGS[key];
-    if (!def.requiredForLaunch) continue;
+    if (!isRequiredForLaunch(def, valueOf)) continue;
     const entry = toEntry(key, byKey.get(key));
     if (entry.isPlaceholder) blockers.push({ key, group: def.group, label: def.label });
   }

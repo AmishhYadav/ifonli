@@ -1,0 +1,130 @@
+/*
+ * Long-form text (policies, FAQ answers). Reading comes first: ~70ch measure, generous leading, solid
+ * contrast. The vibe shows through tokens only (display font on headings, border, accent, radii).
+ */
+.policy-prose {
+  max-width: 70ch;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.policy-prose > * + * {
+  margin-top: 1rem;
+}
+.policy-prose h2,
+.policy-prose h3,
+.policy-prose h4 {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: 1.2;
+  scroll-margin-top: 6rem;
+  text-wrap: balance;
+}
+.policy-prose h2 {
+  margin-top: 2.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: var(--border-w) solid var(--border);
+  font-size: 1.625rem;
+}
+.policy-prose h3 {
+  margin-top: 2rem;
+  font-size: 1.25rem;
+}
+.policy-prose h4 {
+  margin-top: 1.5rem;
+  font-size: 1.0625rem;
+}
+.policy-prose > :first-child {
+  margin-top: 0;
+}
+.policy-prose ul,
+.policy-prose ol {
+  padding-left: 1.5rem;
+}
+.policy-prose ul {
+  list-style: disc;
+}
+.policy-prose ol {
+  list-style: decimal;
+}
+.policy-prose li + li,
+.policy-prose li > ul,
+.policy-prose li > ol {
+  margin-top: 0.4rem;
+}
+.policy-prose li::marker {
+  color: var(--ink-muted);
+}
+.policy-prose a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.policy-prose a:hover {
+  text-decoration-thickness: 2px;
+}
+.policy-prose blockquote {
+  padding: 0.75rem 1rem;
+  border-left: 0.25rem solid var(--accent);
+  border-radius: var(--radius-input);
+  background: var(--surface-2);
+  font-size: 1rem;
+}
+.policy-prose blockquote > * + * {
+  margin-top: 0.5rem;
+}
+.policy-prose hr {
+  margin-block: 2rem;
+  border: 0;
+  border-top: var(--border-w) solid var(--border);
+}
+.policy-prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 1rem;
+}
+.policy-prose th,
+.policy-prose td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.policy-prose th {
+  background: var(--surface-2);
+}
+.policy-prose code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-input);
+  background: var(--surface-2);
+  font-size: 0.9em;
+}
+
+/* FAQ answers sit inside an accordion panel: same typography, tighter. */
+.policy-prose-compact {
+  max-width: none;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+/* Draft-review markers (development / dev-pages builds only). */
+.policy-prose mark.policy-marker {
+  padding: 0 0.3em;
+  border-radius: var(--radius-input);
+  background: color-mix(in oklab, var(--warning) 28%, transparent);
+  color: var(--ink);
+  outline: 2px dashed var(--warning);
+  outline-offset: 1px;
+}
+.policy-prose mark.policy-marker a {
+  color: inherit;
+}
+.policy-prose mark.policy-marker[data-marker="unresolved"] {
+  background: color-mix(in oklab, var(--danger) 22%, transparent);
+  outline-color: var(--danger);
+}

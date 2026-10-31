@@ -219,3 +219,61 @@ export function verifyBody(
     ...overrides,
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Admin orders helpers
+// ---------------------------------------------------------------------------------------------
+
+/** A prepaid order that has been paid through the real `finalizePaidOrder` (mock provider). */
+export async function placePaidOrder(
+  provider: import("@/server/payments/mock").MockPaymentProvider,
+  items: { variantId: string; qty: number }[],
+  opts: { form?: Record<string, unknown>; couponCode?: string | null } = {},
+) {
+  const { finalizePaidOrder } = await import("@/server/services/payments");
+  const placed = await placePrepaidOrder(provider, items, opts);
+  const paid = provider.simulatePayment(placed.payment.razorpayOrderId);
+  await finalizePaidOrder(
+    getDb(),
+    placed.order.orderId,
+    { providerOrderId: paid.orderId!, providerPaymentId: paid.id, amountPaise: paid.amountPaise, method: paid.method },
+    { provider },
+  );
+  return { ...placed, paid };
+}
+
+/** A confirmed COD order (stock decremented, invoice number assigned). */
+export async function placeCodOrder(
+  items: { variantId: string; qty: number }[],
+  opts: { form?: Record<string, unknown>; couponCode?: string | null } = {},
+) {
+  const { createFromCart } = await import("@/server/services/orders");
+  const cart = await makeCart(items, { couponCode: opts.couponCode ?? null });
+  const r = await createFromCart(getDb(), {
+    cartToken: cart.token,
+    form: checkoutForm({ paymentMethod: "cod", ...opts.form }),
+  });
+  if (!r.ok) throw new Error(`placeCodOrder failed: ${r.error.code} ${r.error.message}`);
+  return { order: r.order, token: r.order.accessToken };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Notifications helpers
+// ---------------------------------------------------------------------------------------------
+
+/** A confirmed COD order placed with the real checkout hook, so the cod_placed / new_order outbox rows exist. */
+export async function placeCodOrderNotified(
+  items: { variantId: string; qty: number }[],
+  opts: { form?: Record<string, unknown> } = {},
+) {
+  const { createFromCart } = await import("@/server/services/orders");
+  const { onOrderPlacedInTransaction } = await import("@/server/notify/order-hooks");
+  const cart = await makeCart(items);
+  const r = await createFromCart(getDb(), {
+    cartToken: cart.token,
+    form: checkoutForm({ paymentMethod: "cod", ...opts.form }),
+    hooks: { onPlacedInTransaction: onOrderPlacedInTransaction },
+  });
+  if (!r.ok) throw new Error(`placeCodOrderNotified failed: ${r.error.code} ${r.error.message}`);
+  return { order: r.order, token: r.order.accessToken };
+}

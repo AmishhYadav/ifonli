@@ -30,6 +30,22 @@ An array of objects:
   "position": integer, starting at 1 within each category }
 ```
 
+## Seeding and rendering (implemented)
+
+Load the files into the database (idempotent; safe to re-run):
+
+```
+pnpm exec tsx --conditions=react-server scripts/seed-content.ts [--force]
+```
+
+- Policies go into `policies` and `policy_versions`. `published` stays `false` while `status` starts with `DRAFT`. The integer `version` column holds the major number of the front-matter `version` (`0.1-draft` becomes `1`; the label itself is not stored). `lastReviewed` becomes `effective_at`.
+- Re-running refreshes policies that are still unpublished from the files, and never touches a published policy or an existing FAQ (owner edits in the admin survive). `--force` overwrites both.
+- Run `pnpm db:seed` first (or after pulling) so the new `policy.*` settings rows exist.
+- The renderer is `src/server/content/render-template.ts`, Markdown conversion is `src/server/content/markdown.ts`, and the publishing rule is `src/server/content/publish.ts`.
+- In production a policy is shown only when it is published AND every token resolved to a real value; otherwise `/policies/<slug>` shows a neutral "being finalised" notice (noindex). A FAQ answer with an unresolved or placeholder token is left out of `/help`. In development (or a build with `NEXT_PUBLIC_ENABLE_DEV_PAGES=1`) the same pages render with a DRAFT banner and highlighted markers.
+- A token is a placeholder when its setting is flagged `is_placeholder` and is required for launch (the three return-policy copy keys only count once `return_policy_type` is not `no_returns`), or when its text starts with `PLACEHOLDER`.
+- `delivery_estimates_by_zone` stores `{minDays, maxDays}` per zone, so `{{settings.delivery_estimates_by_zone.metro_region}}` prints as `2 to 4 days`. Until the owner sets a zone, the token is unresolved.
+
 ## Token syntax
 
 The renderer is deliberately tiny. It runs on the Markdown source **before** the Markdown is converted to HTML. Values are inserted as plain text (HTML-escaped), except values marked "md string", which are inserted as Markdown source.

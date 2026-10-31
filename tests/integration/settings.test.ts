@@ -109,7 +109,10 @@ describe("settings service", () => {
   it("getLaunchBlockers lists required placeholders and shrinks as they are set", async () => {
     await seedMissingSettings();
     const before = await getLaunchBlockers();
-    const required = SETTING_KEYS.filter((k) => SETTINGS[k].requiredForLaunch);
+    // Return-policy copy only blocks launch once returns are enabled (`requiredUnless`).
+    const required = SETTING_KEYS.filter(
+      (k) => SETTINGS[k].requiredForLaunch && !("requiredUnless" in SETTINGS[k]),
+    );
     expect(before.map((b) => b.key).sort()).toEqual([...required].sort());
     expect(before.map((b) => b.key)).toContain("legal_name");
     expect(before.map((b) => b.key)).not.toContain("brand_name");
@@ -124,5 +127,25 @@ describe("settings service", () => {
   it("getLaunchBlockers works on an empty settings table (nothing seeded yet)", async () => {
     const blockers = await getLaunchBlockers();
     expect(blockers.length).toBeGreaterThan(0);
+  });
+
+  it("seeds the policy.* keys and gates return copy on the return policy type", async () => {
+    await seedMissingSettings();
+    const city = await getSettingEntry("policy.jurisdiction_city");
+    expect(city.isPlaceholder).toBe(true);
+    expect(city.value).toMatch(/^PLACEHOLDER/);
+    expect(await getSetting("policy.handmade_note")).toBe("");
+    expect(await getSetting("policy.delivery_attempts")).toBe(1);
+
+    const keys = async () => (await getLaunchBlockers()).map((b) => b.key as string);
+    expect(await keys()).toContain("policy.working_days");
+    expect(await keys()).not.toContain("policy.return_conditions");
+    expect(await keys()).not.toContain("policy.handmade_note");
+
+    await setSetting("return_policy_type", "returns_window", null);
+    expect(await keys()).toContain("policy.return_conditions");
+    expect(await keys()).toContain("policy.return_shipping_rule");
+    await setSetting("policy.return_conditions", "Unused and in original packaging.", null);
+    expect(await keys()).not.toContain("policy.return_conditions");
   });
 });

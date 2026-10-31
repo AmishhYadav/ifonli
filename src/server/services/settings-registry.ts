@@ -25,6 +25,7 @@ export const SETTING_GROUPS = [
   "vibes",
   "notifications",
   "analytics",
+  "policies",
 ] as const;
 export type SettingGroup = (typeof SETTING_GROUPS)[number];
 
@@ -42,7 +43,16 @@ export interface SettingDefinition<S extends z.ZodType = z.ZodType> {
   locked?: true;
   /** Owner already decided the value: seeded as non-placeholder. */
   confirmed?: true;
+  /**
+   * How the policy/FAQ template renderer prints the value: `money` (paise -> rupees), `md` (inserted as
+   * Markdown source, not escaped) or `fulfillment_statuses` (array mapped to customer-facing labels).
+   */
+  format?: SettingFormat;
+  /** Required for launch unless another setting has this value (e.g. returns copy when there are no returns). */
+  requiredUnless?: { key: string; equals: unknown };
 }
+
+export type SettingFormat = "money" | "md" | "fulfillment_statuses";
 
 function define<S extends z.ZodType>(
   key: string,
@@ -242,6 +252,7 @@ export const SETTINGS = {
   }),
   flat_fee: define("flat_fee", {
     group: "shipping",
+    format: "money",
     label: "Flat shipping fee (paise)",
     description: "Charged when the discounted subtotal is below the free-shipping threshold.",
     schema: paise,
@@ -250,6 +261,7 @@ export const SETTINGS = {
   }),
   free_threshold: define("free_threshold", {
     group: "shipping",
+    format: "money",
     label: "Free-shipping threshold (paise)",
     description: "Discounted subtotal at or above which shipping is free. 0 = always free.",
     schema: paise,
@@ -307,6 +319,7 @@ export const SETTINGS = {
   }),
   cod_fee: define("cod_fee", {
     group: "cod",
+    format: "money",
     label: "COD fee (paise)",
     description: "Added to COD orders as its own line. 0 = no fee.",
     schema: paise,
@@ -315,6 +328,7 @@ export const SETTINGS = {
   }),
   cod_max_order_value: define("cod_max_order_value", {
     group: "cod",
+    format: "money",
     label: "COD maximum order value (paise)",
     description: "Orders above this cannot use COD. 0 = no COD.",
     schema: paise,
@@ -370,6 +384,7 @@ export const SETTINGS = {
   // ---------------------------------------------------------------- Cancellation / returns
   cancellable_statuses: define("cancellable_statuses", {
     group: "returns",
+    format: "fulfillment_statuses",
     label: "Cancellable fulfilment statuses",
     description: "Customers may cancel while the order's fulfilment status is one of these.",
     schema: z.array(z.enum(FULFILLMENT_STATUSES)),
@@ -513,6 +528,174 @@ export const SETTINGS = {
     placeholder: 13,
     requiredForLaunch: false,
   }),
+  // ---------------------------------------------------------------- Policy copy (content/README.md)
+  // Keys are dotted (`policy.*`) so the template token is `settings.policy.<name>`. Text values are
+  // owner/lawyer-owned; `md` values are inserted into the policy Markdown as source.
+  "policy.jurisdiction_city": define("policy.jurisdiction_city", {
+    group: "policies",
+    label: "Jurisdiction city",
+    description: "City whose courts have jurisdiction over disputes (Terms of use).",
+    schema: nonEmpty,
+    placeholder: `${PH} — Jurisdiction city`,
+    requiredForLaunch: true,
+  }),
+  "policy.processors": define("policy.processors", {
+    group: "policies",
+    label: "Service providers (Markdown)",
+    description:
+      "Privacy notice: the actual payment, courier, email/WhatsApp, hosting and analytics providers. Markdown list.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Service providers`,
+    requiredForLaunch: true,
+    format: "md",
+  }),
+  "policy.hippers_definition": define("policy.hippers_definition", {
+    group: "policies",
+    label: "What Hippers are (Markdown)",
+    description: "FAQ answer defining the Hippers product type.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Hippers definition`,
+    requiredForLaunch: true,
+    format: "md",
+  }),
+  "policy.materials_note": define("policy.materials_note", {
+    group: "policies",
+    label: "Materials note (Markdown)",
+    description: "FAQ: generic statement about materials used.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Materials note`,
+    requiredForLaunch: true,
+    format: "md",
+  }),
+  "policy.handmade_note": define("policy.handmade_note", {
+    group: "policies",
+    label: "Handmade / variation notice",
+    description: "Optional. Terms of use: shown only when filled in. Empty = hidden.",
+    schema: z.string().trim(),
+    placeholder: "",
+    requiredForLaunch: false,
+  }),
+  "policy.working_days": define("policy.working_days", {
+    group: "policies",
+    label: "Working days",
+    description: "Shipping policy: which days count as working days, e.g. 'Monday to Saturday'.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Working days`,
+    requiredForLaunch: true,
+  }),
+  "policy.courier_partners": define("policy.courier_partners", {
+    group: "policies",
+    label: "Courier partner(s)",
+    description: "Shipping policy: courier partner name(s).",
+    schema: nonEmpty,
+    placeholder: `${PH} — Courier partners`,
+    requiredForLaunch: true,
+  }),
+  "policy.delivery_attempts": define("policy.delivery_attempts", {
+    group: "policies",
+    label: "Delivery attempts before RTO",
+    description: "Shipping policy and FAQ: how many delivery attempts before the parcel is returned.",
+    schema: z.number().int().min(1).max(10),
+    placeholder: 1,
+    requiredForLaunch: true,
+  }),
+  "policy.rto_handling": define("policy.rto_handling", {
+    group: "policies",
+    label: "After return-to-origin (Markdown)",
+    description: "Shipping policy: what happens after an RTO (reship, refund, fees).",
+    schema: nonEmpty,
+    placeholder: `${PH} — RTO handling`,
+    requiredForLaunch: true,
+    format: "md",
+  }),
+  "policy.refund_initiation_days": define("policy.refund_initiation_days", {
+    group: "policies",
+    label: "Refund initiation (working days)",
+    description: "Working days we take to start a refund after approval or cancellation.",
+    schema: z.number().int().min(0).max(60),
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  "policy.refund_bank_days": define("policy.refund_bank_days", {
+    group: "policies",
+    label: "Bank / wallet refund time",
+    description: "Time banks and wallets usually take to show a refund, e.g. '5 to 7 working days'.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Bank refund time`,
+    requiredForLaunch: true,
+  }),
+  "policy.cod_refund_days": define("policy.cod_refund_days", {
+    group: "policies",
+    label: "COD refund (working days)",
+    description: "Working days to send a COD refund after receiving UPI/bank details.",
+    schema: z.number().int().min(0).max(60),
+    placeholder: 0,
+    requiredForLaunch: true,
+  }),
+  "policy.replacement_days": define("policy.replacement_days", {
+    group: "policies",
+    label: "Replacement dispatch time",
+    description: "Returns policy: time to dispatch a replacement.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Replacement dispatch time`,
+    requiredForLaunch: true,
+  }),
+  "policy.return_conditions": define("policy.return_conditions", {
+    group: "policies",
+    label: "Return conditions (Markdown)",
+    description: "Returns policy. Required only when the return policy type is not no_returns.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Return conditions`,
+    requiredForLaunch: true,
+    requiredUnless: { key: "return_policy_type", equals: "no_returns" },
+    format: "md",
+  }),
+  "policy.non_returnable_items": define("policy.non_returnable_items", {
+    group: "policies",
+    label: "Non-returnable items (Markdown)",
+    description: "Returns policy. Required only when the return policy type is not no_returns.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Non-returnable items`,
+    requiredForLaunch: true,
+    requiredUnless: { key: "return_policy_type", equals: "no_returns" },
+    format: "md",
+  }),
+  "policy.return_shipping_rule": define("policy.return_shipping_rule", {
+    group: "policies",
+    label: "Return shipping rule (Markdown)",
+    description:
+      "Who arranges and pays return shipping. Required only when the return policy type is not no_returns.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Return shipping rule`,
+    requiredForLaunch: true,
+    requiredUnless: { key: "return_policy_type", equals: "no_returns" },
+    format: "md",
+  }),
+  "policy.shipping_fee_refund_rule": define("policy.shipping_fee_refund_rule", {
+    group: "policies",
+    label: "Shipping fee refund rule (Markdown)",
+    description: "Whether shipping and COD fees are refunded in partial refunds.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Shipping fee refund rule`,
+    requiredForLaunch: true,
+    format: "md",
+  }),
+  "policy.retention_order_records": define("policy.retention_order_records", {
+    group: "policies",
+    label: "Order record retention",
+    description: "Privacy notice: how long order and invoice records are kept.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Order record retention`,
+    requiredForLaunch: true,
+  }),
+  "policy.retention_period": define("policy.retention_period", {
+    group: "policies",
+    label: "Other data retention",
+    description: "Privacy notice: how long other personal data is kept.",
+    schema: nonEmpty,
+    placeholder: `${PH} — Data retention period`,
+    requiredForLaunch: true,
+  }),
 } as const;
 
 export type SettingKey = keyof typeof SETTINGS;
@@ -527,6 +710,18 @@ export function isSettingKey(key: string): key is SettingKey {
 
 export function getDefinition<K extends SettingKey>(key: K): (typeof SETTINGS)[K] {
   return SETTINGS[key];
+}
+
+/**
+ * Whether a setting blocks launch while it is a placeholder. `requiredUnless` makes a key optional once
+ * its governing setting has the given value; `valueOf` reads the governing setting.
+ */
+export function isRequiredForLaunch(
+  def: Pick<SettingDefinition, "requiredForLaunch" | "requiredUnless">,
+  valueOf: (key: string) => unknown,
+): boolean {
+  if (!def.requiredForLaunch) return false;
+  return !(def.requiredUnless && valueOf(def.requiredUnless.key) === def.requiredUnless.equals);
 }
 
 export function settingsInGroup(group: SettingGroup): SettingKey[] {
