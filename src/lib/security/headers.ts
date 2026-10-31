@@ -105,6 +105,9 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions): stri
   ];
   const connectSrc = [
     "'self'",
+    // Browser uploads PUT straight to Supabase Storage signed URLs (admin product and banner images,
+    // customer support photos).
+    ...(supabase ? [supabase] : []),
     ...RAZORPAY.connect,
     ...(ga ? GA_CONNECT : []),
     ...(production ? [] : ["ws://localhost:*", "ws://127.0.0.1:*"]), // HMR

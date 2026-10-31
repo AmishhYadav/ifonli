@@ -177,6 +177,12 @@ One Postgres table (`rate_limits`: key, window start, count) behind `consumeRate
 | Customer invoice download `GET /api/orders/{ref}/invoice` | Route Handler | `invoice:ip` | 30 per 10 min per IP (also needs the order token) |
 | Header quick search | Server Action | `search:ip` | 90 per minute per IP (over limit returns no results) |
 | Wishlist cards | Server Action | `wishlist:ip` | 60 per minute per IP |
+| Customer OTP login (storefront Server Actions) | Server Action | `otp-send:ip`, `otp-send:email`, `otp-verify:ip`, `otp-verify:email` | Send: 10 per 15 min per IP, 5 per 15 min per email. Verify: 30 per 15 min per IP, 10 per 15 min per email |
+| Customer order cancel | Server Action | `cancel:ip`, `cancel:ref` | 20 per 10 min per IP; 6 per 10 min per order |
+| Report a problem (support case) | Server Action | `support:ip`, `support:order` | 10 per hour per IP; 6 per day per order |
+| Support photo upload URLs | Server Action | `support-upload:ip` | 20 per hour per IP (files checked for type and size before the case stores them) |
+| Account data export `GET /api/account/export` | Route Handler | `account-export:<user>` | 5 per hour per account |
+| Analytics beacon `POST /api/events` | Route Handler | `events:ip`, `events:sid` | 90 per minute per IP; 40 per minute per session; 8 KB and 20 events per request; bots ignored |
 | CSP reports `POST /api/csp-report` | Route Handler | `csp:ip` | 60 per 10 min per IP; 16 KB body cap |
 | Browser error tunnel `POST /api/monitoring` | Route Handler | `monitoring:ip` | 20 per 10 min per IP; 8 KB body cap; inert without `SENTRY_DSN` |
 | Razorpay webhook `POST /api/webhooks/razorpay` | Route Handler | none | Authenticated by HMAC of the raw body (constant time) before any database work; 256 KB cap; duplicate event ids are ignored. Block abuse at the Vercel Firewall |
@@ -185,7 +191,6 @@ One Postgres table (`rate_limits`: key, window start, count) behind `consumeRate
 | Admin Server Actions, admin exports and admin invoice route | Server Action / Route | none | Behind `requireAdmin()` (session + role + TOTP + per-action permission) |
 | `/api/dev/*` | Route Handler | n/a | 404 in production |
 
-Not in this branch, to add with the feature (and to this table): analytics events beacon (suggest 120 per minute per IP, 8 KB cap), customer order cancellation and "report a problem" support cases with photo upload (suggest 5 per hour per customer and per IP), customer account actions.
 
 Vercel Firewall (Project, Firewall) is the second layer: add a rate-limit rule for `/api/*` (for example 300 requests per minute per IP) and enable Attack Challenge Mode during an incident.
 

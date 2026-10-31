@@ -1,3 +1,6 @@
+// Must run before any schema is built in code that ships to the browser (see the module).
+import "@/lib/zod-csp";
+
 import { z } from "zod";
 
 import { addressSchema, phoneSchema } from "@/features/checkout/schema";

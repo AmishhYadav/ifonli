@@ -74,9 +74,16 @@ describe("buildContentSecurityPolicy", () => {
     expect(directive(csp, "img-src")).toContain("https://cdn.razorpay.com");
   });
 
-  it("allows the Supabase storage origin for images and media", () => {
+  it("allows the Supabase storage origin for images, media and direct uploads", () => {
     expect(directive(csp, "img-src")).toContain("https://abc.supabase.co");
     expect(directive(csp, "media-src")).toContain("https://abc.supabase.co");
+    // Admin images and support photos are PUT from the browser to signed upload URLs.
+    expect(directive(csp, "connect-src")).toContain("https://abc.supabase.co");
+  });
+
+  it("does not open connect-src to Supabase when it is not configured", () => {
+    const none = buildContentSecurityPolicy({ ...base, supabaseUrl: undefined });
+    expect(directive(none, "connect-src").some((v) => v.includes("supabase"))).toBe(false);
   });
 
   it("only allows Google Analytics when GA4 is configured", () => {
