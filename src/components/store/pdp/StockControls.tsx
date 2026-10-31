@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Badge, Button, Icon, QuantityStepper, useToast } from "@/components/ui";
 import { addItem, setCartOpen } from "@/components/store/cart/cart-store";
 import { useVibe } from "@/features/vibe/useVibe";
+import { track } from "@/lib/analytics/client";
 import { COPY } from "@/features/vibe/copy";
 import type { LiveVariantAvailability } from "@/server/services/queries/types";
 
@@ -45,6 +46,7 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
         setMessage({ tone: "error", text: result.error.message });
         return;
       }
+      track("add_to_cart", { productId: model.productId, value: shownQty });
       const notice = result.data.notices.find((n) => !n.variantId || n.variantId === variant.id);
       if (notice) setMessage({ tone: "info", text: notice.message });
       toast({

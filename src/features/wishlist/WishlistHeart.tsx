@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/ui";
+import { track } from "@/lib/analytics/client";
 import { cn } from "@/lib/cn";
 
 import { toggleWishlist } from "./store";
@@ -29,7 +30,9 @@ export function WishlistHeart({ productId, productName, appearance = "card", cla
       aria-pressed={saved}
       aria-label={productName ? `${label}: ${productName}` : label}
       data-testid="wishlist-heart"
-      onClick={() => toggleWishlist(productId)}
+      onClick={() => {
+        if (toggleWishlist(productId)) track("wishlist_add", { productId });
+      }}
       className={cn(
         "inline-flex size-11 items-center justify-center rounded-button text-ink transition-[transform,background-color] ease-vibe",
         "hover:scale-105 active:scale-95",

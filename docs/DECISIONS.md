@@ -97,3 +97,15 @@ Status values:
 | D-ACC-5 | Support photos | Up to 4 JPEG/PNG/WebP, 8 MB each, uploaded straight to the private bucket with signed upload URLs (the order must be owned; rate limited); the case only stores paths of files that really exist with an image type and size. Without Supabase Storage configured the picker is hidden and the report still works. EXIF is not stripped (the bucket is private and only staff read it). |
 | D-ACC-6 | Wishlist sync | First sign-in from a device: union of device and account lists (earliest save time wins), pushed back. Afterwards the account is the source of truth and the device follows it, so a removal on another device sticks. Sign-out clears the device copy. A non-personal hint cookie (`ifonli_acct`) tells the browser whether to run the sync; the Server Actions re-check the real session. |
 | D-DPDP-1 | Account deletion and retention | Deleted: login (user, sessions, accounts), profile, saved addresses, wishlist, open carts, pending sign-in codes. Kept: orders, lines, events, shipments, invoices and refunds, with the name/address/e-mail/phone typed at checkout (tax and accounting records, consumer-protection evidence); `orders.user_id` becomes NULL so they belong to no account. Support cases and their photos stay with their order. Contact-form messages are not touched. An audit row (`customer.delete`) records counts only, never the e-mail. A person who signs up again with the same e-mail sees those orders again (they match by verified e-mail). Export (`/api/account/export`) covers profile, addresses, orders, visible timeline, shipments, wishlist, support cases (no staff notes) and contact messages. |
+
+## Analytics decisions (Phase 6, 2026-10-31, plan-resolved/reversible)
+
+| ID | Decision | Resolution |
+|---|---|---|
+| D-ANA-1 | Consent for first-party counting | Anonymous, aggregate first-party counting is always on (D-23); only GA4 waits for consent. The privacy template discloses the visit counter. Legal review still required |
+| D-ANA-2 | Session id | Random id in `sessionStorage` (plan 12), renewed after 30 idle minutes, mirrored into a session cookie `ifonli_sid` so checkout can link an order to its visit. No persistent identifier |
+| D-ANA-3 | Where GA4 is configured | `NEXT_PUBLIC_GA4_ID` wins, the admin setting `ga4_measurement_id` is the fallback; `consent_required` (default true) controls the banner |
+| D-ANA-4 | Purchase events | Written server-side in the order transactions (own savepoint, never blocks an order): `purchase` per order, `purchase_item` per product, `order_placed` to remember the visit |
+| D-ANA-5 | Rollup | Whole India days are rebuilt (delete and insert) for the last 3 days, hourly; rollup rows outlive raw events (13-month retention setting) |
+| D-ANA-6 | Funnel | Nested per session (page view, product view, add to cart, checkout, purchase); orders without a known visit are sales but not funnel steps |
+| D-ANA-7 | Search terms | Stored normalised in `meta.q`; terms that look like an e-mail address or phone number are never stored |

@@ -58,6 +58,7 @@ export function ProductCardView({
         className,
       )}
       data-testid="product-card"
+      data-product-id={product.id}
       data-sold-out={soldOut || undefined}
     >
       <div

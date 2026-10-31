@@ -13,6 +13,7 @@ import {
   type CheckoutQuote,
   type PincodeLookup,
 } from "@/server/services/checkout";
+import { readAnalyticsSessionId } from "@/server/services/analytics/session";
 import { loadCommerceSettings } from "@/server/services/commerce/settings";
 import { initiateRazorpayPayment, retryOrderPayment } from "@/server/payments/initiate";
 import type { PaymentInitiator, RazorpayCheckoutPayload } from "@/server/services/commerce/payment-hook";
@@ -144,6 +145,7 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
       cartToken,
       form: input,
       userId: user?.id ?? null,
+      analyticsSessionId: await readAnalyticsSessionId(),
       initiatePayment,
       hooks: { onPlacedInTransaction: onOrderPlacedInTransaction },
     });

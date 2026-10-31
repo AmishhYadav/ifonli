@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   check,
   date,
   index,
@@ -42,7 +43,11 @@ export const analyticsEvents = pgTable(
   ],
 );
 
-/** Hourly rollup of `analytics_events`, one row per product per day (Asia/Kolkata calendar day). */
+/**
+ * Hourly rollup of `analytics_events` (plus `order_items` for sales), one row per product per day
+ * (Asia/Kolkata calendar day). The rollup cron recomputes whole days, so it is idempotent. `purchases`
+ * counts orders containing the product; `revenue_paise` is the sum of their line totals.
+ */
 export const productEngagementDaily = pgTable(
   "product_engagement_daily",
   {
@@ -57,6 +62,9 @@ export const productEngagementDaily = pgTable(
     avgScrollDepth: real("avg_scroll_depth").notNull().default(0),
     reached75Pct: integer("reached_75_pct").notNull().default(0),
     addToCarts: integer("add_to_carts").notNull().default(0),
+    clicks: integer("clicks").notNull().default(0),
+    purchases: integer("purchases").notNull().default(0),
+    revenuePaise: bigint("revenue_paise", { mode: "number" }).notNull().default(0),
     ...timestamps(),
   },
   (t) => [
@@ -64,7 +72,7 @@ export const productEngagementDaily = pgTable(
     index("product_engagement_daily_product_idx").on(t.productId, t.date),
     check(
       "product_engagement_daily_counts_nonneg",
-      sql`${t.impressions} >= 0 AND ${t.pdpViews} >= 0 AND ${t.uniqueViewers} >= 0 AND ${t.reached75Pct} >= 0 AND ${t.addToCarts} >= 0`,
+      sql`${t.impressions} >= 0 AND ${t.pdpViews} >= 0 AND ${t.uniqueViewers} >= 0 AND ${t.reached75Pct} >= 0 AND ${t.addToCarts} >= 0 AND ${t.clicks} >= 0 AND ${t.purchases} >= 0 AND ${t.revenuePaise} >= 0`,
     ),
   ],
 );

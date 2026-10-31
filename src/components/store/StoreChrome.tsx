@@ -3,6 +3,7 @@ import { Suspense, type ReactNode } from "react";
 import "@/styles/store.css";
 
 import { WishlistAccountSync } from "@/features/wishlist/WishlistAccountSync";
+import { AnalyticsMount } from "@/features/analytics/AnalyticsMount";
 
 import { Footer } from "./footer/Footer";
 import { AnnouncementBar } from "./header/AnnouncementBar";
@@ -27,6 +28,7 @@ export function StoreChrome({ children }: { children: ReactNode }) {
       <Suspense fallback={null}>
         <WishlistAccountSync />
       </Suspense>
+      <AnalyticsMount />
     </>
   );
 }

@@ -41,7 +41,7 @@ For privacy questions and requests, contact our Grievance Officer (see section 1
 - Technical data such as IP address and browser type, used for security, preventing abuse and keeping the site working.
 - A cart identifier cookie so your cart is remembered.
 - Your theme (vibe) choice, which is a setting and not personal data.
-- Anonymous usage information (for example, which pages are viewed) if you agree to analytics. See section 9.
+- Anonymous visit counts (which pages and products are viewed), kept under a random code that is not linked to you. Google Analytics is optional and used only if you agree. See section 9.
 
 ## 3. Why we use your data
 
@@ -113,14 +113,12 @@ If you are not happy with our response, you may also complain to the Data Protec
 | Sign-in session cookie | Keeps you signed in, if you have an account | Linked to your account |
 | Vibe preference (cookie and local storage) | Remembers the theme you chose on the site | No |
 | Wishlist on this device (local storage) | Saves your wishlist if you have no account | Stays on your device |
+| Visit counter (session storage and a session cookie) | Counts visits and which pages and products are viewed, so we can improve the store. It ends when you close the browser | No, it is a random code, not your name or email |
 | Cookie choice | Remembers your answer to the analytics question | No |
-
-**Optional (only if you agree).** We use anonymous usage analytics to see which pages and products are popular, so we can improve the store. They use a random session code, not your name or email.
 {{#if settings.ga4_measurement_id}}
-We also use Google Analytics 4. Google may process this data on servers outside India. It is switched on only if you accept analytics.
-{{/if}}
 
-If you do not agree, optional analytics stays off and the store works the same way. You can change your choice at any time from the cookie settings link in the footer.
+**Optional (only if you agree).** We also use Google Analytics 4 to understand how the site is used. Google may process this data on servers outside India. It is switched on only if you accept analytics. If you do not agree, it stays off and the store works the same way. You can change your choice at any time from the cookie settings link in the footer.
+{{/if}}
 
 ## 10. Children
 

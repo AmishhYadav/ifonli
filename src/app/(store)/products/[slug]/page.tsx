@@ -19,6 +19,7 @@ import { PurchaseProvider } from "@/components/store/pdp/PurchaseProvider";
 import { StockFallback } from "@/components/store/pdp/StockControls";
 import { VariantPicker } from "@/components/store/pdp/VariantPicker";
 import { VibeChip } from "@/components/ui";
+import { PdpTracker } from "@/features/analytics";
 import { isVibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { breadcrumbJsonLd, textOr, type Crumb } from "@/lib/seo";
@@ -105,6 +106,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
+      <PdpTracker productId={product.id} />
       <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-4 sm:px-6">
         <Breadcrumbs crumbs={crumbs} />
         <PurchaseProvider model={model}>

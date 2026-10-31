@@ -28,6 +28,7 @@ import {
   type PaymentStatus,
 } from "@/server/domain";
 
+import { recordOrderPlaced, recordPurchase } from "./analytics/purchase";
 import { assessCheckout } from "./checkout";
 import { findCartByToken } from "./cart";
 import { confirmRedemption, releaseRedemption, reserveRedemption } from "./coupons";
@@ -128,6 +129,11 @@ export interface CreateFromCartInput {
   /** Checkout form values plus `idempotencyKey` and `vibe` (see `placeOrderSchema`). Validated here. */
   form: unknown;
   userId?: string | null;
+  /**
+   * Anonymous analytics session of the visitor (the `ifonli_sid` cookie), so the order can be tied to its
+   * funnel. Optional and never personal.
+   */
+  analyticsSessionId?: string | null;
   now?: Date;
   /**
    * Prepaid only. Creates the provider order OUTSIDE the transaction (plan 7.5 step 4) after the
@@ -732,6 +738,10 @@ async function runOrderTransaction(
   // COD is confirmed on placement, so it is invoiced now (prepaid orders: `finalizePaidOrder`).
   // Last: the invoice counter row lock is held until commit.
   if (isCod) await ensureInvoiceNumber(tx, order.id, now);
+
+  // Analytics (fail-safe, own savepoints): remember the visit; COD is a sale as soon as it is placed.
+  await recordOrderPlaced(tx, order, input.analyticsSessionId);
+  if (isCod) await recordPurchase(tx, order.id, { sessionId: input.analyticsSessionId, now });
 
   if (input.hooks?.onPlacedInTransaction) {
     await input.hooks.onPlacedInTransaction(tx, toPlacedOrder(order, token));
