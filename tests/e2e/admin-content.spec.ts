@@ -22,13 +22,32 @@ test.describe("admin content flows", () => {
   test.describe.configure({ mode: "serial" });
 
   const stamp = Date.now();
-  const owner = { email: `e2e-owner-${stamp}@ifonli.local`, password: `E2e-Owner-${stamp}!`, secret: "" };
-  const admin = { email: `e2e-admin-${stamp}@ifonli.local`, password: `E2e-Admin-${stamp}!`, secret: "" };
+  const owner = {
+    email: `e2e-owner-${stamp}@ifonli.local`,
+    password: `E2e-Owner-${stamp}!`,
+    secret: "",
+  };
+  const admin = {
+    email: `e2e-admin-${stamp}@ifonli.local`,
+    password: `E2e-Admin-${stamp}!`,
+    secret: "",
+  };
 
   function createAccount(email: string, password: string, role: "owner" | "admin") {
     execFileSync(
       "pnpm",
-      ["exec", "tsx", "--conditions=react-server", "scripts/create-admin.ts", "--email", email, "--role", role, "--password", password],
+      [
+        "exec",
+        "tsx",
+        "--conditions=react-server",
+        "scripts/create-admin.ts",
+        "--email",
+        email,
+        "--role",
+        role,
+        "--password",
+        password,
+      ],
       { stdio: "pipe" },
     );
   }
@@ -51,6 +70,7 @@ test.describe("admin content flows", () => {
     await page.getByRole("button", { name: "Show QR code" }).click();
     await page.getByText("Can't scan?").click();
     const secret = (await page.locator("details code").innerText()).trim();
+    usedSteps.set(secret, Math.floor(Date.now() / 30_000));
     await page.getByLabel("6-digit code").fill(totp(secret));
     await page.getByRole("button", { name: "Verify and turn on" }).click();
     await expect(page.getByRole("heading", { name: "Save your backup codes" })).toBeVisible();
@@ -59,12 +79,18 @@ test.describe("admin content flows", () => {
     return secret;
   }
 
+  const usedSteps = new Map<string, number>();
   async function signIn(page: Page, who: { email: string; password: string; secret: string }) {
     await gotoLogin(page);
     await page.getByLabel("Email").fill(who.email);
     await page.getByLabel("Password").fill(who.password);
     await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByRole("heading", { name: "Two-factor code" })).toBeVisible();
+    // An authenticator code is single-use per 30 s step: when the previous sign-in used this step, wait for the next.
+    const step = () => Math.floor(Date.now() / 30_000);
+    if (usedSteps.get(who.secret) === step())
+      await page.waitForTimeout(30_000 - (Date.now() % 30_000) + 500);
+    usedSteps.set(who.secret, step());
     await page.getByLabel("Authenticator code").fill(totp(who.secret));
     await page.getByRole("button", { name: "Sign in" }).click();
     await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
@@ -73,9 +99,13 @@ test.describe("admin content flows", () => {
   test.beforeAll(() => {
     // The spec edits shared content (the shipping policy, two settings): start from the seeded state.
     execFileSync("pnpm", ["exec", "tsx", "tests/e2e/helpers/reset-content.ts"], { stdio: "pipe" });
-    execFileSync("pnpm", ["exec", "tsx", "--conditions=react-server", "scripts/seed-content.ts", "--force"], {
-      stdio: "pipe",
-    });
+    execFileSync(
+      "pnpm",
+      ["exec", "tsx", "--conditions=react-server", "scripts/seed-content.ts", "--force"],
+      {
+        stdio: "pipe",
+      },
+    );
     createAccount(owner.email, owner.password, "owner");
     createAccount(admin.email, admin.password, "admin");
   });
@@ -84,7 +114,9 @@ test.describe("admin content flows", () => {
     test.skip(isMobile, "desktop only");
   });
 
-  test("owner: settings (text, money, validation) show on the storefront and are audited", async ({ page }) => {
+  test("owner: settings (text, money, validation) show on the storefront and are audited", async ({
+    page,
+  }) => {
     owner.secret = await enrol(page, owner);
     const hours = `Mon to Sat, 10:00 to 18:00 IST (${stamp})`;
 
@@ -122,7 +154,9 @@ test.describe("admin content flows", () => {
     await fee.getByRole("button", { name: "Save" }).click();
     await expect(page.getByText("Flat shipping fee saved")).toBeVisible();
     await page.reload();
-    await expect(page.getByTestId("setting-flat_fee").getByLabel("Flat shipping fee")).toHaveValue("49.50");
+    await expect(page.getByTestId("setting-flat_fee").getByLabel("Flat shipping fee")).toHaveValue(
+      "49.50",
+    );
     // A bad amount is caught in the browser.
     const feeAgain = page.getByTestId("setting-flat_fee");
     await feeAgain.getByLabel("Flat shipping fee").fill("49.505");
@@ -139,7 +173,9 @@ test.describe("admin content flows", () => {
     await expect(row.getByTestId("audit-diff")).toContainText('"isPlaceholder": true');
   });
 
-  test("owner: a policy with unresolved settings cannot be published; a clean one can, and goes live", async ({ page }) => {
+  test("owner: a policy with unresolved settings cannot be published; a clean one can, and goes live", async ({
+    page,
+  }) => {
     await signIn(page, owner);
     await visit(page, "/admin/policies/shipping");
     await expect(page.getByRole("heading", { level: 1, name: "Shipping Policy" })).toBeVisible();
@@ -148,7 +184,9 @@ test.describe("admin content flows", () => {
     const body = page.getByLabel("Policy text (Markdown)");
     await body.fill("# Shipping\n\nSold by {{settings.legal_name}}.");
     await page.getByRole("button", { name: "Save draft" }).click();
-    await expect(page.getByText(/Draft of version 1 saved|Version 1 \(not published\)/).first()).toBeVisible();
+    await expect(
+      page.getByText(/Draft of version 1 saved|Version 1 \(not published\)/).first(),
+    ).toBeVisible();
     await expect(page.getByTestId("token-status")).toContainText(/blocks? publishing/);
     const preview = page.getByTestId("markdown-preview");
     await expect(preview).toContainText("Sold by"); // the preview follows the typing (debounced)
@@ -158,7 +196,9 @@ test.describe("admin content flows", () => {
 
     // Replace it with a resolved token and publish.
     await body.fill(`# Shipping\n\nWe ship ${stamp} from IfOnli ({{settings.brand_name}}).`);
-    await expect(page.getByTestId("token-status")).toContainText("All settings tokens are filled in");
+    await expect(page.getByTestId("token-status")).toContainText(
+      "All settings tokens are filled in",
+    );
     await page.getByRole("button", { name: "Save draft" }).click();
     await expect(page.getByText(/Draft of version 1 saved/)).toBeVisible();
     await expect(page.getByTestId("publish-blocked")).toHaveCount(0);
@@ -186,7 +226,9 @@ test.describe("admin content flows", () => {
     await expect(page.getByText(`Version two ${stamp}`)).toHaveCount(0);
   });
 
-  test("admin role can edit a policy draft but not publish, and cannot open settings or users", async ({ page }) => {
+  test("admin role can edit a policy draft but not publish, and cannot open settings or users", async ({
+    page,
+  }) => {
     admin.secret = await enrol(page, admin);
     await visit(page, "/admin/policies/shipping");
     await expect(page.getByLabel("Policy text (Markdown)")).toBeEditable();
@@ -202,7 +244,9 @@ test.describe("admin content flows", () => {
     await expect(page.getByRole("heading", { name: "Audit log" })).toBeVisible();
   });
 
-  test("owner: a banner and an announcement show on the home page, can be reordered, hidden and deleted", async ({ page }) => {
+  test("owner: a banner and an announcement show on the home page, can be reordered, hidden and deleted", async ({
+    page,
+  }) => {
     await signIn(page, owner);
     const title = `E2E offer ${stamp}`;
     const note = `E2E notice ${stamp}`;
@@ -226,12 +270,17 @@ test.describe("admin content flows", () => {
     await page.getByRole("dialog").getByLabel("Title").fill(note);
     await page.getByRole("dialog").getByRole("button", { name: "Add announcement" }).click();
     await expect(page.getByText("Banner added")).toBeVisible();
-    await expect(page.getByTestId("banner-row").filter({ hasText: note })).toContainText("Showing now");
+    await expect(page.getByTestId("banner-row").filter({ hasText: note })).toContainText(
+      "Showing now",
+    );
 
     // The home page shows both straight away.
     await page.goto("/");
     await expect(page.getByTestId("announcement-bar")).toContainText(note);
-    await expect(page.getByRole("link", { name: new RegExp(title) })).toHaveAttribute("href", "/shop");
+    await expect(page.getByRole("link", { name: new RegExp(title) })).toHaveAttribute(
+      "href",
+      "/shop",
+    );
     await expect(page.getByText("Free gift with every order")).toBeVisible();
 
     // Hide the banner with the switch: it leaves the home page.
@@ -255,7 +304,9 @@ test.describe("admin content flows", () => {
     await expect(page.getByTestId("announcement-bar")).toHaveCount(0);
   });
 
-  test("owner: hero tiles and featured sets can be edited with a cutout count warning per vibe", async ({ page }) => {
+  test("owner: hero tiles and featured sets can be edited with a cutout count warning per vibe", async ({
+    page,
+  }) => {
     await signIn(page, owner);
     await visit(page, "/admin/content?tab=hero");
     await expect(page.getByTestId("slots-hero_tiles-cute")).toContainText("product cutouts");
@@ -268,21 +319,34 @@ test.describe("admin content flows", () => {
     const count = await names.count();
     test.skip(count < 2, "needs at least two curated featured products (pnpm db:seed-products)");
     const first = (await names.nth(0).innerText()).trim();
-    await card.getByRole("button", { name: new RegExp(`Move ${first.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} down`) }).click();
+    await card
+      .getByRole("button", {
+        name: new RegExp(`Move ${first.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} down`),
+      })
+      .click();
     await card.getByRole("button", { name: "Save order" }).click();
     await expect(page.getByText(/featured on the home page saved/i)).toBeVisible();
     await page.reload();
-    await expect(page.getByTestId("slots-home_featured-bold").locator("ol li span.flex-1").nth(1)).toHaveText(first);
+    await expect(
+      page.getByTestId("slots-home_featured-bold").locator("ol li span.flex-1").nth(1),
+    ).toHaveText(first);
   });
 
   test("owner: FAQ question appears on /help, can be moved and unpublished", async ({ page }) => {
     await signIn(page, owner);
     const question = `E2E question ${stamp}?`;
     await visit(page, "/admin/faq");
-    await page.getByTestId("faq-category-delivery").getByRole("button", { name: "Add question" }).click();
+    await page
+      .getByTestId("faq-category-delivery")
+      .getByRole("button", { name: "Add question" })
+      .click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Question").fill(question);
-    await dialog.getByLabel("Answer").fill("Orders ship in {{settings.processing_days}} days. Contact {{settings.support_email}}.");
+    await dialog
+      .getByLabel("Answer")
+      .fill(
+        "Orders ship in {{settings.processing_days}} days. Contact {{settings.support_email}}.",
+      );
     // Placeholder tokens are flagged live in the editor.
     await expect(dialog.getByTestId("token-status")).toContainText(/blocks? publishing/);
     await dialog.getByLabel("Answer").fill("A short, **bold** answer.");
@@ -352,7 +416,9 @@ test.describe("admin content flows", () => {
     // Collapsed by default; opening shows pretty JSON.
     await expect(rows.first().getByTestId("audit-diff").locator("pre")).toBeHidden();
     await rows.first().getByTestId("audit-diff").locator("summary").click();
-    await expect(rows.first().getByTestId("audit-diff").locator("pre")).toContainText('"effectiveDate": "2026-10-01"');
+    await expect(rows.first().getByTestId("audit-diff").locator("pre")).toContainText(
+      '"effectiveDate": "2026-10-01"',
+    );
 
     // Nothing matches a made-up person.
     await page.getByLabel("Person contains").fill("nobody-at-all");
@@ -365,7 +431,9 @@ test.describe("admin content flows", () => {
     expect(csv.headers()["content-type"]).toContain("text/csv");
     expect(csv.headers()["content-disposition"]).toContain("audit-log-");
     const text = await csv.text();
-    expect(text.split("\r\n")[0]).toBe("Time (UTC),Actor,Actor email,Action,Entity,Entity id,IP,Changes");
+    expect(text.split("\r\n")[0]).toBe(
+      "Time (UTC),Actor,Actor email,Action,Entity,Entity id,IP,Changes",
+    );
     expect(text).toContain("policy.publish");
     expect(text).not.toContain("setting.update");
   });

@@ -83,7 +83,7 @@ export function LaunchPanel({ readiness }: { readiness: LaunchReadiness }) {
                 : `${blockers} ${blockers === 1 ? "thing blocks" : "things block"} launch${warnings > 0 ? `, plus ${warnings} ${warnings === 1 ? "warning" : "warnings"}` : ""}.`}
             </p>
           </div>
-          <ul className="flex flex-wrap gap-1.5">
+          <ul className="flex basis-full flex-wrap gap-1.5">
             {readiness.categories.map((c) => (
               <li key={c.id}>
                 <Badge tone={c.blockers > 0 ? "danger" : c.warnings > 0 ? "warning" : "success"}>

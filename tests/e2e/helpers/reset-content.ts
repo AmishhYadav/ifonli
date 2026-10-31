@@ -17,7 +17,8 @@ config({ quiet: true });
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set");
-if (process.env.NODE_ENV === "production") throw new Error("Refusing to reset content in production");
+if (process.env.NODE_ENV === "production")
+  throw new Error("Refusing to reset content in production");
 
 async function main() {
   const sql = postgres(url as string, { max: 1, onnotice: () => {} });
