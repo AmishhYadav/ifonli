@@ -6,4 +6,5 @@ export function rupeesToPaiseStrict(text: string): number | null {
   return Number(whole) * 100 + Number(frac.padEnd(2, "0"));
 }
 
-export const paiseToRupees = (p: number) => (p % 100 === 0 ? String(p / 100) : (p / 100).toFixed(2));
+export const paiseToRupees = (p: number) =>
+  p % 100 === 0 ? String(p / 100) : (p / 100).toFixed(2);

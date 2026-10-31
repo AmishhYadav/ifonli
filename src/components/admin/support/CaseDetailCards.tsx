@@ -3,7 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { formatDateTime } from "@/components/admin/orders/status";
-import { FulfilmentBadge, MethodBadge, OrderStatusBadge, PaymentStatusBadge } from "@/components/admin/orders/status";
+import {
+  FulfilmentBadge,
+  MethodBadge,
+  OrderStatusBadge,
+  PaymentStatusBadge,
+} from "@/components/admin/orders/status";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/admin/ui";
 import { formatINR } from "@/lib/money";
 import type { AdminOrderDetail } from "@/server/services/admin/orders";
@@ -19,13 +24,17 @@ export function CaseSummaryCard({ detail }: { detail: SupportCaseDetail }) {
         <CardTitle className="flex flex-wrap items-center gap-2">
           <CaseTypeBadge type={c.type} />
           <CaseStatusBadge status={c.status} />
-          {c.resolution ? <ResolutionBadge resolution={c.resolution} /> : null}
+          {c.resolution && c.resolution !== "rejected" ? (
+            <ResolutionBadge resolution={c.resolution} />
+          ) : null}
         </CardTitle>
         <CardDescription>Reported {formatDateTime(c.createdAt)}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div>
-          <h4 className="mb-1 text-xs font-medium text-admin-ink-muted uppercase">What the customer said</h4>
+          <h4 className="mb-1 text-xs font-medium text-admin-ink-muted uppercase">
+            What the customer said
+          </h4>
           <p className="text-[13px] whitespace-pre-wrap text-admin-ink">{c.description}</p>
         </div>
         {c.notes ? (
@@ -37,10 +46,15 @@ export function CaseSummaryCard({ detail }: { detail: SupportCaseDetail }) {
         {detail.replacementOrder ? (
           <p className="text-[13px]">
             Replacement order{" "}
-            <Link href={`/admin/orders/${detail.replacementOrder.id}`} className="font-mono text-admin-primary hover:underline">
+            <Link
+              href={`/admin/orders/${detail.replacementOrder.id}`}
+              className="font-mono text-admin-primary hover:underline"
+            >
               {detail.replacementOrder.ref}
             </Link>{" "}
-            <span className="text-admin-ink-muted">({detail.replacementOrder.fulfillmentStatus.replace(/_/g, " ")})</span>
+            <span className="text-admin-ink-muted">
+              ({detail.replacementOrder.fulfillmentStatus.replace(/_/g, " ")})
+            </span>
           </p>
         ) : null}
       </CardContent>
@@ -74,7 +88,14 @@ export function CasePhotosCard({ photos }: { photos: CasePhoto[] }) {
                   >
                     {p.isImage ? (
                       <span className="relative block aspect-square">
-                        <Image src={p.url} alt={`Customer photo ${p.name}`} fill sizes="200px" className="object-cover" unoptimized />
+                        <Image
+                          src={p.url}
+                          alt={`Customer photo ${p.name}`}
+                          fill
+                          sizes="200px"
+                          className="object-cover"
+                          unoptimized
+                        />
                       </span>
                     ) : (
                       <span className="flex aspect-square items-center justify-center text-admin-ink-muted">
@@ -98,7 +119,8 @@ export function CasePhotosCard({ photos }: { photos: CasePhoto[] }) {
           </ul>
           {noPreview ? (
             <p role="status" className="text-xs text-admin-ink-muted">
-              Some photos can&apos;t be shown because file storage isn&apos;t reachable from here. The case itself still works.
+              Some photos can&apos;t be shown because file storage isn&apos;t reachable from here.
+              The case itself still works.
             </p>
           ) : null}
         </CardContent>
@@ -113,7 +135,10 @@ export function CaseOrderCard({ order }: { order: AdminOrderDetail }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2">
-          <Link href={`/admin/orders/${o.id}`} className="font-mono text-admin-primary hover:underline">
+          <Link
+            href={`/admin/orders/${o.id}`}
+            className="font-mono text-admin-primary hover:underline"
+          >
             {o.ref}
           </Link>
         </CardTitle>

@@ -53,7 +53,12 @@ export function MessageStatusControl({
                 onClick={() =>
                   act.run(
                     () => setMessageStatusAction(id, { status: to }),
-                    () => toast.success(reopen ? "Message re-opened" : `Message ${to === "closed" ? "closed" : "marked open"}`),
+                    () =>
+                      toast.success(
+                        reopen
+                          ? "Message re-opened"
+                          : `Message ${to === "closed" ? "closed" : "marked open"}`,
+                      ),
                   )
                 }
               >

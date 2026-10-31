@@ -28,7 +28,13 @@ export function ListPager({
       <p aria-live="polite">{total === 0 ? `No ${noun}` : `${from}–${to} of ${total} ${noun}`}</p>
       {pageCount > 1 ? (
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon-sm" asChild={page > 1} disabled={page <= 1} aria-label="Previous page">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            asChild={page > 1}
+            disabled={page <= 1}
+            aria-label="Previous page"
+          >
             {page > 1 ? (
               <Link href={prevHref}>
                 <ChevronLeft aria-hidden />
@@ -40,7 +46,13 @@ export function ListPager({
           <span className="tabular px-2">
             Page {page} of {pageCount}
           </span>
-          <Button variant="outline" size="icon-sm" asChild={page < pageCount} disabled={page >= pageCount} aria-label="Next page">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            asChild={page < pageCount}
+            disabled={page >= pageCount}
+            aria-label="Next page"
+          >
             {page < pageCount ? (
               <Link href={nextHref}>
                 <ChevronRight aria-hidden />

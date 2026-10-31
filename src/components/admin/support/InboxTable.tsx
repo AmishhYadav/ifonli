@@ -34,7 +34,9 @@ export function InboxTable({ rows, emptyMessage }: { rows: InboxRowView[]; empty
           cell: ({ row }) => (
             <Link href={`/admin/support/messages/${row.original.id}`} className="block min-w-0">
               <span className="block truncate font-medium text-admin-ink">{row.original.name}</span>
-              <span className="block truncate text-xs text-admin-ink-muted">{row.original.email}</span>
+              <span className="block truncate text-xs text-admin-ink-muted">
+                {row.original.email}
+              </span>
             </Link>
           ),
         }),
@@ -43,9 +45,13 @@ export function InboxTable({ rows, emptyMessage }: { rows: InboxRowView[]; empty
           header: "Message",
           cell: ({ row }) => (
             <span className="block max-w-md min-w-0">
-              <span className="line-clamp-2 text-[13px] text-admin-ink">{row.original.snippet}</span>
+              <span className="line-clamp-2 text-[13px] text-admin-ink">
+                {row.original.snippet}
+              </span>
               {row.original.orderRef ? (
-                <span className="font-mono text-xs text-admin-ink-muted">Order {row.original.orderRef}</span>
+                <span className="font-mono text-xs text-admin-ink-muted">
+                  Order {row.original.orderRef}
+                </span>
               ) : null}
             </span>
           ),
@@ -62,7 +68,7 @@ export function InboxTable({ rows, emptyMessage }: { rows: InboxRowView[]; empty
             row.original.assigneeName ? (
               <span className="text-[13px]">{row.original.assigneeName}</span>
             ) : (
-              <span className="text-[13px] text-admin-ink-faint">Unassigned</span>
+              <span className="text-[13px] text-admin-ink-muted">Unassigned</span>
             ),
         }),
         col.display({

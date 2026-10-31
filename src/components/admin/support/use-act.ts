@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
 
-type Result<T> = { ok: true; data: T } | { ok: false; error: string; fieldErrors?: Record<string, string> };
+type Result<T> =
+  { ok: true; data: T } | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
 /** Runs a Server Action in a transition, refreshes the page on success and toasts failures. */
 export function useAct() {

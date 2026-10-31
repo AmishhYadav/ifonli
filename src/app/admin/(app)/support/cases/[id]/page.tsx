@@ -5,7 +5,11 @@ import { z } from "zod";
 
 import { AssignControl } from "@/components/admin/support/AssignControl";
 import { CaseActionsPanel } from "@/components/admin/support/CaseActionsPanel";
-import { CaseOrderCard, CasePhotosCard, CaseSummaryCard } from "@/components/admin/support/CaseDetailCards";
+import {
+  CaseOrderCard,
+  CasePhotosCard,
+  CaseSummaryCard,
+} from "@/components/admin/support/CaseDetailCards";
 import { ComposeCard } from "@/components/admin/support/ComposeCard";
 import { SupportTimeline } from "@/components/admin/support/SupportTimeline";
 import { CaseStatusBadge } from "@/components/admin/support/status";
@@ -13,7 +17,11 @@ import { PageHeader } from "@/components/admin/ui";
 import { can } from "@/server/auth/permissions";
 import { requireAdmin } from "@/server/auth/session";
 import { getDb } from "@/server/db";
-import { getSupportCaseDetail, listAssignableStaff, signCasePhotos } from "@/server/services/admin/support";
+import {
+  getSupportCaseDetail,
+  listAssignableStaff,
+  signCasePhotos,
+} from "@/server/services/admin/support";
 
 /** Session-gated and dynamic: exempt from instant-navigation validation (see admin/layout.tsx). */
 export const instant = false;
@@ -27,7 +35,10 @@ export default async function SupportCasePage({ params }: { params: Promise<{ id
   const db = getDb();
   const detail = await getSupportCaseDetail(db, id);
   if (!detail) notFound();
-  const [photos, staff] = await Promise.all([signCasePhotos(detail.case.photoPaths), listAssignableStaff(db)]);
+  const [photos, staff] = await Promise.all([
+    signCasePhotos(detail.case.photoPaths),
+    listAssignableStaff(db),
+  ]);
 
   const role = session.user.role;
   const { order } = detail;
@@ -64,7 +75,10 @@ export default async function SupportCasePage({ params }: { params: Promise<{ id
             paymentMethod={order.order.paymentMethod}
             items={order.items.map((i) => ({
               id: i.id,
-              name: i.variantTitle !== "Default" ? `${i.productName} (${i.variantTitle})` : i.productName,
+              name:
+                i.variantTitle !== "Default"
+                  ? `${i.productName} (${i.variantTitle})`
+                  : i.productName,
               sku: i.sku,
               qty: i.qty,
             }))}
@@ -82,17 +96,25 @@ export default async function SupportCasePage({ params }: { params: Promise<{ id
           />
           <CaseOrderCard order={order} />
           {canOrderView ? (
-            <Link href={`/admin/orders/${order.order.id}`} className="text-[13px] text-admin-primary hover:underline">
+            <Link
+              href={`/admin/orders/${order.order.id}`}
+              className="text-[13px] text-admin-primary hover:underline"
+            >
               Open the full order
             </Link>
           ) : null}
           {detail.siblingCases.length > 0 ? (
             <section aria-label="Other cases on this order" className="text-[13px]">
-              <h2 className="mb-1 text-xs font-medium text-admin-ink-muted uppercase">Other cases on this order</h2>
+              <h2 className="mb-1 text-xs font-medium text-admin-ink-muted uppercase">
+                Other cases on this order
+              </h2>
               <ul className="grid gap-0.5">
                 {detail.siblingCases.map((s) => (
                   <li key={s.id}>
-                    <Link href={`/admin/support/cases/${s.id}`} className="font-mono text-admin-primary hover:underline">
+                    <Link
+                      href={`/admin/support/cases/${s.id}`}
+                      className="font-mono text-admin-primary hover:underline"
+                    >
                       {s.shortId}
                     </Link>{" "}
                     <span className="text-admin-ink-muted">

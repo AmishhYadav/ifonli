@@ -38,8 +38,12 @@ export function CasesTable({ rows, emptyMessage }: { rows: CaseRowView[]; emptyM
           header: "Case",
           cell: ({ row }) => (
             <Link href={`/admin/support/cases/${row.original.id}`} className="block min-w-0">
-              <span className="block font-mono text-[13px] font-medium text-admin-ink">{row.original.shortId}</span>
-              <span className="block text-xs text-admin-ink-muted">{formatDateTime(new Date(row.original.createdAt))}</span>
+              <span className="block font-mono text-[13px] font-medium text-admin-ink">
+                {row.original.shortId}
+              </span>
+              <span className="block text-xs text-admin-ink-muted">
+                {formatDateTime(new Date(row.original.createdAt))}
+              </span>
             </Link>
           ),
         }),
@@ -48,7 +52,9 @@ export function CasesTable({ rows, emptyMessage }: { rows: CaseRowView[]; emptyM
           header: "Order and customer",
           cell: ({ row }) => (
             <span className="block min-w-0">
-              <span className="block font-mono text-[13px] text-admin-ink">{row.original.orderRef}</span>
+              <span className="block font-mono text-[13px] text-admin-ink">
+                {row.original.orderRef}
+              </span>
               <span className="block truncate text-xs text-admin-ink-muted">
                 {row.original.customerName || row.original.email}
               </span>
@@ -70,7 +76,9 @@ export function CasesTable({ rows, emptyMessage }: { rows: CaseRowView[]; emptyM
                   </span>
                 ) : null}
               </span>
-              <span className="mt-0.5 line-clamp-2 text-[13px] text-admin-ink">{row.original.snippet}</span>
+              <span className="mt-0.5 line-clamp-2 text-[13px] text-admin-ink">
+                {row.original.snippet}
+              </span>
             </span>
           ),
         }),
@@ -93,7 +101,7 @@ export function CasesTable({ rows, emptyMessage }: { rows: CaseRowView[]; emptyM
             row.original.assigneeName ? (
               <span className="text-[13px]">{row.original.assigneeName}</span>
             ) : (
-              <span className="text-[13px] text-admin-ink-faint">Unassigned</span>
+              <span className="text-[13px] text-admin-ink-muted">Unassigned</span>
             ),
         }),
       ]),

@@ -47,7 +47,8 @@ export type ReplacementLine = z.infer<typeof replacementLineSchema>;
 export class ReplacementError extends Error {
   constructor(
     message: string,
-    readonly code: "no_lines" | "unknown_line" | "too_many" | "insufficient_stock" | "ref_allocation",
+    readonly code:
+      "no_lines" | "unknown_line" | "too_many" | "insufficient_stock" | "ref_allocation",
   ) {
     super(message);
     this.name = "ReplacementError";
@@ -76,7 +77,8 @@ export async function createReplacementOrder(
 ): Promise<ReplacementOrderResult> {
   const { original, caseId } = input;
   const now = input.now ?? new Date();
-  if (input.lines.length === 0) throw new ReplacementError("Pick at least one item to replace.", "no_lines");
+  if (input.lines.length === 0)
+    throw new ReplacementError("Pick at least one item to replace.", "no_lines");
 
   const sourceItems = await tx.select().from(orderItems).where(eq(orderItems.orderId, original.id));
   const byId = new Map(sourceItems.map((i) => [i.id, i]));
@@ -86,7 +88,11 @@ export async function createReplacementOrder(
   for (const l of input.lines) wanted.set(l.orderItemId, (wanted.get(l.orderItemId) ?? 0) + l.qty);
   const picked = [...wanted.entries()].map(([id, qty]) => {
     const item = byId.get(id);
-    if (!item) throw new ReplacementError("One of the selected items is not on the original order.", "unknown_line");
+    if (!item)
+      throw new ReplacementError(
+        "One of the selected items is not on the original order.",
+        "unknown_line",
+      );
     if (qty > item.qty) {
       throw new ReplacementError(
         `${item.productName}: the order has ${item.qty}, so at most ${item.qty} can be replaced.`,
@@ -99,11 +105,14 @@ export async function createReplacementOrder(
   // Lock the variants in a deterministic order (same as checkout), then check live availability:
   // reservations held by pending checkouts count against the shelf.
   const need = new Map<string, number>();
-  for (const { item, qty } of picked) need.set(item.variantId, (need.get(item.variantId) ?? 0) + qty);
+  for (const { item, qty } of picked)
+    need.set(item.variantId, (need.get(item.variantId) ?? 0) + qty);
   const variantIds = [...need.keys()].sort();
   const availability = await getVariantAvailability(variantIds, tx, { now, lock: true });
   const available = new Map(availability.map((a) => [a.variantId, a.available]));
-  const short = picked.filter(({ item }) => (available.get(item.variantId) ?? 0) < (need.get(item.variantId) ?? 0));
+  const short = picked.filter(
+    ({ item }) => (available.get(item.variantId) ?? 0) < (need.get(item.variantId) ?? 0),
+  );
   if (short.length > 0) {
     const first = short[0]!;
     const left = available.get(first.item.variantId) ?? 0;
@@ -146,7 +155,11 @@ export async function createReplacementOrder(
       .onConflictDoNothing({ target: orders.ref })
       .returning();
   }
-  if (!created) throw new ReplacementError("Could not allocate a unique order reference. Try again.", "ref_allocation");
+  if (!created)
+    throw new ReplacementError(
+      "Could not allocate a unique order reference. Try again.",
+      "ref_allocation",
+    );
 
   await tx.insert(orderItems).values(
     picked.map(({ item, qty }) => ({
@@ -208,6 +221,8 @@ export async function createReplacementOrder(
     actorId: input.actorId,
   });
 
-  const productIds = [...new Set(picked.map((p) => p.item.productId).filter((id): id is string => id !== null))];
+  const productIds = [
+    ...new Set(picked.map((p) => p.item.productId).filter((id): id is string => id !== null)),
+  ];
   return { orderId: created.id, ref: created.ref, productIds, units };
 }

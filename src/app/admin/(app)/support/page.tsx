@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 import { CasesTable } from "@/components/admin/support/CasesTable";
 import { InboxTable } from "@/components/admin/support/InboxTable";
 import { ListPager } from "@/components/admin/support/ListPager";
-import {
-  DEFAULT_STATUS,
-  SupportFilterBar,
-  supportHref,
-  type FilterValues,
-} from "@/components/admin/support/SupportFilterBar";
+import { DEFAULT_STATUS, supportHref, type FilterValues } from "@/components/admin/support/filters";
+import { SupportFilterBar } from "@/components/admin/support/SupportFilterBar";
 import { SupportTabs, type SupportTab } from "@/components/admin/support/SupportTabs";
-import { CASE_STATUS_LABEL, CONTACT_STATUS_LABEL, TYPE_LABEL } from "@/components/admin/support/status";
+import {
+  CASE_STATUS_LABEL,
+  CONTACT_STATUS_LABEL,
+  TYPE_LABEL,
+} from "@/components/admin/support/status";
 import { PageHeader } from "@/components/admin/ui";
 import { requireAdmin } from "@/server/auth/session";
 import { getDb } from "@/server/db";
@@ -55,8 +55,10 @@ export default async function SupportPage({
   const statusParam = one(sp.status);
   const values: FilterValues = {
     status:
-      pick([...STATUS_PICK, ...(tab === "inbox" ? CONTACT_STATUSES : SUPPORT_STATUSES)], statusParam) ??
-      DEFAULT_STATUS,
+      pick(
+        [...STATUS_PICK, ...(tab === "inbox" ? CONTACT_STATUSES : SUPPORT_STATUSES)],
+        statusParam,
+      ) ?? DEFAULT_STATUS,
     type: tab === "cases" ? (pick(SUPPORT_TYPES, one(sp.type)) ?? "") : "",
     assigned: assignedParam,
     q,
@@ -117,7 +119,7 @@ export default async function SupportPage({
     <>
       <PageHeader
         title="Support"
-        description="Messages from the Help page and problems reported on orders. Oldest-waiting items are easiest to miss: check the Needs attention view daily."
+        description="Messages from the Help page and problems reported on orders. The default view shows what still needs the team."
       />
       <SupportTabs active={tab} inboxOpen={counts.inbox.active} casesOpen={counts.cases.active} />
       <div className="flex flex-col gap-3">
@@ -125,7 +127,11 @@ export default async function SupportPage({
           tab={tab}
           values={values}
           statusOptions={statusOptions}
-          typeOptions={tab === "cases" ? SUPPORT_TYPES.map((t) => ({ value: t, label: TYPE_LABEL[t] })) : undefined}
+          typeOptions={
+            tab === "cases"
+              ? SUPPORT_TYPES.map((t) => ({ value: t, label: TYPE_LABEL[t] }))
+              : undefined
+          }
           staff={staff.map((s) => ({ id: s.id, name: s.name }))}
           meId={meId}
         />

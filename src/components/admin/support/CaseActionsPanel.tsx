@@ -4,7 +4,11 @@ import { Ban, CircleCheck, Play } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
-import { rejectCaseAction, resolveCaseAction, setCaseStatusAction } from "@/app/admin/(app)/support/actions";
+import {
+  rejectCaseAction,
+  resolveCaseAction,
+  setCaseStatusAction,
+} from "@/app/admin/(app)/support/actions";
 import {
   Button,
   Card,
@@ -80,7 +84,11 @@ export function CaseActionsPanel(p: CaseActionsProps) {
             <Button onClick={() => setDialog("resolve")} disabled={act.pending}>
               <CircleCheck aria-hidden /> Resolve…
             </Button>
-            <Button variant="danger-outline" onClick={() => setDialog("reject")} disabled={act.pending}>
+            <Button
+              variant="danger-outline"
+              onClick={() => setDialog("reject")}
+              disabled={act.pending}
+            >
               <Ban aria-hidden /> Reject…
             </Button>
           </>
@@ -90,7 +98,11 @@ export function CaseActionsPanel(p: CaseActionsProps) {
             Your role can reply and add notes. An admin resolves or rejects the case.
           </p>
         ) : null}
-        {!active ? <p className="text-[13px] text-admin-ink-muted">Reply to the customer if they need something else.</p> : null}
+        {!active ? (
+          <p className="text-[13px] text-admin-ink-muted">
+            Reply to the customer if they need something else.
+          </p>
+        ) : null}
       </CardContent>
       {dialog === "resolve" ? <ResolveDialog {...p} onClose={() => setDialog(null)} /> : null}
       {dialog === "reject" ? <RejectDialog {...p} onClose={() => setDialog(null)} /> : null}
@@ -100,10 +112,22 @@ export function CaseActionsPanel(p: CaseActionsProps) {
 
 type DialogProps = CaseActionsProps & { onClose: () => void };
 
-function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refundablePaise, canReplace, allow, onClose }: DialogProps) {
+function ResolveDialog({
+  caseId,
+  shortId,
+  orderRef,
+  paymentMethod,
+  items,
+  refundablePaise,
+  canReplace,
+  allow,
+  onClose,
+}: DialogProps) {
   const act = useAct();
   const refundOk = allow.refund && refundablePaise > 0;
-  const [outcome, setOutcome] = React.useState<"refund" | "replacement">(refundOk ? "refund" : "replacement");
+  const [outcome, setOutcome] = React.useState<"refund" | "replacement">(
+    refundOk ? "refund" : "replacement",
+  );
   const [amount, setAmount] = React.useState(paiseToRupees(refundablePaise));
   const [reference, setReference] = React.useState("");
   const [qty, setQty] = React.useState<Record<string, string>>({});
@@ -120,7 +144,10 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
         ? `At most ${formatINR(refundablePaise)} can still be refunded`
         : undefined;
   const lines = items
-    .map((i) => ({ orderItemId: i.id, qty: Math.min(i.qty, Math.max(0, Number.parseInt(qty[i.id] ?? "0", 10) || 0)) }))
+    .map((i) => ({
+      orderItemId: i.id,
+      qty: Math.min(i.qty, Math.max(0, Number.parseInt(qty[i.id] ?? "0", 10) || 0)),
+    }))
     .filter((l) => l.qty > 0);
 
   const ready =
@@ -141,11 +168,17 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
       () => resolveCaseAction(caseId, input),
       (res) => {
         if (res.refund?.providerError) {
-          toast.warning(`Case resolved. The refund is saved but the provider did not accept it yet: ${res.refund.providerError}`);
+          toast.warning(
+            `Case resolved. The refund is saved but the provider did not accept it yet: ${res.refund.providerError}`,
+          );
         } else if (res.refund) {
-          toast.success(`Case ${shortId} resolved. Refund of ${formatINR(res.refund.amountPaise)} ${isCod ? "recorded" : "started"}.`);
+          toast.success(
+            `Case ${shortId} resolved. Refund of ${formatINR(res.refund.amountPaise)} ${isCod ? "recorded" : "started"}.`,
+          );
         } else if (res.replacement) {
-          toast.success(`Case ${shortId} resolved. Replacement order ${res.replacement.ref} created.`);
+          toast.success(
+            `Case ${shortId} resolved. Replacement order ${res.replacement.ref} created.`,
+          );
         } else toast.success(`Case ${shortId} resolved`);
         onClose();
       },
@@ -177,14 +210,18 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
                 },
                 {
                   value: "replacement",
-                  label: canReplace ? "Replacement (no-charge order)" : "Replacement (not available)",
+                  label: canReplace
+                    ? "Replacement (no-charge order)"
+                    : "Replacement (not available)",
                   disabled: !canReplace,
                 },
               ]}
             />
           </Field>
           {!allow.refund ? (
-            <p className="text-xs text-admin-ink-muted">Refunds need the refund permission, which your role does not have.</p>
+            <p className="text-xs text-admin-ink-muted">
+              Refunds need the refund permission, which your role does not have.
+            </p>
           ) : refundablePaise <= 0 ? (
             <p className="text-xs text-admin-ink-muted">Nothing is left to refund on this order.</p>
           ) : null}
@@ -207,7 +244,10 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
                     className="tabular"
                     aria-invalid={Boolean(amount && amountError)}
                   />
-                  <Button variant="outline" onClick={() => setAmount(paiseToRupees(refundablePaise))}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setAmount(paiseToRupees(refundablePaise))}
+                  >
                     Full
                   </Button>
                 </div>
@@ -232,7 +272,9 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
             </>
           ) : (
             <fieldset className="grid gap-2 rounded-md border border-admin-border p-3">
-              <legend className="px-1 text-xs font-medium text-admin-ink-muted">Units to send again</legend>
+              <legend className="px-1 text-xs font-medium text-admin-ink-muted">
+                Units to send again
+              </legend>
               {items.map((i) => (
                 <div key={i.id} className="flex items-center justify-between gap-3 text-[13px]">
                   <label htmlFor={`rep-${i.id}`} className="min-w-0">
@@ -253,7 +295,8 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
                 </div>
               ))}
               <p className="text-xs text-admin-ink-muted">
-                Creates a no-charge order that takes the stock off the shelf and goes to the packing queue.
+                Creates a no-charge order that takes the stock off the shelf and goes to the packing
+                queue.
               </p>
               {errors.lines ? (
                 <p role="alert" className="text-xs text-admin-danger">
@@ -268,10 +311,26 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
             htmlFor="resolve-message"
             hint="Optional. A standard, friendly message is sent if you leave this blank."
           >
-            <Textarea id="resolve-message" rows={3} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)} />
+            <Textarea
+              id="resolve-message"
+              rows={3}
+              maxLength={1000}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
           </Field>
-          <Field label="Internal note" htmlFor="resolve-note" hint="Optional. Kept in the case notes; never e-mailed.">
-            <Textarea id="resolve-note" rows={2} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
+          <Field
+            label="Internal note"
+            htmlFor="resolve-note"
+            hint="Optional. Kept in the case notes; never e-mailed."
+          >
+            <Textarea
+              id="resolve-note"
+              rows={2}
+              maxLength={1000}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
           </Field>
 
           {errors.form ? (
@@ -284,7 +343,9 @@ function ResolveDialog({ caseId, shortId, orderRef, paymentMethod, items, refund
               Cancel
             </Button>
             <Button type="submit" loading={act.pending} disabled={!ready}>
-              {outcome === "refund" && paise && !amountError ? `Refund ${formatINR(paise)} and resolve` : "Resolve case"}
+              {outcome === "refund" && paise && !amountError
+                ? `Refund ${formatINR(paise)} and resolve`
+                : "Resolve case"}
             </Button>
           </DialogFooter>
         </form>
@@ -319,7 +380,8 @@ function RejectDialog({ caseId, shortId, orderRef, onClose }: DialogProps) {
           <DialogHeader>
             <DialogTitle>Reject case {shortId}</DialogTitle>
             <DialogDescription>
-              Order {orderRef}. The customer receives your message by e-mail, so say why and what they can still do.
+              Order {orderRef}. The customer receives your message by e-mail, so say why and what
+              they can still do.
             </DialogDescription>
           </DialogHeader>
           <Field
@@ -338,8 +400,18 @@ function RejectDialog({ caseId, shortId, orderRef, onClose }: DialogProps) {
               autoFocus
             />
           </Field>
-          <Field label="Internal note" htmlFor="reject-note" hint="Optional. Kept in the case notes; never e-mailed.">
-            <Textarea id="reject-note" rows={2} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
+          <Field
+            label="Internal note"
+            htmlFor="reject-note"
+            hint="Optional. Kept in the case notes; never e-mailed."
+          >
+            <Textarea
+              id="reject-note"
+              rows={2}
+              maxLength={1000}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
           </Field>
           <DialogFooter>
             <Button variant="outline" onClick={onClose} disabled={act.pending}>

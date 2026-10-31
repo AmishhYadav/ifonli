@@ -19,7 +19,10 @@ export function SupportTabs({
     { tab: "cases", label: "Cases", count: casesOpen, href: "/admin/support?tab=cases" },
   ];
   return (
-    <nav aria-label="Support" className="mb-5 flex gap-1 overflow-x-auto border-b border-admin-border">
+    <nav
+      aria-label="Support"
+      className="mb-5 flex gap-1 overflow-x-auto border-b border-admin-border"
+    >
       {items.map((i) => (
         <Link
           key={i.tab}

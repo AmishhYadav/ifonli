@@ -10,7 +10,15 @@ import {
   replyMessageAction,
   respondCaseAction,
 } from "@/app/admin/(app)/support/actions";
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Textarea } from "@/components/admin/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Textarea,
+} from "@/components/admin/ui";
 
 import { useAct } from "./use-act";
 
@@ -42,7 +50,8 @@ function ComposeForm({
     const input = { [field]: text };
     act.run(
       () => {
-        if (mode === "reply") return kind === "case" ? respondCaseAction(id, input) : replyMessageAction(id, input);
+        if (mode === "reply")
+          return kind === "case" ? respondCaseAction(id, input) : replyMessageAction(id, input);
         return kind === "case" ? noteCaseAction(id, input) : noteMessageAction(id, input);
       },
       (data) => {
@@ -56,7 +65,10 @@ function ComposeForm({
 
   return (
     <form onSubmit={submit} className="grid gap-2">
-      <label htmlFor={fieldId} className="flex items-center gap-1.5 text-xs font-medium text-admin-ink-muted">
+      <label
+        htmlFor={fieldId}
+        className="flex items-center gap-1.5 text-xs font-medium text-admin-ink-muted"
+      >
         {mode === "reply" ? (
           <>
             <Send className="size-3.5" aria-hidden /> Reply to the customer by e-mail
@@ -83,7 +95,9 @@ function ComposeForm({
           {error}
         </p>
       ) : null}
-      {disabled && disabledReason ? <p className="text-xs text-admin-ink-muted">{disabledReason}</p> : null}
+      {disabled && disabledReason ? (
+        <p className="text-xs text-admin-ink-muted">{disabledReason}</p>
+      ) : null}
       <div>
         <Button
           type="submit"
@@ -116,11 +130,18 @@ export function ComposeCard({
       <CardHeader>
         <CardTitle>Reply and notes</CardTitle>
         <CardDescription>
-          Replies are e-mailed to {customerEmail} with the next outbox run. Notes never leave the admin.
+          Replies are e-mailed to {customerEmail} with the next outbox run. Notes never leave the
+          admin.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6">
-        <ComposeForm kind={kind} id={id} mode="reply" disabled={Boolean(replyDisabledReason)} disabledReason={replyDisabledReason} />
+        <ComposeForm
+          kind={kind}
+          id={id}
+          mode="reply"
+          disabled={Boolean(replyDisabledReason)}
+          disabledReason={replyDisabledReason}
+        />
         <ComposeForm kind={kind} id={id} mode="note" />
       </CardContent>
     </Card>

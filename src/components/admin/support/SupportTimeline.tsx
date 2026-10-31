@@ -1,7 +1,14 @@
 import { Lock, Mail } from "lucide-react";
 
 import { formatDateTime, statusWords } from "@/components/admin/orders/status";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/admin/ui";
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/admin/ui";
 import type { SupportTimelineEntry } from "@/server/services/admin/support";
 
 const str = (v: unknown): string | null => (typeof v === "string" && v.trim() !== "" ? v : null);
@@ -27,7 +34,11 @@ function render(e: SupportTimelineEntry): Rendered {
       };
     case "support_case.status":
     case "contact_message.status":
-      return { title: `Status: ${from ? `${statusWords(from)} → ` : ""}${to ? statusWords(to) : ""}`, body: null, email: false };
+      return {
+        title: `Status: ${from ? `${statusWords(from)} → ` : ""}${to ? statusWords(to) : ""}`,
+        body: null,
+        email: false,
+      };
     case "support_case.note":
     case "contact_message.note":
       return { title: "Internal note", body: str(d.note), email: false };
@@ -95,8 +106,10 @@ export function SupportTimeline({ entries }: { entries: SupportTimelineEntry[] }
                         </Badge>
                       ) : null}
                     </div>
-                    {r.body ? <p className="mt-0.5 whitespace-pre-wrap text-admin-ink-muted">{r.body}</p> : null}
-                    <p className="mt-0.5 text-xs text-admin-ink-faint">
+                    {r.body ? (
+                      <p className="mt-0.5 whitespace-pre-wrap text-admin-ink-muted">{r.body}</p>
+                    ) : null}
+                    <p className="mt-0.5 text-xs text-admin-ink-muted">
                       {formatDateTime(e.createdAt)}
                       {e.actorName ? ` · ${e.actorName}` : ""}
                     </p>

@@ -44,7 +44,9 @@ import {
 
 export class SupportNotFoundError extends AdminInputError {
   constructor(what: "message" | "case") {
-    super(what === "case" ? "That support case no longer exists." : "That message no longer exists.");
+    super(
+      what === "case" ? "That support case no longer exists." : "That message no longer exists.",
+    );
     this.name = "SupportNotFoundError";
   }
 }
@@ -111,7 +113,12 @@ export async function listAssignableStaff(db: DbClient): Promise<StaffOption[]> 
   const rows = await db
     .select({ id: user.id, name: user.name, email: user.email, role: user.role })
     .from(user)
-    .where(and(inArray(user.role, ["owner", "admin", "fulfilment"]), or(isNull(user.banned), eq(user.banned, false))))
+    .where(
+      and(
+        inArray(user.role, ["owner", "admin", "fulfilment"]),
+        or(isNull(user.banned), eq(user.banned, false)),
+      ),
+    )
     .orderBy(asc(user.name), asc(user.id));
   return rows.filter((r) => can(r.role, "support:view"));
 }
@@ -191,7 +198,8 @@ export interface Paged<T> {
 
 export function buildContactWhere(f: ContactListFilters): SQL | undefined {
   const conds: (SQL | undefined)[] = [];
-  if (f.status === "active") conds.push(inArray(contactMessages.status, [...ACTIVE_CONTACT_STATUSES]));
+  if (f.status === "active")
+    conds.push(inArray(contactMessages.status, [...ACTIVE_CONTACT_STATUSES]));
   else if (f.status && (CONTACT_STATUSES as readonly string[]).includes(f.status)) {
     conds.push(eq(contactMessages.status, f.status));
   }
@@ -285,7 +293,8 @@ export function buildCaseWhere(f: CaseListFilters): SQL | undefined {
   else if (f.status && (SUPPORT_STATUSES as readonly string[]).includes(f.status)) {
     conds.push(eq(supportCases.status, f.status));
   }
-  if (f.type && (SUPPORT_TYPES as readonly string[]).includes(f.type)) conds.push(eq(supportCases.type, f.type));
+  if (f.type && (SUPPORT_TYPES as readonly string[]).includes(f.type))
+    conds.push(eq(supportCases.type, f.type));
   if (f.assignedTo === "unassigned") conds.push(isNull(supportCases.assignedTo));
   else if (f.assignedTo) conds.push(eq(supportCases.assignedTo, f.assignedTo));
   const q = f.q?.trim().slice(0, 100);
@@ -376,7 +385,10 @@ async function loadTimeline(db: DbClient, entity: "support_case" | "contact_mess
     action: a.action,
     actorName,
     createdAt: a.createdAt,
-    detail: a.diff && typeof a.diff === "object" && !Array.isArray(a.diff) ? (a.diff as Record<string, unknown>) : {},
+    detail:
+      a.diff && typeof a.diff === "object" && !Array.isArray(a.diff)
+        ? (a.diff as Record<string, unknown>)
+        : {},
   }));
 }
 
@@ -405,7 +417,10 @@ export interface ContactMessageDetail {
   allowedStatuses: ContactStatus[];
 }
 
-export async function getContactMessageDetail(db: DbClient, id: string): Promise<ContactMessageDetail | null> {
+export async function getContactMessageDetail(
+  db: DbClient,
+  id: string,
+): Promise<ContactMessageDetail | null> {
   const [row] = await db
     .select({ m: contactMessages, assigneeName: user.name })
     .from(contactMessages)
@@ -420,7 +435,12 @@ export async function getContactMessageDetail(db: DbClient, id: string): Promise
     db
       .select({ n: count() })
       .from(contactMessages)
-      .where(and(sql`lower(${contactMessages.email}) = lower(${m.email})`, sql`${contactMessages.id} <> ${m.id}`)),
+      .where(
+        and(
+          sql`lower(${contactMessages.email}) = lower(${m.email})`,
+          sql`${contactMessages.id} <> ${m.id}`,
+        ),
+      ),
     loadTimeline(db, "contact_message", id),
   ]);
   const o = orderRow[0];
@@ -450,7 +470,11 @@ export async function getContactMessageDetail(db: DbClient, id: string): Promise
 /* ------------------------------------------------------------------------------------------ */
 
 async function lockMessage(tx: DbClient, id: string) {
-  const [row] = await tx.select().from(contactMessages).where(eq(contactMessages.id, id)).for("update");
+  const [row] = await tx
+    .select()
+    .from(contactMessages)
+    .where(eq(contactMessages.id, id))
+    .for("update");
   if (!row) throw new SupportNotFoundError("message");
   return row;
 }
@@ -497,10 +521,15 @@ export async function assignContactMessage(
     const m = await lockMessage(tx, messageId);
     const to = await resolveAssignee(tx, input.assignedTo);
     if ((m.assignedTo ?? null) === (to?.id ?? null)) {
-      throw new AdminInputError(to ? `Already assigned to ${to.name}.` : "This message is not assigned to anyone.");
+      throw new AdminInputError(
+        to ? `Already assigned to ${to.name}.` : "This message is not assigned to anyone.",
+      );
     }
     const fromName = await nameOf(tx, m.assignedTo);
-    await tx.update(contactMessages).set({ assignedTo: to?.id ?? null }).where(eq(contactMessages.id, messageId));
+    await tx
+      .update(contactMessages)
+      .set({ assignedTo: to?.id ?? null })
+      .where(eq(contactMessages.id, messageId));
     await writeAudit(tx, {
       actorId: actor.id,
       action: "contact_message.assign",
@@ -532,7 +561,10 @@ export async function setContactMessageStatus(
           : `A ${label(m.status)} message can't move to "${label(input.status)}".`,
       );
     }
-    await tx.update(contactMessages).set({ status: input.status }).where(eq(contactMessages.id, messageId));
+    await tx
+      .update(contactMessages)
+      .set({ status: input.status })
+      .where(eq(contactMessages.id, messageId));
     await writeAudit(tx, {
       actorId: actor.id,
       action: "contact_message.status",
@@ -582,7 +614,8 @@ export async function replyToContactMessage(
   const input = replySchema.parse(raw);
   return db.transaction(async (tx) => {
     const m = await lockMessage(tx, messageId);
-    if (m.status === "closed") throw new AdminInputError("This message is closed. Re-open it to reply.");
+    if (m.status === "closed")
+      throw new AdminInputError("This message is closed. Re-open it to reply.");
     const set: Partial<typeof contactMessages.$inferInsert> = {};
     if (m.status === "new") set.status = "open";
     if (!m.assignedTo) set.assignedTo = actor.id;
@@ -593,7 +626,12 @@ export async function replyToContactMessage(
     await enqueueNotification(tx, {
       template: "contact_reply",
       to: m.email,
-      payload: { name: m.name, message: input.message, original: m.message.slice(0, 4000), messageId: m.id },
+      payload: {
+        name: m.name,
+        message: input.message,
+        original: m.message.slice(0, 4000),
+        messageId: m.id,
+      },
     });
     await writeAudit(tx, {
       actorId: actor.id,
@@ -663,7 +701,10 @@ export interface SupportCaseDetail {
   canDecide: boolean;
 }
 
-export async function getSupportCaseDetail(db: DbClient, id: string): Promise<SupportCaseDetail | null> {
+export async function getSupportCaseDetail(
+  db: DbClient,
+  id: string,
+): Promise<SupportCaseDetail | null> {
   const [row] = await db
     .select({ c: supportCases, assigneeName: user.name })
     .from(supportCases)
@@ -675,7 +716,12 @@ export async function getSupportCaseDetail(db: DbClient, id: string): Promise<Su
   const [order, replacement, siblings, timeline] = await Promise.all([
     getAdminOrderDetail(db, c.orderId),
     db
-      .select({ id: orders.id, ref: orders.ref, status: orders.status, fulfillmentStatus: orders.fulfillmentStatus })
+      .select({
+        id: orders.id,
+        ref: orders.ref,
+        status: orders.status,
+        fulfillmentStatus: orders.fulfillmentStatus,
+      })
       .from(orders)
       .where(eq(orders.idempotencyKey, replacementKey(c.id)))
       .limit(1),
@@ -720,10 +766,15 @@ export async function assignSupportCase(
     const c = await lockCase(tx, caseId);
     const to = await resolveAssignee(tx, input.assignedTo);
     if ((c.assignedTo ?? null) === (to?.id ?? null)) {
-      throw new AdminInputError(to ? `Already assigned to ${to.name}.` : "This case is not assigned to anyone.");
+      throw new AdminInputError(
+        to ? `Already assigned to ${to.name}.` : "This case is not assigned to anyone.",
+      );
     }
     const fromName = await nameOf(tx, c.assignedTo);
-    await tx.update(supportCases).set({ assignedTo: to?.id ?? null }).where(eq(supportCases.id, caseId));
+    await tx
+      .update(supportCases)
+      .set({ assignedTo: to?.id ?? null })
+      .where(eq(supportCases.id, caseId));
     await writeAudit(tx, {
       actorId: actor.id,
       action: "support_case.assign",
@@ -754,7 +805,9 @@ export async function setSupportCaseStatus(
   return db.transaction(async (tx) => {
     const c = await lockCase(tx, caseId);
     if (input.status === "resolved" || input.status === "rejected") {
-      throw new AdminInputError("Use Resolve or Reject to close a case: they record the outcome and tell the customer.");
+      throw new AdminInputError(
+        "Use Resolve or Reject to close a case: they record the outcome and tell the customer.",
+      );
     }
     if (!canMoveCase(c.status, input.status)) {
       throw new AdminInputError(
@@ -823,7 +876,8 @@ export async function respondToSupportCase(
     const set: Partial<typeof supportCases.$inferInsert> = {};
     if (c.status === "open") set.status = "in_progress";
     if (!c.assignedTo && isActiveCase(c.status)) set.assignedTo = actor.id;
-    if (Object.keys(set).length > 0) await tx.update(supportCases).set(set).where(eq(supportCases.id, caseId));
+    if (Object.keys(set).length > 0)
+      await tx.update(supportCases).set(set).where(eq(supportCases.id, caseId));
     await enqueueNotification(tx, {
       orderId: order.id,
       template: "support_case_update",
@@ -846,7 +900,12 @@ export async function respondToSupportCase(
       action: "support_case.respond",
       entity: "support_case",
       entityId: caseId,
-      diff: { message: input.message, to: order.email, statusFrom: c.status, statusTo: set.status ?? c.status },
+      diff: {
+        message: input.message,
+        to: order.email,
+        statusFrom: c.status,
+        statusTo: set.status ?? c.status,
+      },
       ip: actor.ip,
     });
     return { caseId, to: order.email };
@@ -894,13 +953,20 @@ export const rejectInputSchema = z.object({
 export interface ResolveCaseResult extends CaseMutationResult {
   /** Products whose stock changed (for `revalidateStock`). */
   productIds: string[];
-  refund: { refundId: string; status: string; amountPaise: number; providerError: string | null } | null;
+  refund: {
+    refundId: string;
+    status: string;
+    amountPaise: number;
+    providerError: string | null;
+  } | null;
   replacement: { orderId: string; ref: string; units: number } | null;
 }
 
 function assertActive(c: { status: SupportStatus }, what = "resolved"): void {
   if (!isActiveCase(c.status)) {
-    throw new AdminInputError(`This case is already ${label(c.status)}; it can't be ${what} again.`);
+    throw new AdminInputError(
+      `This case is already ${label(c.status)}; it can't be ${what} again.`,
+    );
   }
 }
 
@@ -923,7 +989,12 @@ async function closeCase(
   if (outcome.internalNote) notes = appendNote(notes, `Note: ${outcome.internalNote}`);
   await tx
     .update(supportCases)
-    .set({ status: outcome.status, resolution: outcome.resolution, notes, assignedTo: c.assignedTo ?? actor.id })
+    .set({
+      status: outcome.status,
+      resolution: outcome.resolution,
+      notes,
+      assignedTo: c.assignedTo ?? actor.id,
+    })
     .where(eq(supportCases.id, c.id));
   await addOrderEvent(tx, order.id, {
     type: outcome.status === "resolved" ? "support_case_resolved" : "support_case_rejected",
@@ -949,7 +1020,13 @@ async function closeCase(
     action: outcome.status === "resolved" ? "support_case.resolve" : "support_case.reject",
     entity: "support_case",
     entityId: c.id,
-    diff: { from: c.status, to: outcome.status, resolution: outcome.resolution, ref: order.ref, ...outcome.audit },
+    diff: {
+      from: c.status,
+      to: outcome.status,
+      resolution: outcome.resolution,
+      ref: order.ref,
+      ...outcome.audit,
+    },
     ip: actor.ip,
   });
 }
@@ -1015,7 +1092,12 @@ export async function resolveSupportCase(
           noteLine: `Refunded ${formatINR(input.amountPaise)} (refund ${refund.refundId.slice(0, 8)}, ${refund.status}).`,
           customerNote,
           internalNote: input.note,
-          audit: { refundId: refund.refundId, refundStatus: refund.status, amountPaise: input.amountPaise, providerError: refund.providerError },
+          audit: {
+            refundId: refund.refundId,
+            refundStatus: refund.status,
+            amountPaise: input.amountPaise,
+            providerError: refund.providerError,
+          },
         },
         actor,
       );
@@ -1064,7 +1146,11 @@ export async function resolveSupportCase(
           input.message ??
           `We are sending you a replacement at no charge. Your new order reference is ${created.ref}. Sorry for the trouble.`,
         internalNote: input.note,
-        audit: { replacementOrderId: created.orderId, replacementRef: created.ref, units: created.units },
+        audit: {
+          replacementOrderId: created.orderId,
+          replacementRef: created.ref,
+          units: created.units,
+        },
       },
       actor,
     );

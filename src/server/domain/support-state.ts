@@ -37,7 +37,10 @@ export const CASE_TRANSITIONS: Readonly<Record<SupportStatus, readonly SupportSt
 };
 
 /** Cases the team still has to act on. */
-export const ACTIVE_CASE_STATUSES = ["open", "in_progress"] as const satisfies readonly SupportStatus[];
+export const ACTIVE_CASE_STATUSES = [
+  "open",
+  "in_progress",
+] as const satisfies readonly SupportStatus[];
 
 /** Messages the team still has to act on. */
 export const ACTIVE_CONTACT_STATUSES = ["new", "open"] as const satisfies readonly ContactStatus[];
