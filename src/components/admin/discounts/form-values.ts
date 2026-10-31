@@ -1,3 +1,4 @@
+import "@/lib/zod-csp";
 import { z } from "zod";
 
 import type { CouponKind, CouponRow } from "@/server/services/admin/discounts";

@@ -50,3 +50,6 @@ supabase/.branches
 
 # local dev e-mail (rendered by the dev-mail channel)
 /.dev-mail/
+
+# Lighthouse CI output
+.lighthouseci/

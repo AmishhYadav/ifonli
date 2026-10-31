@@ -1,5 +1,7 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
+
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
@@ -11,6 +13,7 @@ import { getDb } from "@/server/db";
 import * as schema from "@/server/db/schema";
 
 import { sendOtp } from "./otp-sender";
+import { consumeRateLimit } from "./rate-limit";
 import { ADMIN_ROLES, DEFAULT_ROLE, ac, authRoles, isAdminRole } from "./permissions";
 
 /** Cookie prefix shared by Better Auth and `proxy.ts` (cookie name: `ifonli.session_token`). */
@@ -25,6 +28,10 @@ function isEmailOtpPath(path: string | undefined): boolean {
       path === "/forget-password/email-otp")
   );
 }
+
+const OTP_EMAIL_LIMITED_PATHS = new Set(["/email-otp/send-verification-otp", "/sign-in/email-otp"]);
+/** Codes per email address per 10 minutes (resends included). */
+const OTP_EMAIL_LIMIT = { limit: 5, windowSec: 600 } as const;
 
 /**
  * D-AUTH-1 guards, run before the endpoint:
@@ -49,6 +56,16 @@ const guards = createAuthMiddleware(async (ctx) => {
   }
 
   if (isEmailOtpPath(path)) {
+    // Per-address cap on top of the per-IP rule: stops one inbox being mail-bombed from many IPs.
+    if (email && OTP_EMAIL_LIMITED_PATHS.has(path)) {
+      const digest = createHash("sha256").update(email).digest("hex").slice(0, 24);
+      const res = await consumeRateLimit(`otp-email:${digest}`, OTP_EMAIL_LIMIT);
+      if (!res.allowed) {
+        throw new APIError("TOO_MANY_REQUESTS", {
+          message: "Too many sign-in codes requested. Please wait a few minutes and try again.",
+        });
+      }
+    }
     const found = email ? await ctx.context.internalAdapter.findUserByEmail(email) : null;
     if (found && isAdminRole((found.user as { role?: string }).role)) {
       throw new APIError("FORBIDDEN", {
@@ -79,8 +96,10 @@ const guards = createAuthMiddleware(async (ctx) => {
  *   not-yet-enrolled admin gets a session that `requireAdmin` confines to /admin/enroll-2fa.
  * - `nextCookies` (must be last): lets Server Actions that call `auth.api.*` set the cookies.
  * - Rate limit: Better Auth's limiter only sees requests through the HTTP handler (not
- *   `auth.api.*` calls from our Server Actions), so it is configured for the handler with the
- *   default in-memory store, and the admin login actions use the Postgres limiter in `rate-limit.ts`.
+ *   `auth.api.*` calls from our Server Actions). Its counters live in Postgres (`rate_limits`, via
+ *   `customStorage`) because the default in-memory store is per serverless instance and so useless on
+ *   Vercel. The admin login Server Actions and the per-email OTP cap use the same Postgres limiter
+ *   (`rate-limit.ts`).
  *
  * Lazy so that importing this module during `next build` never needs a database.
  */
@@ -102,6 +121,13 @@ function createAuth() {
       enabled: true,
       window: 60,
       max: 60,
+      // Shared across instances. Keys are prefixed so they never collide with the app's own limiter keys.
+      customStorage: {
+        async consume(key, rule) {
+          const res = await consumeRateLimit(`ba:${key}`, { limit: rule.max, windowSec: rule.window });
+          return { allowed: res.allowed, retryAfter: res.allowed ? null : res.retryAfterSec };
+        },
+      },
       customRules: {
         "/sign-in/email": { window: 300, max: 8 },
         "/two-factor/verify-totp": { window: 300, max: 10 },

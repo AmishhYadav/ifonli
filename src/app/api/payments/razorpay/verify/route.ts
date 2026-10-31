@@ -1,3 +1,4 @@
+import { captureException } from "@/lib/monitoring/sentry";
 import { revalidateStock } from "@/server/cache/revalidate";
 import { getDb } from "@/server/db";
 import { dispatchOutboxSoon } from "@/server/notify/dispatch";
@@ -44,6 +45,7 @@ export async function POST(req: Request): Promise<Response> {
       return Response.json({ ok: false, error: "provider_unavailable" }, { status: 503, headers: NO_STORE });
     }
     console.error("payment verify failed", e instanceof Error ? e.name : "unknown");
+    await captureException(e, { source: "route", route: "/api/payments/razorpay/verify" });
     return Response.json({ ok: false, error: "server_error" }, { status: 500, headers: NO_STORE });
   }
 }

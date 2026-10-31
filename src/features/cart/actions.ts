@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { getDb } from "@/server/db";
 import * as cart from "@/server/services/cart";
+import { limitByIp } from "@/server/security/action-limit";
 import { consumeRateLimit } from "@/server/services/rate-limit";
 
 import { getRequestIp, getSessionUser, keyDigest, readCartToken, writeCartToken } from "./request";
@@ -48,6 +49,18 @@ async function mutate(
   run: (cartId: string, user: { id: string; email: string } | null) => Promise<cart.CartMutation>,
 ): Promise<ActionResult<CartActionData>> {
   try {
+    // A bot that never sends the cookie would otherwise create a cart row per call.
+    const limit = await limitByIp("cart", { limit: 240, windowSeconds: 600 });
+    if (limit && !limit.allowed) {
+      return {
+        ok: false,
+        error: {
+          code: "rate_limited",
+          message: "Too many cart changes in a short time. Please wait a moment and try again.",
+          retryAfterSeconds: limit.retryAfterSeconds,
+        },
+      };
+    }
     const [token, user] = await Promise.all([readCartToken(), getSessionUser()]);
     const db = getDb();
     const { cart: row } = await cart.getOrCreateCart(db, token, user?.id);

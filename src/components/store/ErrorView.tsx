@@ -5,6 +5,7 @@ import { useEffect } from "react";
 
 import { Button, Input, VibeChip } from "@/components/ui";
 import { VIBES } from "@/features/vibe/config";
+import { reportClientError } from "@/lib/monitoring/client";
 
 /**
  * Error boundary body. The wording is neutral on purpose (plan 8.5: error-critical copy is not themed);
@@ -13,6 +14,8 @@ import { VIBES } from "@/features/vibe/config";
 export function ErrorView({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error(error);
+    // A digest means the error happened on the server and onRequestError already reported it.
+    if (!error.digest) reportClientError(error, "client-boundary");
   }, [error]);
 
   return (

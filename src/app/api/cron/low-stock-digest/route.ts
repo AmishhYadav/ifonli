@@ -1,3 +1,4 @@
+import { captureException } from "@/lib/monitoring/sentry";
 import { getDb } from "@/server/db";
 import { queueLowStockDigest } from "@/server/notify/low-stock";
 import { processOutbox } from "@/server/notify/sender";
@@ -16,6 +17,7 @@ export async function GET(req: Request): Promise<Response> {
   } catch (e) {
     if (e instanceof NotifyConfigError) return Response.json({ ok: false, error: "email_not_configured" }, { status: 503 });
     console.error("low-stock-digest failed", e instanceof Error ? e.name : "unknown");
+    await captureException(e, { source: "cron", route: "/api/cron/low-stock-digest" });
     return Response.json({ ok: false }, { status: 500 });
   }
 }

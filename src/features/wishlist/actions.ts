@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import type { ResolvedImage } from "@/components/store/ProductCardView";
 import { getDb } from "@/server/db";
+import { limitByIp } from "@/server/security/action-limit";
 import { imageProps } from "@/server/services/media";
 import { loadCatalogIndex, toCard } from "@/server/services/queries/catalog-index";
 import type { ProductCard } from "@/server/services/queries/types";
@@ -33,6 +34,8 @@ export async function getWishlistItems(ids: string[]): Promise<WishlistItemsResu
   const parsed = idsSchema.safeParse(ids);
   if (!parsed.success) return { ok: false, message: "Your saved list could not be read." };
   if (parsed.data.length === 0) return { ok: true, items: [], missingIds: [] };
+  const limit = await limitByIp("wishlist", { limit: 60, windowSeconds: 60 });
+  if (limit && !limit.allowed) return { ok: false, message: "Too many requests. Please wait a moment and try again." };
   try {
     const index = await loadCatalogIndex(getDb(), { now: new Date(), productIds: parsed.data });
     const byId = new Map(index.products.map((p) => [p.id, toCard(p)]));
