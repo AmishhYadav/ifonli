@@ -4,6 +4,7 @@ import { ProductCard, ProductGrid, ProductGridItem } from "@/components/store";
 import { VibeCopy } from "@/components/store/VibeCopy";
 import { Icon } from "@/components/ui";
 import { VIBE_NAMES, type Vibe } from "@/features/vibe/config";
+import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { getFeaturedForAllVibes } from "@/server/cache/catalog";
 import { getVibeSettings } from "@/server/cache/settings";
 
@@ -47,7 +48,11 @@ export async function FeaturedForVibe() {
             <ProductGrid className="mt-6" data-testid={`featured-${vibe}`}>
               {cards.map((product) => (
                 <ProductGridItem key={product.id}>
-                  <ProductCard product={product} sizes={FEATURED_SIZES} />
+                  <ProductCard
+                    product={product}
+                    sizes={FEATURED_SIZES}
+                    wishlist={<WishlistHeart productId={product.id} productName={product.name} />}
+                  />
                 </ProductGridItem>
               ))}
             </ProductGrid>

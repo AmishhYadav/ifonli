@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button, EmptyState, VibeChip } from "@/components/ui";
 import { VIBES } from "@/features/vibe/config";
+import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { getCollections, getFeaturedForAllVibes } from "@/server/cache/catalog";
 
 import { ProductCard } from "../ProductCard";
@@ -82,7 +83,7 @@ export async function NoResults({
               <ProductGrid>
                 {cards.map((product) => (
                   <ProductGridItem key={product.id}>
-                    <ProductCard product={product} />
+                    <ProductCard product={product} wishlist={<WishlistHeart productId={product.id} productName={product.name} />} />
                   </ProductGridItem>
                 ))}
               </ProductGrid>

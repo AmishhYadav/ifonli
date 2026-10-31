@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 
 import { Button, EmptyState, Icon } from "@/components/ui";
+import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { getDb } from "@/server/db";
 import { getCollections, listProducts } from "@/server/cache/catalog";
 import { searchProducts } from "@/server/services/search";
@@ -239,7 +240,12 @@ export async function ListingSection({
               <ProductGrid data-testid="product-grid">
                 {items.map((product, i) => (
                   <ProductGridItem key={product.id}>
-                    <ProductCard product={product} eager={i < 4} sizes={GRID_SIZES} />
+                    <ProductCard
+                      product={product}
+                      eager={i < 4}
+                      sizes={GRID_SIZES}
+                      wishlist={<WishlistHeart productId={product.id} productName={product.name} />}
+                    />
                   </ProductGridItem>
                 ))}
               </ProductGrid>
