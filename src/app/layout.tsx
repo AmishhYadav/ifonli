@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { ClientErrorReporter } from "@/components/monitoring/ClientErrorReporter";
 import { ToastProvider } from "@/components/ui";
 import { BODY_FONT_FILE, DEFAULT_VIBE, DEFAULT_VIBE_CYCLE } from "@/features/vibe/config";
 import { VibeFilters } from "@/features/vibe/VibeFilters";
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body>
         <VibeFilters />
+        <ClientErrorReporter />
         <ToastProvider>{children}</ToastProvider>
         <div id="vibe-live" role="status" aria-live="polite" className="sr-only" />
         <Suspense fallback={null}>

@@ -1,3 +1,4 @@
+import { captureException } from "@/lib/monitoring/sentry";
 import { getDb } from "@/server/db";
 import { NotifyConfigError } from "@/server/notify/channel";
 import { processOutbox } from "@/server/notify/sender";
@@ -18,6 +19,7 @@ export async function GET(req: Request): Promise<Response> {
       return Response.json({ ok: false, error: "email_not_configured" }, { status: 503 });
     }
     console.error("notify-retry failed", e instanceof Error ? e.name : "unknown");
+    await captureException(e, { source: "cron", route: "/api/cron/notify-retry" });
     return Response.json({ ok: false }, { status: 500 });
   }
 }

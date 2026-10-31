@@ -1,3 +1,4 @@
+import { captureException } from "@/lib/monitoring/sentry";
 import { revalidateStock } from "@/server/cache/revalidate";
 import { getDb } from "@/server/db";
 import { dispatchOutboxSoon } from "@/server/notify/dispatch";
@@ -30,6 +31,7 @@ export async function POST(req: Request): Promise<Response> {
   } catch (e) {
     if (e instanceof PaymentConfigError) return Response.json({ error: "unavailable" }, { status: 503 });
     console.error("razorpay webhook crashed", e instanceof Error ? e.name : "unknown");
+    await captureException(e, { source: "webhook", route: "/api/webhooks/razorpay" });
     return Response.json({ error: "internal" }, { status: 500 });
   }
 }

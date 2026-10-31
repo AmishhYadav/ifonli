@@ -1,3 +1,4 @@
+import { captureException } from "@/lib/monitoring/sentry";
 import { revalidateStock } from "@/server/cache/revalidate";
 import { getDb } from "@/server/db";
 import { cronUnauthorized, isCronAuthorized } from "@/server/payments/cron-auth";
@@ -14,6 +15,7 @@ export async function GET(req: Request): Promise<Response> {
     return Response.json({ ok: true, payments: paymentStats, refunds });
   } catch (e) {
     console.error("reconcile-payments failed", e instanceof Error ? e.message : "unknown");
+    await captureException(e, { source: "cron", route: "/api/cron/reconcile-payments" });
     return Response.json({ ok: false }, { status: 500 });
   }
 }

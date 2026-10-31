@@ -1,3 +1,4 @@
+import { captureException } from "@/lib/monitoring/sentry";
 import { getDb } from "@/server/db";
 import { cleanupHousekeeping } from "@/server/payments/cleanup";
 import { cronUnauthorized, isCronAuthorized } from "@/server/payments/cron-auth";
@@ -9,6 +10,7 @@ export async function GET(req: Request): Promise<Response> {
     return Response.json({ ok: true, ...(await cleanupHousekeeping(getDb())) });
   } catch (e) {
     console.error("cleanup failed", e instanceof Error ? e.message : "unknown");
+    await captureException(e, { source: "cron", route: "/api/cron/cleanup" });
     return Response.json({ ok: false }, { status: 500 });
   }
 }
