@@ -1,5 +1,6 @@
-import { ExternalLink, FileText, Lock, Eye } from "lucide-react";
+import { ExternalLink, FileText, Lock, Eye, Repeat2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 import {
   Badge,
@@ -15,6 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/admin/ui";
+import { CaseStatusBadge, CaseTypeBadge, RESOLUTION_LABEL } from "@/components/admin/support/status";
 import { formatINR } from "@/lib/money";
 import type { AdminOrderDetail } from "@/server/services/admin/orders";
 import { resolveImageUrl } from "@/server/services/media";
@@ -196,6 +198,8 @@ const EVENT_LABEL: Record<string, string> = {
   stock_converted: "Stock sold",
   invoice_assigned: "Invoice number assigned",
   notification_resent: "E-mail re-sent",
+  replacement_of: "Replacement order",
+  replacement_created: "Replacement created",
 };
 
 export function TimelineCard({ detail, children }: { detail: AdminOrderDetail; children?: React.ReactNode }) {
@@ -248,7 +252,7 @@ export function TimelineCard({ detail, children }: { detail: AdminOrderDetail; c
   );
 }
 
-export function CustomerCard({ detail }: { detail: AdminOrderDetail }) {
+export function CustomerCard({ detail, customerHref }: { detail: AdminOrderDetail; customerHref?: string }) {
   const { order } = detail;
   const a = (order.shippingAddress ?? {}) as Record<string, unknown>;
   const lines = [a.line1, a.line2, a.landmark, [a.city, a.pincode].filter(Boolean).join(" "), a.state]
@@ -284,6 +288,111 @@ export function CustomerCard({ detail }: { detail: AdminOrderDetail }) {
           {order.userId ? "Signed-in customer" : "Guest checkout"} · placed {formatDateTime(order.placedAt)}
           {order.vibeAtOrder ? ` · vibe ${order.vibeAtOrder}` : ""}
         </p>
+        {customerHref ? (
+          <Link href={customerHref} className="text-admin-primary hover:underline">
+            View customer
+          </Link>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** "Replacement for IFO-…" / "Replacement order IFO-…" links, shown in the page header. */
+export function ReplacementLinks({ detail }: { detail: AdminOrderDetail }) {
+  const { replacementFor, replacements } = detail;
+  if (!replacementFor && replacements.length === 0) return null;
+  return (
+    <span className="flex flex-wrap items-center gap-1.5 text-[13px]">
+      {replacementFor ? (
+        <Link
+          href={`/admin/orders/${replacementFor.orderId}`}
+          className="inline-flex items-center gap-1 rounded-md bg-admin-primary-soft px-2 py-0.5 font-medium text-admin-primary hover:underline"
+        >
+          <Repeat2 className="size-3.5" aria-hidden />
+          Replacement for <span className="font-mono">{replacementFor.ref}</span>
+        </Link>
+      ) : null}
+      {replacements.map((r) => (
+        <Link
+          key={r.orderId}
+          href={`/admin/orders/${r.orderId}`}
+          className="inline-flex items-center gap-1 rounded-md bg-admin-primary-soft px-2 py-0.5 font-medium text-admin-primary hover:underline"
+        >
+          <Repeat2 className="size-3.5" aria-hidden />
+          Replacement order <span className="font-mono">{r.ref}</span>
+        </Link>
+      ))}
+    </span>
+  );
+}
+
+const caseShortId = (id: string) => id.slice(0, 8).toUpperCase();
+
+/** Support cases reported on this order, and the replacement orders they led to. */
+export function SupportLinksCard({ detail, canViewSupport }: { detail: AdminOrderDetail; canViewSupport: boolean }) {
+  const { supportCases, replacementFor, replacements } = detail;
+  if (supportCases.length === 0 && !replacementFor && replacements.length === 0) return null;
+  const replacementByCase = new Map(replacements.map((r) => [r.caseId, r]));
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Support and replacements</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-3 text-[13px]">
+        {replacementFor ? (
+          <p>
+            Replacement for{" "}
+            <Link href={`/admin/orders/${replacementFor.orderId}`} className="font-mono text-admin-primary hover:underline">
+              {replacementFor.ref}
+            </Link>
+            {canViewSupport ? (
+              <>
+                {" "}
+                (case{" "}
+                <Link href={`/admin/support/cases/${replacementFor.caseId}`} className="font-mono text-admin-primary hover:underline">
+                  {caseShortId(replacementFor.caseId)}
+                </Link>
+                )
+              </>
+            ) : null}
+            . No charge.
+          </p>
+        ) : null}
+        {supportCases.length > 0 ? (
+          <ul className="divide-y divide-admin-border">
+            {supportCases.map((c) => {
+              const replacement = replacementByCase.get(c.id);
+              return (
+                <li key={c.id} className="grid gap-1 py-2 first:pt-0 last:pb-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {canViewSupport ? (
+                      <Link href={`/admin/support/cases/${c.id}`} className="font-mono font-medium text-admin-primary hover:underline">
+                        {caseShortId(c.id)}
+                      </Link>
+                    ) : (
+                      <span className="font-mono font-medium">{caseShortId(c.id)}</span>
+                    )}
+                    <CaseTypeBadge type={c.type} />
+                    <CaseStatusBadge status={c.status} />
+                  </div>
+                  <p className="text-xs text-admin-ink-muted">
+                    {formatDateTime(c.createdAt)}
+                    {c.resolution ? ` · ${RESOLUTION_LABEL[c.resolution]}` : ""}
+                  </p>
+                  {replacement ? (
+                    <p>
+                      Replacement order{" "}
+                      <Link href={`/admin/orders/${replacement.orderId}`} className="font-mono text-admin-primary hover:underline">
+                        {replacement.ref}
+                      </Link>
+                    </p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
       </CardContent>
     </Card>
   );

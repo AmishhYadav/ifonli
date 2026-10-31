@@ -8,7 +8,9 @@ import {
   DocumentsCard,
   ItemsCard,
   PaymentsCard,
+  ReplacementLinks,
   ShipmentsCard,
+  SupportLinksCard,
   TimelineCard,
 } from "@/components/admin/orders/OrderDetailCards";
 import { OrderNoteForm } from "@/components/admin/orders/OrderNoteForm";
@@ -60,6 +62,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <PaymentStatusBadge status={order.paymentStatus} />
             <FulfilmentBadge status={order.fulfillmentStatus} />
             <MethodBadge method={order.paymentMethod} />
+            <ReplacementLinks detail={detail} />
           </span>
         }
       />
@@ -95,7 +98,15 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
               restockable: i.restockable,
             }))}
           />
-          <CustomerCard detail={detail} />
+          <CustomerCard
+            detail={detail}
+            customerHref={
+              can(role, "customer:view")
+                ? `/admin/customers/${order.userId ?? `o-${order.id}`}`
+                : undefined
+            }
+          />
+          <SupportLinksCard detail={detail} canViewSupport={can(role, "support:view")} />
           <ShipmentsCard detail={detail} />
           <DocumentsCard
             detail={detail}

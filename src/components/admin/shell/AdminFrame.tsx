@@ -201,9 +201,13 @@ export function AdminFrame({
               <button
                 type="button"
                 className="flex items-center gap-2 rounded-full py-1 pr-2 pl-1 hover:bg-admin-surface-2"
-                aria-label="Account menu"
               >
-                <span className="flex size-7 items-center justify-center rounded-full bg-admin-primary-soft text-xs font-semibold text-admin-primary">
+                {/* No aria-label: the accessible name is built from the visible text (WCAG 2.5.3), led by the purpose. */}
+                <span className="sr-only">Account menu:</span>
+                <span
+                  aria-hidden
+                  className="flex size-7 items-center justify-center rounded-full bg-admin-primary-soft text-xs font-semibold text-admin-primary"
+                >
                   {initial}
                 </span>
                 <span className="hidden text-left leading-tight sm:block">

@@ -102,7 +102,7 @@ export const NAV: NavGroupDef[] = [
         label: "Customers",
         icon: "customers",
         permission: "customer:view",
-        built: false,
+        built: true,
         blurb: "Customer accounts, order history and data export or deletion requests.",
       },
       {

@@ -177,10 +177,8 @@ test.describe("full flow", () => {
     }) => {
       test.skip(isMobile, "desktop only");
       const scan = async (what: string) => {
-        // The shell's account-menu button (aria-label vs. visible name) is outside this module.
         const results = await new AxeBuilder({ page })
           .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-          .exclude('button[aria-label="Account menu"]')
           .analyze();
         const bad = results.violations.filter(
           (v) => v.impact === "serious" || v.impact === "critical",
