@@ -810,7 +810,17 @@ export async function getOrderForCustomer(
     .limit(1);
   const ok = verifyAccessToken(token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
   if (!order || !order.accessTokenHash || !ok) return null;
+  return toCustomerOrderView(db, order);
+}
 
+/**
+ * The customer-facing view of an order the caller is already allowed to see (guest token or signed-in
+ * owner: authorisation is the caller's job). Shared by the guest page and `/account/orders/[ref]`.
+ */
+export async function toCustomerOrderView(
+  db: DbClient,
+  order: typeof orders.$inferSelect,
+): Promise<CustomerOrderView> {
   const [items, events] = await Promise.all([
     db.select().from(orderItems).where(eq(orderItems.orderId, order.id)).orderBy(asc(orderItems.createdAt), asc(orderItems.id)),
     db

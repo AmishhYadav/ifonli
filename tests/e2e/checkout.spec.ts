@@ -368,9 +368,17 @@ test.describe("payment and order page", () => {
     await expect(page.getByTestId("order-address")).toContainText("Mumbai, Maharashtra - 400001");
     await expect(tid(page, "timeline")).toContainText("Order confirmed");
     await expect(tid(page, "order-lines")).toContainText("Heart charm");
-    await expect(
-      page.getByTestId("order-later-actions").getByRole("button", { name: "Download invoice" }),
-    ).toBeDisabled();
+    const actions = page.getByTestId("order-actions");
+    await expect(actions.getByRole("link", { name: "Download invoice" })).toHaveAttribute(
+      "href",
+      /\/api\/orders\/IFO-[0-9A-Z-]+\/invoice\?t=/,
+    );
+    await expect(actions.getByRole("button", { name: "Cancel order" })).toBeVisible();
+    await expect(actions.getByRole("button", { name: "Report a problem" })).toBeVisible();
+    await expect(actions.getByRole("link", { name: "Create an account" })).toHaveAttribute(
+      "href",
+      /\/account\/login\?email=/,
+    );
     expect(email).toContain(EMAIL_PREFIX);
   });
 

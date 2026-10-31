@@ -9,7 +9,8 @@ import { useForm, useWatch } from "react-hook-form";
 import { AmountBreakdown } from "@/components/orders/AmountBreakdown";
 import { formatDateRange } from "@/components/orders/format";
 import { OrderLines } from "@/components/orders/OrderLines";
-import { Button, Checkbox, Field, Icon, Input, Radio, RadioGroup, Spinner } from "@/components/ui";
+import { Button, Checkbox, Field, Icon, Input, Radio, RadioGroup, Select, Spinner } from "@/components/ui";
+import type { SavedAddress } from "@/features/account/schema";
 import { getCheckoutQuote, lookupPincode, placeOrder } from "@/features/checkout/actions";
 import {
   PINCODE_PATTERN,
@@ -34,6 +35,10 @@ export interface CheckoutFormProps {
   initialEmail: string | null;
   /** One or two sentences on returns, shown with the acknowledgement. */
   returnSummary: string;
+  /** Signed-in customer's saved addresses, default first. The default one prefills the form. */
+  savedAddresses?: readonly SavedAddress[];
+  /** Phone from the customer's profile, used when the prefilled address has none. */
+  initialPhone?: string | null;
 }
 
 /** The schema wants `true`; the box must start unticked, so the default is deliberately not `true`. */
@@ -167,8 +172,16 @@ function focusFirstInvalid(form: HTMLFormElement | null) {
   el?.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
-export function CheckoutForm({ initialCart, initialEmail, returnSummary }: CheckoutFormProps) {
+export function CheckoutForm({
+  initialCart,
+  initialEmail,
+  returnSummary,
+  savedAddresses = [],
+  initialPhone = null,
+}: CheckoutFormProps) {
   const router = useRouter();
+  const prefill = savedAddresses.find((a) => a.isDefault) ?? savedAddresses[0] ?? null;
+  const [savedChoice, setSavedChoice] = useState<string>(prefill?.id ?? "");
   const formRef = useRef<HTMLFormElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   const autofilled = useRef<{ city: string | null; state: string | null }>({
@@ -193,20 +206,37 @@ export function CheckoutForm({ initialCart, initialEmail, returnSummary }: Check
     shouldFocusError: false,
     defaultValues: {
       email: initialEmail ?? "",
-      phone: "",
+      phone: prefill?.phone ?? initialPhone ?? "",
       shippingAddress: {
-        pincode: "",
-        city: "",
-        state: "",
-        name: "",
-        line1: "",
-        line2: "",
-        landmark: "",
+        pincode: prefill?.pincode ?? "",
+        city: prefill?.city ?? "",
+        state: prefill?.state ?? "",
+        name: prefill?.name ?? "",
+        line1: prefill?.line1 ?? "",
+        line2: prefill?.line2 ?? "",
+        landmark: prefill?.landmark ?? "",
       },
       paymentMethod: "razorpay",
       policyAck: UNTICKED,
     },
   });
+
+  // -- saved addresses (signed-in customers) -------------------------------------------------
+  function chooseSaved(id: string) {
+    setSavedChoice(id);
+    const chosen = savedAddresses.find((a) => a.id === id) ?? null;
+    autofilled.current = { city: null, state: null };
+    const opts = { shouldDirty: true } as const;
+    setValue("shippingAddress.pincode", chosen?.pincode ?? "", opts);
+    setValue("shippingAddress.city", chosen?.city ?? "", opts);
+    setValue("shippingAddress.state", chosen?.state ?? "", opts);
+    setValue("shippingAddress.name", chosen?.name ?? "", opts);
+    setValue("shippingAddress.line1", chosen?.line1 ?? "", opts);
+    setValue("shippingAddress.line2", chosen?.line2 ?? "", opts);
+    setValue("shippingAddress.landmark", chosen?.landmark ?? "", opts);
+    if (chosen?.phone) setValue("phone", chosen.phone, opts);
+    clearErrors();
+  }
 
   // -- live inputs ---------------------------------------------------------------------------
   const rawPincode = (useWatch({ control, name: "shippingAddress.pincode" }) ?? "").trim();
@@ -461,7 +491,23 @@ export function CheckoutForm({ initialCart, initialEmail, returnSummary }: Check
           <h2 id="checkout-address" className="font-display text-2xl leading-tight">
             Delivery address
           </h2>
-          {/* Accounts phase: a saved-address picker goes here and fills the fields below with setValue. */}
+          {savedAddresses.length > 0 ? (
+            <Field label="Use a saved address" className="sm:max-w-md">
+              <Select
+                value={savedChoice}
+                onChange={(e) => chooseSaved(e.target.value)}
+                data-testid="saved-address-select"
+              >
+                {savedAddresses.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {[a.name, a.line1, `${a.city} ${a.pincode}`].join(", ")}
+                    {a.isDefault ? " (default)" : ""}
+                  </option>
+                ))}
+                <option value="">Enter a different address</option>
+              </Select>
+            </Field>
+          ) : null}
           <Field
             label="Pincode"
             required

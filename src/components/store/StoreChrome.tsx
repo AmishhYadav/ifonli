@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import "@/styles/store.css";
+
+import { WishlistAccountSync } from "@/features/wishlist/WishlistAccountSync";
 
 import { Footer } from "./footer/Footer";
 import { AnnouncementBar } from "./header/AnnouncementBar";
@@ -22,6 +24,9 @@ export function StoreChrome({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
+      <Suspense fallback={null}>
+        <WishlistAccountSync />
+      </Suspense>
     </>
   );
 }
