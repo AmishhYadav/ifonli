@@ -9,8 +9,8 @@ import {
   customerStatusLabel,
   hashAccessToken,
   normalizeOrderRef,
-  verifyAccessToken,
 } from "@/server/domain";
+import { orderTokenMatches } from "@/server/services/commerce/order-token";
 import { finalizePaidOrder, PaymentFlowError, type FinalizeResult } from "@/server/services/payments";
 import type { DbClient } from "@/server/services/queries/shared";
 import { consumeRateLimit } from "@/server/services/rate-limit";
@@ -83,7 +83,7 @@ export async function handleVerifyRequest(
   if (blocked) return failure(429, "rate_limited", blocked.retryAfterSeconds);
 
   const [order] = await db.select().from(orders).where(eq(orders.ref, ref)).limit(1);
-  const tokenOk = verifyAccessToken(b.token, order?.accessTokenHash ?? DUMMY_HASH);
+  const tokenOk = orderTokenMatches(b.token, order?.accessTokenHash ?? DUMMY_HASH);
   if (!order || !order.accessTokenHash || !tokenOk) return failure(404, "not_found");
 
   const signatureOk = provider.verifyCheckoutSignature({

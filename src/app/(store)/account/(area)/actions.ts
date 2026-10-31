@@ -7,7 +7,7 @@ import { z } from "zod";
 
 import { clearAccountHint } from "@/features/account/session-hint";
 import type { SavedAddress } from "@/features/account/schema";
-import { getRequestIp, keyDigest } from "@/features/cart/request";
+import { clearCartToken, getRequestIp, keyDigest } from "@/features/cart/request";
 import { ForbiddenError, UnauthorizedError, requireCustomer } from "@/server/auth/session";
 import { getAuth } from "@/server/auth/auth";
 import { getDb } from "@/server/db";
@@ -98,6 +98,9 @@ export async function signOutAction(): Promise<void> {
     // Already signed out (expired session): nothing to end.
   }
   await clearAccountHint();
+  // The cart cookie must not outlive the session: the next person on this device starts empty. The
+  // account's own cart stays on the server and comes back at the next sign-in.
+  await clearCartToken();
   redirect("/");
 }
 

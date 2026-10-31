@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { ClosedCheckout } from "@/components/checkout/ClosedCheckout";
 import { CheckoutSkeleton } from "@/components/checkout/CheckoutSkeleton";
 import { EmptyCheckout } from "@/components/checkout/EmptyCheckout";
 import { getCurrentCartView } from "@/features/cart/queries";
 import { getSessionUser } from "@/features/cart/request";
 import { getDb } from "@/server/db";
 import { loadCheckoutPrefill } from "@/server/services/account";
+import { getOrderGate, STORE_CLOSED_MESSAGE } from "@/server/services/commerce/launch-gate";
 import { readSettings } from "@/server/services/queries/shared";
 
 export const metadata: Metadata = {
@@ -41,6 +43,8 @@ async function CheckoutContent() {
     returnSummary(),
   ]);
   if (cart.lines.length === 0) return <EmptyCheckout />;
+  // Production launch gate: no form that cannot be submitted.
+  if (!(await getOrderGate(getDb())).open) return <ClosedCheckout message={STORE_CLOSED_MESSAGE} />;
   // Signed-in customers start from their default saved address and profile phone.
   const prefill = user ? await loadCheckoutPrefill(getDb(), user.id).catch(() => null) : null;
   return (

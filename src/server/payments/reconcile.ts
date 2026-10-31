@@ -32,6 +32,8 @@ export interface ReconcileOptions {
   /** Expire orders that are due and have no captured payment. Default true. */
   expireDue?: boolean;
   limit?: number;
+  /** Source of randomness for picking which late-capture candidates to poll (tests inject one). */
+  random?: () => number;
 }
 
 /** A late capture can still arrive for an expired order; look back this far. */
@@ -68,21 +70,29 @@ export async function reconcilePayments(
     .where(and(...pendingWhere))
     .orderBy(asc(orders.placedAt))
     .limit(limit);
-  const late = opts.dueOnly
-    ? []
-    : await db
-        .select({ id: orders.id, expiresAt: orders.expiresAt })
-        .from(orders)
-        .where(
-          and(
-            eq(orders.status, "expired"),
-            eq(orders.paymentMethod, "razorpay"),
-            isNull(orders.paidAt),
-            gt(orders.expiresAt, new Date(now.getTime() - LATE_WINDOW_MS)),
-          ),
-        )
-        .orderBy(asc(orders.expiresAt))
-        .limit(limit);
+  // Late captures: every recently expired, unpaid order is a candidate, but only `limit` are asked about
+  // per run. Always taking the oldest 50 would poll the same rows forever once more than 50 are
+  // waiting, so the window starts at a random place in the list and wraps around.
+  let late: { id: string; expiresAt: Date | null }[] = [];
+  if (!opts.dueOnly) {
+    const candidates = await db
+      .select({ id: orders.id, expiresAt: orders.expiresAt })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.status, "expired"),
+          eq(orders.paymentMethod, "razorpay"),
+          isNull(orders.paidAt),
+          gt(orders.expiresAt, new Date(now.getTime() - LATE_WINDOW_MS)),
+        ),
+      )
+      .orderBy(asc(orders.expiresAt), asc(orders.id));
+    if (candidates.length <= limit) late = candidates;
+    else {
+      const start = Math.floor((opts.random ?? Math.random)() * candidates.length) % candidates.length;
+      late = [...candidates.slice(start), ...candidates.slice(0, start)].slice(0, limit);
+    }
+  }
 
   for (const o of [...pending, ...late]) {
     stats.checked += 1;

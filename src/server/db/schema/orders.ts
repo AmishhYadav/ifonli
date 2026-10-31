@@ -197,6 +197,8 @@ export const invoices = pgTable(
     number: text("number").notNull().unique(),
     kind: invoiceKindEnum("kind").notNull(),
     pdfPath: text("pdf_path"),
+    /** Seller and tax data frozen at confirmation (`InvoiceSnapshot`); null on invoices from before it existed. */
+    snapshot: jsonb("snapshot"),
     ...timestamps(),
   },
   (t) => [uniqueIndex("invoices_order_kind_uq").on(t.orderId, t.kind)],

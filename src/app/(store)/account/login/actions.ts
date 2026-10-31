@@ -7,11 +7,12 @@ import { z } from "zod";
 
 import { safeNextPath } from "@/features/account/redirect";
 import { setAccountHint } from "@/features/account/session-hint";
-import { getRequestIp, keyDigest } from "@/features/cart/request";
+import { clearCartToken, getRequestIp, keyDigest, readCartToken, writeCartToken } from "@/features/cart/request";
 import { emailSchema } from "@/features/checkout/schema";
 import { getAuth } from "@/server/auth/auth";
 import { getDb } from "@/server/db";
 import { ensureProfile } from "@/server/services/account";
+import { mergeCarts } from "@/server/services/cart";
 import { consumeRateLimit } from "@/server/services/rate-limit";
 
 import type { LoginState } from "./types";
@@ -37,6 +38,23 @@ const text = (value: FormDataEntryValue | null) => (typeof value === "string" ? 
 function tooMany(retryAfterSeconds: number): string {
   const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
   return `Too many attempts. Please try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`;
+}
+
+/**
+ * Plan 7.2: "On login, the guest cart merges". The new session is not on this request yet, so the user id
+ * comes from the sign-in result. Never blocks the login: a failed merge leaves both carts as they were.
+ */
+async function mergeGuestCartOnLogin(db: ReturnType<typeof getDb>, userId: string): Promise<void> {
+  try {
+    const token = await readCartToken();
+    const merged = await mergeCarts(db, token, userId);
+    if (merged.token && merged.token !== token) await writeCartToken(merged.token);
+    // The cookie cart is another account's and this user has none: drop the cookie, do not reuse it.
+    else if (!merged.token && token) await clearCartToken();
+  } catch (e) {
+    unstable_rethrow(e);
+    console.error("cart merge on login failed", e instanceof Error ? e.message : "unknown");
+  }
 }
 
 /**
@@ -91,6 +109,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
         });
         await ensureProfile(db, res.user.id);
         await setAccountHint();
+        await mergeGuestCartOnLogin(db, res.user.id);
       } catch (e) {
         unstable_rethrow(e);
         if (e instanceof APIError) {

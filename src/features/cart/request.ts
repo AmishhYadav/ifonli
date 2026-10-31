@@ -25,6 +25,11 @@ export async function writeCartToken(token: string): Promise<void> {
   });
 }
 
+/** Forgets the cart cookie (sign-out, or a cookie cart that is not this visitor's). Actions / Route Handlers only. */
+export async function clearCartToken(): Promise<void> {
+  (await cookies()).delete(CART_COOKIE);
+}
+
 /** Best-effort client IP for rate-limit keys. */
 export async function getRequestIp(): Promise<string> {
   const h = await headers();

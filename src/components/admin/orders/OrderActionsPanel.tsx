@@ -49,7 +49,16 @@ export interface ActionsPanelProps {
   canRefund: boolean;
   resend: { value: string; label: string }[];
   /** Permission flags for the signed-in role (the server re-checks every action). */
-  allow: { fulfil: boolean; ship: boolean; cod: boolean; cancel: boolean; refund: boolean; resend: boolean };
+  allow: {
+    fulfil: boolean;
+    ship: boolean;
+    cod: boolean;
+    cancel: boolean;
+    refund: boolean;
+    resend: boolean;
+    /** `inventory:adjust`: may put returned units back on the shelf. */
+    restock: boolean;
+  };
   totalPaise: number;
   refundablePaise: number;
   /** Lines with units that can still go back on the shelf. */
@@ -525,9 +534,9 @@ function ResendDialog({ orderId, orderRef, resend, onClose }: DialogProps) {
   );
 }
 
-function ReturnedDialog({ orderId, orderRef, items, onClose }: DialogProps) {
+function ReturnedDialog({ orderId, orderRef, items, allow, onClose }: DialogProps) {
   const act = useAct();
-  const [restock, setRestock] = React.useState(true);
+  const [restock, setRestock] = React.useState(allow.restock);
   const units = items.reduce((s, i) => s + i.restockable, 0);
   return (
     <Dialog open onOpenChange={(o) => !o && !act.pending && onClose()}>
@@ -538,10 +547,14 @@ function ReturnedDialog({ orderId, orderRef, items, onClose }: DialogProps) {
             The parcel is back with you. A prepaid order still needs a refund from the Refund action.
           </DialogDescription>
         </DialogHeader>
-        {units > 0 ? (
+        {units > 0 && allow.restock ? (
           <Field label={`Put ${units} unit(s) back in stock`} htmlFor="returned-restock" inline>
             <Checkbox id="returned-restock" checked={restock} onCheckedChange={(v) => setRestock(v === true)} />
           </Field>
+        ) : units > 0 ? (
+          <p className="text-xs text-admin-ink-muted">
+            The {units} unit(s) won&apos;t go back in stock automatically. Ask an admin to restock them.
+          </p>
         ) : null}
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={act.pending}>
@@ -551,7 +564,7 @@ function ReturnedDialog({ orderId, orderRef, items, onClose }: DialogProps) {
             loading={act.pending}
             onClick={() =>
               act.run(
-                () => updateFulfilmentAction(orderId, { to: "returned", restock }),
+                () => updateFulfilmentAction(orderId, { to: "returned", restock: allow.restock && restock }),
                 () => {
                   toast.success(`${orderRef} marked returned`);
                   onClose();

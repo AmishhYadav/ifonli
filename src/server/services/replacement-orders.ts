@@ -1,9 +1,9 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { orderItems, orders } from "@/server/db/schema";
+import { orderItems, orders, supportCases } from "@/server/db/schema";
 import { generateOrderRef } from "@/server/domain";
 import { getVariantAvailability, adjustStock, type Tx } from "@/server/services/inventory";
 import { addOrderEvent } from "@/server/services/order-events";
@@ -86,6 +86,32 @@ export async function createReplacementOrder(
   // Merge duplicate lines and validate against what the customer actually bought.
   const wanted = new Map<string, number>();
   for (const l of input.lines) wanted.set(l.orderItemId, (wanted.get(l.orderItemId) ?? 0) + l.qty);
+
+  // Units already sent as replacements for this order by EARLIER cases (cancelled replacements don't
+  // count): the cap is what the customer bought, across all cases, not per case.
+  const caseIds = (
+    await tx.select({ id: supportCases.id }).from(supportCases).where(eq(supportCases.orderId, original.id))
+  ).map((c) => c.id);
+  const sentBefore = new Map<string, number>();
+  if (caseIds.length > 0) {
+    const rows = await tx
+      .select({ variantId: orderItems.variantId, n: sql<number>`coalesce(sum(${orderItems.qty}), 0)::int` })
+      .from(orderItems)
+      .innerJoin(orders, eq(orders.id, orderItems.orderId))
+      .where(
+        and(
+          inArray(orders.idempotencyKey, caseIds.map(replacementKey)),
+          ne(orders.idempotencyKey, replacementKey(caseId)),
+          ne(orders.status, "cancelled"),
+        ),
+      )
+      .groupBy(orderItems.variantId);
+    for (const r of rows) sentBefore.set(r.variantId, r.n);
+  }
+  const boughtByVariant = new Map<string, number>();
+  for (const i of sourceItems) boughtByVariant.set(i.variantId, (boughtByVariant.get(i.variantId) ?? 0) + i.qty);
+  const wantedByVariant = new Map<string, number>();
+
   const picked = [...wanted.entries()].map(([id, qty]) => {
     const item = byId.get(id);
     if (!item)
@@ -96,6 +122,16 @@ export async function createReplacementOrder(
     if (qty > item.qty) {
       throw new ReplacementError(
         `${item.productName}: the order has ${item.qty}, so at most ${item.qty} can be replaced.`,
+        "too_many",
+      );
+    }
+    wantedByVariant.set(item.variantId, (wantedByVariant.get(item.variantId) ?? 0) + qty);
+    const left = (boughtByVariant.get(item.variantId) ?? 0) - (sentBefore.get(item.variantId) ?? 0);
+    if ((wantedByVariant.get(item.variantId) ?? 0) > left) {
+      throw new ReplacementError(
+        left <= 0
+          ? `${item.productName}: every unit on this order has already been replaced.`
+          : `${item.productName}: only ${left} more can be replaced (the order has ${boughtByVariant.get(item.variantId)}, ${sentBefore.get(item.variantId) ?? 0} already replaced).`,
         "too_many",
       );
     }

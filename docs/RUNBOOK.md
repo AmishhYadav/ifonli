@@ -27,7 +27,6 @@ Set in Vercel (Project, Settings, Environment Variables). Use separate **Product
 | `RAZORPAY_WEBHOOK_SECRET` | yes | yes | HMAC of `/api/webhooks/razorpay`. A **different** secret from the key secret |
 | `RESEND_API_KEY` / `EMAIL_FROM` | yes | key: yes | Transactional e-mail. `EMAIL_FROM` like `IfOnli <orders@your-domain>` on a Resend-verified domain |
 | `CRON_SECRET` | yes | yes | Vercel Cron sends it as `Authorization: Bearer ...`; with no secret every cron call is rejected |
-| `ORDER_TOKEN_SECRET` | reserved | yes | Declared and validated but not used today: guest order tokens are random 32-byte values stored as SHA-256 hashes, so there is nothing to rotate. Keep it set |
 | `SENTRY_DSN` | recommended | semi | Enables error reporting. Empty = reporter is a no-op |
 | `NEXT_PUBLIC_GA4_ID` | optional | no | GA4 measurement id. Also adds the Google origins to the CSP (build time) |
 | `CSP_MODE` | no | no | `report-only` (default) or `enforce`. **Build time**, see section 9 |
@@ -82,7 +81,6 @@ Always rotate in this order: create the new value, set it in Vercel, redeploy, v
 | **Razorpay API key** (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`) | Razorpay Dashboard, Account & Settings, API Keys, Regenerate (live keys need the dashboard 2FA). Set all three in Vercel, redeploy. Old key stops working immediately on regeneration, so do it in a quiet period and place a test order afterwards | Checkout fails between regeneration and deploy. Open orders still verify through the webhook and the reconcile cron |
 | **Razorpay webhook secret** (`RAZORPAY_WEBHOOK_SECRET`) | Razorpay Dashboard, Webhooks, edit the endpoint, set a new secret. Update Vercel and redeploy immediately. Webhooks signed with the old secret are rejected with 401 and **Razorpay retries**; the reconcile cron (every 10 min) also repairs any gap | Short window of rejected webhooks, self-healing |
 | **Better Auth secret** (`BETTER_AUTH_SECRET`) | `openssl rand -hex 32`, set, redeploy | **Signs everyone out** (customers and admins; admins sign in again with password + TOTP). In-flight OTP codes become invalid |
-| **Order token secret** (`ORDER_TOKEN_SECRET`) | Reserved (see section 1). Rotating changes nothing today. Guest order links stay valid because tokens are stored as hashes | None |
 | **Cron secret** (`CRON_SECRET`) | New value in Vercel, redeploy. Vercel Cron sends the current value of the env var, so there is no gap beyond the deploy | A cron run during the deploy may 401 and runs again on the next tick |
 | **Resend** (`RESEND_API_KEY`) | Resend dashboard, API Keys, create a new key with "sending access", set in Vercel, redeploy, send a test (place a COD test order or use the contact form), then delete the old key | E-mails queue in the outbox and retry (notify-retry cron) if sending fails during the swap |
 | **Supabase service role key** | Supabase, Project Settings, API, roll the JWT secret / key; set `SUPABASE_SERVICE_ROLE_KEY`, redeploy | Image uploads and invoice downloads fail until redeployed |

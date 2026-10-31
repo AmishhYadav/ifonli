@@ -310,9 +310,11 @@ describe("createFromCart: idempotency", () => {
     expect(await db().select().from(stockReservations)).toHaveLength(1);
     expect(await availOf(f.variants.skull!)).toBe(9);
 
-    // a fresh token is issued (the raw one cannot be recovered); the new one works
+    // a fresh token is issued (the raw one cannot be recovered) and the FIRST one keeps working too
     expect(b.order.accessToken).not.toBe(a.order.accessToken);
     expect(await getOrderForCustomer(db(), b.order.ref, b.order.accessToken)).not.toBeNull();
+    expect(await getOrderForCustomer(db(), a.order.ref, a.order.accessToken)).not.toBeNull();
+    expect(await getOrderForCustomer(db(), a.order.ref, "not-a-token")).toBeNull();
   });
 
   it("two parallel submits of the same form create one order", async () => {
@@ -349,11 +351,41 @@ describe("createFromCart: idempotency", () => {
     expect((await orderRow(a.order.orderId)).status).toBe("expired");
   });
 
-  it("refuses to replay an order that has since expired", async () => {
+  it("the same submit after the attempt expired (or payment could not start) is a fresh attempt, and stays idempotent", async () => {
     const cart = await makeCart([{ variantId: f.variants.skull!, qty: 1 }]);
     const form = checkoutForm();
     const a = ok(await place(cart, form));
     await expireOrder(db(), a.order.orderId);
+    const b = ok(await place(cart, form));
+    expect(b.replayed).toBe(false);
+    expect(b.order.orderId).not.toBe(a.order.orderId);
+    expect((await orderRow(b.order.orderId)).status).toBe("pending_payment");
+    // a double click on the new attempt replays it; it does not create a third
+    const c = ok(await place(cart, form));
+    expect(c.replayed).toBe(true);
+    expect(c.order.orderId).toBe(b.order.orderId);
+    // and it can expire and be retried again
+    await expireOrder(db(), b.order.orderId);
+    const d = ok(await place(cart, form));
+    expect(d.replayed).toBe(false);
+    expect(await db().select().from(orders)).toHaveLength(3);
+  });
+
+  it("a failed payment start leaves the cart retryable with the same key", async () => {
+    const cart = await makeCart([{ variantId: f.variants.skull!, qty: 1 }]);
+    const form = checkoutForm();
+    const fail: PaymentInitiator = async () => ({ ok: false, message: "gateway down" });
+    expect(err(await place(cart, form, { initiatePayment: fail })).code).toBe("payment_init_failed");
+    const again = ok(await place(cart, form));
+    expect(again.replayed).toBe(false);
+    expect(again.order.status).toBe("pending_payment");
+  });
+
+  it("does not hand back an expired order that had been paid", async () => {
+    const cart = await makeCart([{ variantId: f.variants.skull!, qty: 1 }]);
+    const form = checkoutForm();
+    const a = ok(await place(cart, form));
+    await db().update(orders).set({ status: "cancelled", paidAt: new Date() }).where(eq(orders.id, a.order.orderId));
     expect(err(await place(cart, form)).code).toBe("checkout_expired");
   });
 });

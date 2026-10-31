@@ -29,6 +29,13 @@
       "when": 1793435871824,
       "tag": "0003_analytics_rollup_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793452519183,
+      "tag": "0004_invoice_snapshot",
+      "breakpoints": true
     }
   ]
 }

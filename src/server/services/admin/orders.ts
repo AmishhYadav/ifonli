@@ -4,7 +4,7 @@ import { and, asc, count, desc, eq, gte, ilike, inArray, lt, or, sql, type SQL }
 import { z } from "zod";
 
 import { formatINR } from "@/lib/money";
-import { assertCan } from "@/server/auth/permissions";
+import { assertCan, can } from "@/server/auth/permissions";
 import {
   inventoryMovements,
   notificationOutbox,
@@ -88,6 +88,37 @@ async function lockOrder(tx: DbClient, orderId: string): Promise<OrderRow> {
   const [row] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
   if (!row) throw new OrderNotFoundError();
   return row;
+}
+
+/**
+ * Runs `fn` while holding a Postgres advisory lock named `key`, so two identical requests (a double
+ * click, two tabs) take turns instead of both passing the same check. The lock lives in a small
+ * transaction of its own; `fn` works through `db` as usual (its own transactions, its own row locks),
+ * and the provider call inside it never holds a row lock for long. The second caller runs after the
+ * first has finished and sees its result.
+ */
+export async function withAdvisoryLock<T>(db: DbClient, key: string, fn: () => Promise<T>): Promise<T> {
+  return db.transaction(async (lockTx) => {
+    await lockTx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${key}, 0))`);
+    return fn();
+  });
+}
+
+/**
+ * A refunded order can't be sent out, and neither can a prepaid one whose money is not in. (A
+ * partially refunded order is still a live sale, e.g. a goodwill refund of the shipping fee.)
+ */
+function assertPaymentAllowsDispatch(order: Pick<OrderRow, "paymentMethod" | "paymentStatus">): void {
+  if (order.paymentStatus === "refunded") {
+    throw new AdminInputError("This order has been refunded in full, so it can't be packed or shipped.");
+  }
+  if (
+    order.paymentMethod === "razorpay" &&
+    order.paymentStatus !== "paid" &&
+    order.paymentStatus !== "partially_refunded"
+  ) {
+    throw new AdminInputError(`Payment for this order is ${label(order.paymentStatus)}, so it can't be packed or shipped.`);
+  }
 }
 
 export interface OrderMutationResult {
@@ -620,7 +651,7 @@ function notificationPayload(
 
 export const fulfilmentInputSchema = z.object({
   to: z.enum(["packed", "unfulfilled", "out_for_delivery", "delivered", "rto", "returned"]),
-  /** `returned` only: put the units back on the shelf (default yes). */
+  /** `returned` only: put the units back on the shelf (default yes; needs `inventory:adjust`, so no for fulfilment staff). */
   restock: z.boolean().optional(),
 });
 
@@ -654,6 +685,14 @@ export async function updateFulfilment(
     }
     const from = order.fulfillmentStatus;
     step("fulfillment", from, input.to);
+    if (input.to === "packed" || input.to === "out_for_delivery") assertPaymentAllowsDispatch(order);
+
+    // Putting units back on the shelf moves stock, which fulfilment staff may not do on their own.
+    // Without `inventory:adjust` a "returned" order is NOT restocked unless that is chosen by someone
+    // who has it.
+    const mayRestock = can(actor.role, "inventory:adjust");
+    if (input.to === "returned" && input.restock === true) assertCan(actor.role, "inventory:adjust");
+    const restock = input.to === "returned" && mayRestock && input.restock !== false;
 
     const set: Partial<typeof orders.$inferInsert> = { fulfillmentStatus: input.to };
     let productIds: string[] = [];
@@ -695,7 +734,7 @@ export async function updateFulfilment(
         actorId: actor.id,
       });
     }
-    if (input.to === "returned" && input.restock !== false) {
+    if (restock) {
       productIds = await restockRemaining(tx, order, "return_restock", actor.id);
     }
     if (input.to === "delivered") {
@@ -717,7 +756,7 @@ export async function updateFulfilment(
       action: `order.${input.to === "unfulfilled" ? "unpack" : input.to}`,
       entity: "order",
       entityId: orderId,
-      diff: { ref: order.ref, from, to: input.to, restock: input.to === "returned" ? input.restock !== false : undefined },
+      diff: { ref: order.ref, from, to: input.to, restock: input.to === "returned" ? restock : undefined },
       ip: actor.ip,
     });
     return { orderId, productIds };
@@ -763,6 +802,7 @@ export async function addShipment(
     if (order.status !== "confirmed" && order.status !== "processing") {
       throw new AdminInputError(`A ${label(order.status)} order can't be shipped.`);
     }
+    assertPaymentAllowsDispatch(order);
     const from = order.fulfillmentStatus;
     if (!["unfulfilled", "packed", "shipped", "out_for_delivery"].includes(from)) {
       throw new AdminInputError(`This order is already ${label(from)}.`);
@@ -1093,6 +1133,9 @@ export const refundInputSchema = z.object({
     .default([]),
 });
 
+/** An identical refund by the same admin inside this window is treated as a double submit. */
+const DUPLICATE_REFUND_WINDOW_MS = 30_000;
+
 export interface RefundResult extends OrderMutationResult {
   refundId: string;
   status: string;
@@ -1109,18 +1152,42 @@ export async function refundOrder(
 ): Promise<RefundResult> {
   assertCan(actor.role, "order:refund");
   const input = refundInputSchema.parse(raw);
-  const r = await createRefund(
-    db,
-    {
-      orderId,
-      amountPaise: input.amountPaise,
-      reason: input.reason,
-      actorId: actor.id,
-      reference: input.reference,
-      restockLines: input.restock,
-    },
-    provider,
-  );
+  const r = await withAdvisoryLock(db, `refund:${orderId}`, async () => {
+    // A double click or a second tab sends the same refund twice. The amounts would each fit, so the
+    // refundable-balance check alone can't tell: refuse an identical refund from the same person
+    // that was recorded moments ago.
+    const [dup] = await db
+      .select({ id: refunds.id })
+      .from(refunds)
+      .where(
+        and(
+          eq(refunds.orderId, orderId),
+          eq(refunds.amountPaise, input.amountPaise),
+          eq(refunds.reason, input.reason),
+          actor.id ? eq(refunds.actorId, actor.id) : sql`false`,
+          inArray(refunds.status, ["pending", "processed", "manual"]),
+          gte(refunds.createdAt, new Date(Date.now() - DUPLICATE_REFUND_WINDOW_MS)),
+        ),
+      )
+      .limit(1);
+    if (dup) {
+      throw new AdminInputError(
+        `A refund of ${formatINR(input.amountPaise)} with this reason was just recorded on this order. Check the order's refunds before sending another.`,
+      );
+    }
+    return createRefund(
+      db,
+      {
+        orderId,
+        amountPaise: input.amountPaise,
+        reason: input.reason,
+        actorId: actor.id,
+        reference: input.reference,
+        restockLines: input.restock,
+      },
+      provider,
+    );
+  });
   if (!r.ok) {
     if (r.code === "order_not_found") throw new OrderNotFoundError();
     throw new AdminInputError(r.message);

@@ -8,7 +8,14 @@ import * as cart from "@/server/services/cart";
 import { limitByIp } from "@/server/security/action-limit";
 import { consumeRateLimit } from "@/server/services/rate-limit";
 
-import { getRequestIp, getSessionUser, keyDigest, readCartToken, writeCartToken } from "./request";
+import {
+  clearCartToken,
+  getRequestIp,
+  getSessionUser,
+  keyDigest,
+  readCartToken,
+  writeCartToken,
+} from "./request";
 import type { ActionError, ActionResult, CartActionData } from "./types";
 
 const variantIdSchema = z.uuid("That item couldn't be found.");
@@ -83,8 +90,7 @@ export async function getCart(): Promise<ActionResult<CartActionData>> {
   try {
     const [token, user] = await Promise.all([readCartToken(), getSessionUser()]);
     const db = getDb();
-    const row =
-      (await cart.findCartByToken(db, token)) ?? (user ? await cart.findUserCart(db, user.id) : null);
+    const row = await cart.resolveViewerCart(db, token, user?.id);
     const view = row
       ? await cart.getCartView(db, row.id, { email: user?.email })
       : cart.emptyCartView();
@@ -169,6 +175,8 @@ export async function mergeGuestCart(): Promise<ActionResult<CartActionData>> {
     const db = getDb();
     const merged = await cart.mergeCarts(db, token, user.id);
     if (merged.token && merged.token !== token) await writeCartToken(merged.token);
+    // The cookie cart belongs to someone else and this user has none: drop it rather than keep using it.
+    else if (!merged.token && token) await clearCartToken();
     const row = await cart.findCartByToken(db, merged.token);
     const view = row ? await cart.getCartView(db, row.id, { email: user.email }) : cart.emptyCartView();
     return { ok: true, data: { cart: view, notices: [...merged.notices, ...view.notices] } };

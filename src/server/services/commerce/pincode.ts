@@ -64,8 +64,9 @@ export function checkServiceability(input: string, info: PincodeInfo | null): Se
 }
 
 /**
- * COD eligibility (plan 7.9). `orderTotalPaise` is the total BEFORE the COD fee (goods + shipping
- * after discount), so the fee itself can never push an order over the cap. The pincode must allow
+ * COD eligibility (plan 7.9: `total <= cod_max_order_value`). `orderTotalPaise` is the total BEFORE
+ * the COD fee (goods + shipping after discount); the cap is checked against what the customer would
+ * actually pay, so the COD fee is added here. The pincode must allow
  * COD in the directory and must not be in the `cod_excluded_pincodes` setting. The schema has no
  * per-product COD flag, so there are never "excluded items".
  */
@@ -79,7 +80,7 @@ export function evaluateCod(
   return codEligibility({
     codEnabled: settings.cod.enabled,
     pincodeCodAllowed,
-    orderTotalPaise,
+    orderTotalPaise: orderTotalPaise + settings.cod.feePaise,
     codMaxOrderValuePaise: settings.cod.maxOrderValuePaise,
     hasExcludedItems: false,
   });

@@ -11,7 +11,6 @@ import {
   hashAccessToken,
   isCustomerCancellable,
   normalizeOrderRef,
-  verifyAccessToken,
   type CustomerStatusLabel,
   type FulfillmentStatus,
   type OrderStatus,
@@ -20,6 +19,7 @@ import {
 import type { PaymentProvider } from "@/server/payments/provider";
 
 import { AdminInputError } from "./admin/products";
+import { orderTokenMatches } from "./commerce/order-token";
 import { cancelOrderCore, type OrderRow } from "./admin/orders";
 import { toCustomerOrderView, type CustomerOrderView } from "./orders";
 import { readSettings, type DbClient } from "./queries/shared";
@@ -63,7 +63,7 @@ export async function findOrderForAccess(
   const normalized = normalizeOrderRef(ref);
   if (access.kind === "token") {
     const [order] = await db.select().from(orders).where(eq(orders.ref, normalized)).limit(1);
-    const ok = verifyAccessToken(access.token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
+    const ok = orderTokenMatches(access.token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
     return order && order.accessTokenHash && ok ? order : null;
   }
   const [order] = await db

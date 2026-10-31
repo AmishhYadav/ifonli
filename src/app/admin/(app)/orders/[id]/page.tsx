@@ -42,6 +42,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
     cancel: can(role, "order:cancel"),
     refund: can(role, "order:refund"),
     resend: can(role, "order:resend_notification"),
+    restock: can(role, "inventory:adjust"),
   };
   const RESEND_LABEL = {
     order_confirmed: "Order confirmation",

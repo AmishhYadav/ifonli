@@ -10,9 +10,8 @@ import { InvoiceDocument } from "@/server/invoices/InvoiceDocument";
 import type { InvoiceLine, InvoiceModel } from "@/server/invoices/model";
 import { createSignedReadUrl, createSignedUploadUrl, StorageError } from "@/server/storage";
 
-import { loadCommerceSettings } from "./commerce/settings";
-import { ensureInvoiceNumber } from "./invoice-number";
-import { readSettings, type DbClient } from "./queries/shared";
+import { ensureInvoiceNumber, loadInvoiceSnapshot, type InvoiceSnapshot } from "./invoice-number";
+import type { DbClient } from "./queries/shared";
 
 /** Invoices live in the private bucket under `invoices/{fy}/{number}.pdf` ("/" in the number becomes "-"). */
 export const INVOICE_BUCKET = "private";
@@ -65,16 +64,23 @@ export function invoiceStoragePath(number: string): string {
 /* Model                                                                                      */
 /* ------------------------------------------------------------------------------------------ */
 
-const PLACEHOLDER_RE = /PLACEHOLDER/i;
-
 function str(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
+/** The stored snapshot when it has the expected shape, else null (older invoices, or a damaged value). */
+function readSnapshot(raw: unknown): InvoiceSnapshot | null {
+  const s = raw as Partial<InvoiceSnapshot> | null;
+  if (!s || s.version !== 1 || !s.seller || typeof s.sellerStateCode !== "string" || !s.shippingTaxRule) return null;
+  return s as InvoiceSnapshot;
+}
+
 /**
- * Builds the invoice data for an order that has an invoice number: store details from settings
- * (placeholders flagged, never silently blank), line tax from the order snapshot, shipping and COD
- * fee as their own taxed lines, and the CGST+SGST / IGST split from the seller and buyer states.
+ * Builds the invoice data for an order that has an invoice number: seller and tax details from the
+ * snapshot frozen at confirmation (plan 7.12; invoices from before snapshots existed fall back to the
+ * current settings, placeholders flagged, never silently blank), line tax from the order snapshot,
+ * shipping and COD fee as their own taxed lines, and the CGST+SGST / IGST split from the seller and
+ * buyer states.
  */
 export async function buildInvoiceModel(db: DbClient, orderId: string): Promise<InvoiceModel> {
   const [row] = await db
@@ -86,33 +92,16 @@ export async function buildInvoiceModel(db: DbClient, orderId: string): Promise<
   if (!row) throw new InvoiceError("order_not_found", "No invoice for that order.");
   const { order, invoice } = row;
 
-  const [items, s, commerce] = await Promise.all([
+  const [items, snapshot] = await Promise.all([
     db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).orderBy(asc(orderItems.createdAt), asc(orderItems.id)),
-    readSettings(db, ["legal_name", "brand_name", "registered_address", "state", "gstin"]),
-    loadCommerceSettings(db),
+    readSnapshot(invoice.snapshot) ?? loadInvoiceSnapshot(db),
   ]);
 
-  const placeholderFields: string[] = [];
-  const stored = (key: "legal_name" | "brand_name" | "registered_address" | "state", fieldLabel: string): string => {
-    const r = s[key];
-    const value = r.value;
-    if (r.isPlaceholder || PLACEHOLDER_RE.test(value)) {
-      placeholderFields.push(fieldLabel);
-      return PLACEHOLDER_RE.test(value) ? value : `PLACEHOLDER - ${value}`;
-    }
-    return value;
-  };
-  const seller = {
-    legalName: stored("legal_name", "legal name"),
-    brandName: s.brand_name.value,
-    address: stored("registered_address", "registered address"),
-    state: stored("state", "business state"),
-    gstin: s.gstin.value,
-  };
+  const { seller, placeholderFields } = snapshot;
 
   const address = (order.shippingAddress ?? {}) as Record<string, unknown>;
   const buyerStateCode = str(address.stateCode) || "00";
-  const sellerStateCode = commerce.tax.sellerStateCode;
+  const sellerStateCode = snapshot.sellerStateCode;
   const parties = { sellerStateCode, buyerStateCode };
   const interState = sellerStateCode !== buyerStateCode;
   const showTax = invoice.kind === "tax_invoice";
@@ -154,7 +143,7 @@ export async function buildInvoiceModel(db: DbClient, orderId: string): Promise<
   // pricing does (dominant line rate, or the fixed setting) and the COD line takes the remainder.
   const lineTax = items.reduce((sum, i) => sum + i.taxPaise, 0);
   const extraTax = Math.max(0, order.taxIncludedPaise - lineTax);
-  const rule = commerce.tax.shippingTaxRule;
+  const rule = snapshot.shippingTaxRule;
   let rateBp = 0;
   if (rule.kind === "fixed") rateBp = rule.rateBp;
   else {

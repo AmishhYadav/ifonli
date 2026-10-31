@@ -50,9 +50,11 @@ describe("checkServiceability", () => {
 });
 
 describe("evaluateCod", () => {
-  it("is eligible at exactly the maximum and ineligible one paisa above", () => {
-    expect(evaluateCod(settings(), info(), 100000)).toEqual({ eligible: true });
-    expect(evaluateCod(settings(), info(), 100001)).toMatchObject({ eligible: false, code: "over_max_value" });
+  it("compares the total INCLUDING the COD fee: eligible at exactly the maximum, ineligible one paisa above", () => {
+    // max 1,00,000 and a fee of 4,000: the goods + shipping may be at most 96,000.
+    expect(evaluateCod(settings(), info(), 96000)).toEqual({ eligible: true });
+    expect(evaluateCod(settings(), info(), 96001)).toMatchObject({ eligible: false, code: "over_max_value" });
+    expect(evaluateCod(settings({ feePaise: 0 }), info(), 100000)).toEqual({ eligible: true });
   });
   it("respects the setting, the pincode flag, the excluded list and an unknown pincode", () => {
     expect(evaluateCod(settings({ enabled: false }), info(), 100)).toMatchObject({ code: "cod_disabled" });

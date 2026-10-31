@@ -4,7 +4,8 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { getDb } from "@/server/db";
 import { orders, payments } from "@/server/db/schema";
-import { normalizeOrderRef, verifyAccessToken, hashAccessToken } from "@/server/domain";
+import { normalizeOrderRef, hashAccessToken } from "@/server/domain";
+import { orderTokenMatches } from "@/server/services/commerce/order-token";
 import { dispositionOf } from "@/server/services/refunds";
 import type {
   PaymentInitContext,
@@ -109,7 +110,7 @@ export async function retryOrderPayment(
 ): Promise<RetryPaymentResult> {
   const now = input.now ?? new Date();
   const [order] = await db.select().from(orders).where(eq(orders.ref, normalizeOrderRef(input.ref))).limit(1);
-  const ok = verifyAccessToken(input.token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
+  const ok = orderTokenMatches(input.token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
   if (!order || !order.accessTokenHash || !ok) {
     return { ok: false, code: "not_found", message: "We couldn't find that order." };
   }

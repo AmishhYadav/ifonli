@@ -2,9 +2,9 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 
-import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, lt, sql } from "drizzle-orm";
 
-import { cartItems, carts, orders } from "@/server/db/schema";
+import { cartItems, carts, orderItems, orders, stockReservations } from "@/server/db/schema";
 import { clampQtyWithReason, type CartLine } from "@/server/domain";
 
 import { validateCoupon, type CouponErrorCode } from "./coupons";
@@ -161,6 +161,30 @@ export async function findUserCart(db: DbClient, userId: string): Promise<CartRo
   return row ?? null;
 }
 
+/**
+ * A cart may be used by a visitor unless it belongs to a DIFFERENT account: a guest cart (no owner)
+ * is anyone's, an owned cart only its owner's. This keeps a cart from leaking to the next person on a
+ * shared device when a cookie outlives a sign-out.
+ */
+export function cartUsableBy(cart: Pick<CartRow, "userId">, userId: string | null | undefined): boolean {
+  return cart.userId === null || cart.userId === (userId ?? null);
+}
+
+/**
+ * The cart a request should act on: the cookie cart when this visitor may use it, else (signed in)
+ * the user's own most recent cart, else null. A cookie cart owned by someone else is ignored, never
+ * read or changed.
+ */
+export async function resolveViewerCart(
+  db: DbClient,
+  token: string | null | undefined,
+  userId: string | null | undefined,
+): Promise<CartRow | null> {
+  const byToken = await findCartByToken(db, token);
+  if (byToken && cartUsableBy(byToken, userId)) return byToken;
+  return userId ? findUserCart(db, userId) : null;
+}
+
 /** Total quantity in a cart (header badge). Cheap: no stock or price lookups. */
 export async function getCartItemCount(db: DbClient, cartId: string): Promise<number> {
   const [row] = await db
@@ -171,9 +195,10 @@ export async function getCartItemCount(db: DbClient, cartId: string): Promise<nu
 }
 
 /**
- * Finds the visitor's cart or creates one. Resolution order: the cookie token; else (logged in) the
- * user's most recently used cart; else a new cart with a fresh server-minted token (a client-supplied
- * unknown token is never adopted). A logged-in user claims a cart that has no owner yet.
+ * Finds the visitor's cart or creates one. Resolution order: the cookie token (unless that cart
+ * belongs to another account); else (logged in) the user's most recently used cart; else a new cart
+ * with a fresh server-minted token (a client-supplied unknown token is never adopted). A logged-in
+ * user claims a cart that has no owner yet.
  * Callers must set the cookie to `cart.token` whenever it differs from what they read.
  */
 export async function getOrCreateCart(
@@ -183,8 +208,7 @@ export async function getOrCreateCart(
   now: Date = new Date(),
 ): Promise<{ cart: CartRow; created: boolean }> {
   const expiresAt = new Date(now.getTime() + CART_TTL_MS);
-  let cart = await findCartByToken(db, token);
-  if (!cart && userId) cart = await findUserCart(db, userId);
+  let cart = await resolveViewerCart(db, token, userId);
   if (cart) {
     if (userId && cart.userId === null) {
       const [claimed] = await db
@@ -307,6 +331,42 @@ function limitNotice(
   };
 }
 
+/**
+ * Units held for this cart's own live pending-payment orders, per variant. The next checkout of the
+ * cart supersedes those orders (releasing the hold), so the cart must not count them against itself:
+ * otherwise dismissing the payment window would shrink or delete the cart's own lines.
+ */
+async function loadOwnReservedQty(db: DbClient, cartId: string, now: Date): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ variantId: stockReservations.variantId, qty: sql<number>`sum(${stockReservations.qty})::int` })
+    .from(stockReservations)
+    .innerJoin(orders, eq(orders.id, stockReservations.orderId))
+    .where(
+      and(
+        eq(orders.cartId, cartId),
+        eq(orders.status, "pending_payment"),
+        eq(stockReservations.status, "active"),
+        gt(stockReservations.expiresAt, now),
+      ),
+    )
+    .groupBy(stockReservations.variantId);
+  return new Map(rows.map((r) => [r.variantId, r.qty]));
+}
+
+/** `loadVariantStock` with the cart's own reservations given back (see `loadOwnReservedQty`). */
+async function loadStockForCart(
+  db: DbClient,
+  cartId: string,
+  variantIds: readonly string[],
+  now: Date,
+): Promise<VariantStock[]> {
+  const [rows, own] = await Promise.all([
+    loadVariantStock(db, variantIds, now),
+    loadOwnReservedQty(db, cartId, now),
+  ]);
+  return rows.map((r) => ({ ...r, available: Math.min(r.onHand, r.available + (own.get(r.variantId) ?? 0)) }));
+}
+
 async function loadReconciliation(
   db: DbClient,
   cartId: string,
@@ -317,7 +377,7 @@ async function loadReconciliation(
   const ids = items.map((i) => i.variantId);
   const [snaps, stockRows] = await Promise.all([
     loadVariantSnapshots(db, ids),
-    loadVariantStock(db, ids, now),
+    loadStockForCart(db, cartId, ids, now),
   ]);
   return reconcile(
     items,
@@ -576,7 +636,7 @@ async function setLineQty(
     if (!snap || !snap.purchasable) {
       return fail("unavailable", "Sorry, this item isn't available right now.");
     }
-    const [stock] = await loadVariantStock(tx, [variantId], now);
+    const [stock] = await loadStockForCart(tx, cartId, [variantId], now);
     const available = stock?.available ?? 0;
     const settings = await loadCommerceSettings(tx);
     const [existing] = await tx
@@ -698,10 +758,43 @@ export async function clearCart(db: DbClient, cartId: string, now: Date = new Da
   });
 }
 
-/** Clears the cart an order was placed from (payments call this on capture). No cart = no-op. */
+/**
+ * Clears the cart an order was placed from (payments call this on capture), but only while the cart
+ * is still that order's: a payment that lands late, after the customer moved on to another checkout
+ * or kept shopping, must not empty their new basket. "Still the order's" means no newer order was
+ * placed from the cart and its lines are exactly the order's lines. No cart = no-op.
+ */
 export async function clearCartForOrder(db: DbClient, orderId: string): Promise<void> {
-  const [row] = await db.select({ cartId: orders.cartId }).from(orders).where(eq(orders.id, orderId));
-  if (row?.cartId) await clearCart(db, row.cartId);
+  const [row] = await db
+    .select({ cartId: orders.cartId, placedAt: orders.placedAt })
+    .from(orders)
+    .where(eq(orders.id, orderId));
+  const cartId = row?.cartId;
+  if (!row || !cartId) return;
+  await db.transaction(async (tx) => {
+    const [cart] = await tx.select({ id: carts.id }).from(carts).where(eq(carts.id, cartId)).for("update");
+    if (!cart) return;
+    const [newer] = await tx
+      .select({ id: orders.id })
+      .from(orders)
+      .where(and(eq(orders.cartId, cartId), gt(orders.placedAt, row.placedAt)))
+      .limit(1);
+    if (newer) return;
+    const [inCart, bought] = await Promise.all([
+      tx.select({ variantId: cartItems.variantId, qty: cartItems.qty }).from(cartItems).where(eq(cartItems.cartId, cartId)),
+      tx.select({ variantId: orderItems.variantId, qty: orderItems.qty }).from(orderItems).where(eq(orderItems.orderId, orderId)),
+    ]);
+    const total = (rows: { variantId: string; qty: number }[]) => {
+      const m = new Map<string, number>();
+      for (const r of rows) m.set(r.variantId, (m.get(r.variantId) ?? 0) + r.qty);
+      return m;
+    };
+    const a = total(inCart);
+    const b = total(bought);
+    // The customer changed the basket after placing the order: it is theirs now, leave it alone.
+    if (a.size !== b.size || [...b].some(([variantId, qty]) => a.get(variantId) !== qty)) return;
+    await clearCart(tx, cartId);
+  });
 }
 
 /* ------------------------------------------------------------------------------------------ */
