@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import {
@@ -106,7 +107,10 @@ export function CancelOrderDialog({ orderRef, token, paymentMethod, totalLabel }
       >
         <div className="flex flex-col gap-4">
           <p className="text-base">
-            This can&apos;t be undone. If you change your mind later, you&apos;ll need to place a new order.
+            This can&apos;t be undone. If you change your mind later, you&apos;ll need to place a new order.{" "}
+            <Link href="/policies/cancellation" className="font-semibold text-link underline underline-offset-4 hover:no-underline">
+              Cancellation policy
+            </Link>
           </p>
           <Field label="Why are you cancelling? (optional)" hint="This just helps us improve.">
             <Select value={reason} onChange={(e) => setReason(e.target.value)} disabled={busy}>

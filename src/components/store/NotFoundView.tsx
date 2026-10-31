@@ -11,7 +11,7 @@ export function NotFoundView() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 py-16 text-center sm:py-24">
       <VibeRestore />
-      <p className="font-display text-7xl leading-none display-fx text-accent-2 sm:text-9xl" aria-hidden="true">
+      <p className="font-display text-7xl leading-none display-fx text-accent sm:text-9xl" aria-hidden="true">
         404
       </p>
       <VibeCopy k="notFound.title" as="h1" className="font-display text-4xl leading-tight display-fx sm:text-5xl" />

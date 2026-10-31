@@ -6,7 +6,7 @@ export const bold: CopyDictionary = {
   "hero.cta": "Shop now",
   "home.featuredTitle": "The loud ones",
   "home.vibesTitle": "Choose your volume",
-  "cart.emptyTitle": "Empty bag. Fix that.",
+  "cart.emptyTitle": "Your bag is empty.",
   "cart.emptyBody": "Pick something that makes a statement.",
   "search.noResultsTitle": "Nothing found.",
   "search.noResultsBody": "Try another search, or browse the full range.",

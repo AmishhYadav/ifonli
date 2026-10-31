@@ -694,7 +694,7 @@ export function CheckoutForm({
         />
 
         <p className="-mt-2 text-sm">
-          <Link href="/cart" className="text-link underline underline-offset-4 hover:no-underline">
+          <Link href="/cart" className="inline-flex min-h-11 items-center text-link underline underline-offset-4 hover:no-underline">
             Edit your cart
           </Link>
         </p>

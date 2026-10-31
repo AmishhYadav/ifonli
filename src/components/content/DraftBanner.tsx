@@ -31,7 +31,7 @@ export function DraftBanner({
       </p>
       {problems.length > 0 ? (
         <details className="text-base">
-          <summary className="min-h-9 cursor-pointer font-semibold">
+          <summary className="flex min-h-11 cursor-pointer items-center font-semibold md:min-h-9">
             {problems.length} {problems.length === 1 ? "value needs" : "values need"} attention
           </summary>
           <ul className="mt-2 flex list-disc flex-col gap-1 pl-6">

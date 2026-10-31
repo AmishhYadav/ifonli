@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { ProductCard, ProductCardSkeleton, ProductGrid, ProductGridItem } from "@/components/store";
-import { IconButton, ToastProvider } from "@/components/ui";
+import { IconButton } from "@/components/ui";
 import { VIBES, VIBE_NAMES } from "@/features/vibe/config";
 import { HandButton } from "@/features/vibe/HandButton";
 import { VibeScope } from "@/features/vibe/VibeScope";
@@ -22,7 +22,7 @@ export default function StyleguidePage() {
   assertDevPagesEnabled();
 
   return (
-    <ToastProvider>
+    <>
       <main id="top" className="mx-auto flex max-w-[1680px] flex-col gap-12 px-4 py-6 sm:px-6">
         <header className="flex flex-wrap items-center gap-4">
           <HandButton />
@@ -89,6 +89,6 @@ export default function StyleguidePage() {
           </ProductGrid>
         </section>
       </main>
-    </ToastProvider>
+    </>
   );
 }

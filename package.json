@@ -12,6 +12,8 @@
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
     "e2e": "playwright test",
+    "visual": "playwright test -c playwright.visual.config.ts",
+    "visual:update": "playwright test -c playwright.visual.config.ts --update-snapshots",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
@@ -20,6 +22,8 @@
     "test:integration": "vitest run --project integration",
     "db:import-reference": "tsx --conditions=react-server scripts/import-reference.ts",
     "db:seed-products": "tsx --conditions=react-server scripts/seed-products.ts",
+    "db:seed-content": "tsx --conditions=react-server scripts/seed-content.ts",
+    "admin:create": "tsx --conditions=react-server scripts/create-admin.ts",
     "storage:setup": "tsx --conditions=react-server scripts/setup-storage.ts"
   },
   "dependencies": {

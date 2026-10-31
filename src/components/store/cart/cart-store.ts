@@ -125,8 +125,24 @@ export async function refreshCart(): Promise<void> {
   await run(() => getCart());
 }
 
+/** What had focus when the drawer opened, so closing it can give focus back (the drawer has no Radix trigger). */
+let opener: HTMLElement | null = null;
+
+/** The element to refocus after the drawer closes: its opener if still on the page, else the visible header cart link. */
+export function takeCartOpener(): HTMLElement | null {
+  const el = opener;
+  opener = null;
+  if (el && el.isConnected && el.getClientRects().length > 0) return el;
+  const triggers = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="cart-button"]'));
+  return triggers.find((t) => t.getClientRects().length > 0) ?? null;
+}
+
 export function setCartOpen(open: boolean): void {
   if (open === state.open) return;
+  if (open && typeof document !== "undefined") {
+    const active = document.activeElement;
+    opener = active instanceof HTMLElement && active !== document.body ? active : null;
+  }
   setState({ open });
   if (open) void refreshCart();
 }

@@ -11,9 +11,9 @@ export const overthinking: CopyDictionary = {
   "search.noResultsTitle": "Nothing found. Maybe we spelled it wrong.",
   "search.noResultsBody":
     "Try fewer words, or different words, or browse by mood instead of overthinking it.",
-  "wishlist.emptyTitle": "Nothing saved yet. Still deciding?",
+  "wishlist.emptyTitle": "Nothing saved yet. Still deciding? Totally fair.",
   "notFound.title": "This page does not exist. We checked twice.",
   "notFound.body": "Maybe it moved, maybe it never was. The homepage is real, though.",
-  "toast.addedToCart": "Added to bag. Good call. Probably.",
+  "toast.addedToCart": "Added to bag. Take your time with the rest.",
   "vibe.wearThis": "Try this vibe on (no pressure)",
 };

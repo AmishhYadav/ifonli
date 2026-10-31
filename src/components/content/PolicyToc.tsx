@@ -1,7 +1,7 @@
 import type { Heading } from "@/server/content/markdown";
 
 const linkClass =
-  "inline-flex min-h-9 items-center rounded-input px-2 py-1 text-base text-ink underline-offset-4 hover:underline";
+  "inline-flex min-h-11 items-center rounded-input px-2 py-1 md:min-h-9 text-base text-ink underline-offset-4 hover:underline";
 
 /**
  * "On this page" for long policies: a sticky list from large screens, a disclosure below that. Two

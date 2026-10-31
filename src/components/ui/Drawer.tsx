@@ -6,6 +6,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 import { IconButton } from "./Button";
+import { useFocusReturn } from "./focus-return";
 import { ScopeProvider, useOverlayScope } from "./ScopeSentinel";
 
 /** Slide-in panel (cart drawer, mobile menu, filters). A modal Radix Dialog under the hood. */
@@ -42,14 +43,18 @@ export function DrawerContent({
   closeLabel = "Close",
   className,
   children,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
   ...rest
 }: DrawerContentProps) {
   const scope = useOverlayScope();
+  const focus = useFocusReturn(onOpenAutoFocus, onCloseAutoFocus);
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="ui-overlay" />
       <DialogPrimitive.Content
         {...scope}
+        {...focus}
         data-side={side}
         {...(description ? {} : { "aria-describedby": rest["aria-describedby"] })}
         className={cn(

@@ -6,7 +6,7 @@ import { useEffect, type ReactNode } from "react";
 import { Drawer, DrawerContent, EmptyState, Skeleton, buttonVariants, useToast } from "@/components/ui";
 import type { CartView } from "@/features/cart/types";
 
-import { setCartOpen } from "./cart-store";
+import { setCartOpen, takeCartOpener } from "./cart-store";
 import { CartLines } from "./CartLines";
 import { CartNotices } from "./CartNotices";
 import { CartTotals } from "./CartTotals";
@@ -40,6 +40,11 @@ export function CartDrawer({ emptyTitle, emptyBody, returnPolicyText }: CartDraw
         title="Your cart"
         data-testid="cart-drawer"
         aria-describedby={undefined}
+        onCloseAutoFocus={(event) => {
+          // Radix only returns focus to a <Drawer.Trigger>; this drawer is opened from the store.
+          event.preventDefault();
+          takeCartOpener()?.focus();
+        }}
         footer={
           open && loaded ? (
             empty ? (

@@ -34,7 +34,7 @@ export default function BuyLayout({ children }: Readonly<{ children: React.React
           </Link>
         </div>
       </header>
-      <main id="main" data-vibe-scope="buy" className="mx-auto min-h-[60dvh] max-w-5xl px-4 py-8 sm:px-6">
+      <main id="main" tabIndex={-1} data-vibe-scope="buy" className="mx-auto min-h-[60dvh] max-w-5xl px-4 py-8 focus:outline-none sm:px-6">
         {children}
       </main>
       <BuyFooter />
