@@ -227,8 +227,13 @@ test.describe("product page", () => {
     await page.waitForLoadState("networkidle");
     await expectVisibleFocus(page, "product page", 80);
 
-    // Add to cart with the keyboard only; the status is announced in a live region.
+    // Pick the Lilac variant with the keyboard (the first variant is seeded as sold out), then add to cart
+    // with the keyboard only; the status is announced in a live region.
+    const lilac = page.getByRole("button", { name: /^Lilac/ }).first();
+    await lilac.focus();
+    await page.keyboard.press("Enter");
     const add = page.getByTestId("add-to-cart");
+    await expect(add).toBeEnabled();
     await add.focus();
     await page.keyboard.press("Enter");
     await expect(page.locator('[data-testid="cart-count"]:visible')).toHaveText("1");

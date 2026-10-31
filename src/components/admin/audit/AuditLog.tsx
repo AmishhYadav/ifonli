@@ -54,11 +54,9 @@ function DiffView({ diff, id }: { diff: unknown; id: string }) {
   const size = json.split("\n").length;
   return (
     <details className="group" data-testid="audit-diff">
-      <summary
-        className="cursor-pointer text-[13px] text-admin-primary hover:underline"
-        aria-label={`Show changes for entry ${id}`}
-      >
+      <summary className="cursor-pointer text-[13px] text-admin-primary hover:underline">
         {size} {size === 1 ? "line" : "lines"}
+        <span className="sr-only"> of changes for entry {id}</span>
       </summary>
       <pre className="mt-1.5 max-h-80 max-w-[34rem] overflow-auto rounded-md bg-admin-surface-2 p-3 font-mono text-xs leading-5 whitespace-pre-wrap">
         {json}

@@ -227,3 +227,42 @@ test("the admin packs and ships with an AWB, and the customer sees Shipped on /t
   await expect(page.getByTestId("shipment-courier")).toHaveText("Delhivery");
   await expect(page.getByTestId("shipment-awb")).toHaveText("QAGOLD0001");
 });
+
+test("the admin cancels a paid order: it is refunded, the customer sees Cancelled and is e-mailed", async ({
+  page,
+  context,
+  baseURL,
+  browser,
+}) => {
+  const email = newEmail();
+  await seedCart(context, baseURL!, 1);
+  await openCheckout(page);
+  await fillCheckout(page, email);
+  await payButton(page).click();
+  const mock = page.getByRole("dialog", { name: "Test payment (dev mock)" });
+  await mock.getByTestId("mock-success").click();
+  await expect(page).toHaveURL(/\/orders\/IFO-/);
+  const ref = (await page.getByTestId("order-ref").textContent())!.trim();
+  const [row] = await sql<{ id: string }[]>`select id from orders where ref = ${ref}`;
+
+  const adminContext = await browser.newContext({ baseURL, storageState: admin.storageState });
+  const a = await adminContext.newPage();
+  await a.goto(`/admin/orders/${row!.id}`);
+  await a.getByRole("button", { name: /Cancel order/ }).click();
+  const dialog = a.getByRole("dialog");
+  await dialog.getByLabel("Reason").fill("Customer asked by phone");
+  await dialog.getByRole("button", { name: "Cancel order" }).click();
+  await expect(dialog).toBeHidden({ timeout: 30_000 });
+  await adminContext.close();
+
+  await track(page, ref, email);
+  await expect(page.getByTestId("track-status")).toHaveText(/Cancelled|Refunded/);
+
+  const [after] = await sql<{ status: string; payment_status: string }[]>`
+    select status, payment_status from orders where ref = ${ref}`;
+  expect(after!.status).toBe("cancelled");
+  expect(after!.payment_status).toBe("refunded");
+  const mails = await sql<{ template: string }[]>`
+    select template from notification_outbox where order_id = ${row!.id}`;
+  expect(mails.map((m) => m.template).join(",")).toMatch(/cancel|refund/i);
+});

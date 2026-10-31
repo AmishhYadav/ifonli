@@ -42,6 +42,8 @@ export async function createAdminSession(
       email,
       "--role",
       role,
+      "--name",
+      `QA ${role}`,
       "--password",
       password,
     ],

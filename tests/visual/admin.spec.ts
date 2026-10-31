@@ -48,7 +48,12 @@ test.afterAll(async () => {
 
 const live = (page: Page) => [
   page.locator("main tbody"),
-  page.locator("main .tabular-nums"),
+  page.locator("main .tabular, main .tabular-nums"),
+  page.locator("main ul.divide-y"),
+  // Headline figures and the default date range (both follow today's date and the live data).
+  page.locator("main p.text-2xl, main input[type=date]"),
+  // Count badges in side navigation and tabs (live numbers).
+  page.locator("main nav a > span, main [role=tab] > span"),
   page.locator("main svg[role='img']"),
   page.locator("main time"),
   page.locator("[data-visual-mask]"),
