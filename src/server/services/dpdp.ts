@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 
 import { isAdminRole } from "@/server/auth/permissions";
 import {
@@ -39,6 +39,44 @@ import type { DbClient } from "./queries/shared";
 
 export const EXPORT_FORMAT_VERSION = 1;
 
+export interface ExportedOrder {
+  ref: string;
+  placedAt: string;
+  status: string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  paymentMethod: string;
+  email: string;
+  phone: string | null;
+  subtotalPaise: number;
+  discountPaise: number;
+  shippingPaise: number;
+  codFeePaise: number;
+  totalPaise: number;
+  taxIncludedPaise: number;
+  couponCode: string | null;
+  shippingAddress: unknown;
+  items: { productName: string; variantTitle: string; sku: string; qty: number; unitPricePaise: number; lineTotalPaise: number }[];
+  shipments: { courier: string; awb: string | null; trackingUrl: string | null; status: string; shippedAt: string | null; deliveredAt: string | null }[];
+  timeline: { at: string; event: string; note: string | null }[];
+}
+
+export interface ExportedSupportCase {
+  orderRef: string;
+  type: string;
+  description: string;
+  photos: number;
+  status: string;
+  resolution: string | null;
+  createdAt: string;
+}
+
+export interface ExportedContactMessage {
+  createdAt: string;
+  orderRef: string | null;
+  message: string;
+}
+
 export interface CustomerDataExport {
   formatVersion: number;
   exportedAt: string;
@@ -56,38 +94,10 @@ export interface CustomerDataExport {
     isDefault: boolean;
     createdAt: string;
   }[];
-  orders: {
-    ref: string;
-    placedAt: string;
-    status: string;
-    paymentStatus: string;
-    fulfillmentStatus: string;
-    paymentMethod: string;
-    email: string;
-    phone: string | null;
-    subtotalPaise: number;
-    discountPaise: number;
-    shippingPaise: number;
-    codFeePaise: number;
-    totalPaise: number;
-    taxIncludedPaise: number;
-    couponCode: string | null;
-    shippingAddress: unknown;
-    items: { productName: string; variantTitle: string; sku: string; qty: number; unitPricePaise: number; lineTotalPaise: number }[];
-    shipments: { courier: string; awb: string | null; trackingUrl: string | null; status: string; shippedAt: string | null; deliveredAt: string | null }[];
-    timeline: { at: string; event: string; note: string | null }[];
-  }[];
+  orders: ExportedOrder[];
   wishlist: { productId: string; productName: string | null; savedAt: string }[];
-  supportCases: {
-    orderRef: string;
-    type: string;
-    description: string;
-    photos: number;
-    status: string;
-    resolution: string | null;
-    createdAt: string;
-  }[];
-  contactMessages: { createdAt: string; orderRef: string | null; message: string }[];
+  supportCases: ExportedSupportCase[];
+  contactMessages: ExportedContactMessage[];
 }
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
@@ -98,17 +108,14 @@ function ownedOrders(userId: string, verifiedEmail: string | null) {
   return verifiedEmail ? or(byUser, sql`lower(${orders.email}) = ${verifiedEmail.toLowerCase()}`) : byUser;
 }
 
-/** Everything IfOnli holds about the customer, as plain JSON (no secrets, no internal staff notes). */
-export async function exportCustomerData(db: DbClient, userId: string): Promise<CustomerDataExport | null> {
-  const [account] = await db.select().from(user).where(eq(user.id, userId)).limit(1);
-  if (!account) return null;
-  const verifiedEmail = account.emailVerified ? account.email : null;
+type OrderRow = typeof orders.$inferSelect;
 
-  const [profile] = await db.select().from(customerProfiles).where(eq(customerProfiles.userId, userId)).limit(1);
-  const addressRows = await db.select().from(addresses).where(eq(addresses.userId, userId)).orderBy(asc(addresses.createdAt));
-  const orderRows = await db.select().from(orders).where(ownedOrders(userId, verifiedEmail)).orderBy(asc(orders.placedAt));
+/** Order lines, shipments, customer-visible timeline and support cases of the given orders, in export shape. */
+async function loadOrderBundle(
+  db: DbClient,
+  orderRows: OrderRow[],
+): Promise<{ orders: ExportedOrder[]; supportCases: ExportedSupportCase[] }> {
   const orderIds = orderRows.map((o) => o.id);
-
   const [items, ships, events, cases] = orderIds.length
     ? await Promise.all([
         db.select().from(orderItems).where(inArray(orderItems.orderId, orderIds)).orderBy(asc(orderItems.createdAt), asc(orderItems.id)),
@@ -119,42 +126,7 @@ export async function exportCustomerData(db: DbClient, userId: string): Promise<
     : [[], [], [], []];
   const refById = new Map(orderRows.map((o) => [o.id, o.ref]));
 
-  const wishlist = await db
-    .select({ productId: wishlistItems.productId, createdAt: wishlistItems.createdAt, name: products.name })
-    .from(wishlistItems)
-    .leftJoin(products, eq(products.id, wishlistItems.productId))
-    .where(eq(wishlistItems.userId, userId))
-    .orderBy(asc(wishlistItems.createdAt));
-
-  const messages = await db
-    .select()
-    .from(contactMessages)
-    .where(sql`lower(${contactMessages.email}) = ${account.email.toLowerCase()}`)
-    .orderBy(asc(contactMessages.createdAt));
-
   return {
-    formatVersion: EXPORT_FORMAT_VERSION,
-    exportedAt: new Date().toISOString(),
-    account: {
-      id: account.id,
-      name: account.name,
-      email: account.email,
-      emailVerified: account.emailVerified,
-      createdAt: account.createdAt.toISOString(),
-    },
-    profile: { phone: profile?.phone ?? null, marketingOptIn: profile?.marketingOptIn ?? false },
-    addresses: addressRows.map((a) => ({
-      name: a.name,
-      phone: a.phone,
-      line1: a.line1,
-      line2: a.line2,
-      landmark: a.landmark,
-      city: a.city,
-      state: a.state,
-      pincode: a.pincode,
-      isDefault: a.isDefault,
-      createdAt: a.createdAt.toISOString(),
-    })),
     orders: orderRows.map((o) => ({
       ref: o.ref,
       placedAt: o.placedAt.toISOString(),
@@ -197,7 +169,6 @@ export async function exportCustomerData(db: DbClient, userId: string): Promise<
         .filter((e) => e.orderId === o.id && e.visibleToCustomer)
         .map((e) => ({ at: e.createdAt.toISOString(), event: e.type, note: e.note })),
     })),
-    wishlist: wishlist.map((w) => ({ productId: w.productId, productName: w.name ?? null, savedAt: w.createdAt.toISOString() })),
     supportCases: cases.map((c) => ({
       orderRef: refById.get(c.orderId) ?? "",
       type: c.type,
@@ -207,11 +178,101 @@ export async function exportCustomerData(db: DbClient, userId: string): Promise<
       resolution: c.resolution,
       createdAt: c.createdAt.toISOString(),
     })),
-    contactMessages: messages.map((m) => ({
-      createdAt: m.createdAt.toISOString(),
-      orderRef: m.orderRef,
-      message: m.message,
+  };
+}
+
+/** Contact-form messages sent from this e-mail address (no staff notes or assignee). */
+async function loadContactMessages(db: DbClient, email: string): Promise<ExportedContactMessage[]> {
+  const rows = await db
+    .select()
+    .from(contactMessages)
+    .where(sql`lower(${contactMessages.email}) = ${email.toLowerCase()}`)
+    .orderBy(asc(contactMessages.createdAt));
+  return rows.map((m) => ({ createdAt: m.createdAt.toISOString(), orderRef: m.orderRef, message: m.message }));
+}
+
+/** Everything IfOnli holds about the customer, as plain JSON (no secrets, no internal staff notes). */
+export async function exportCustomerData(db: DbClient, userId: string): Promise<CustomerDataExport | null> {
+  const [account] = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+  if (!account) return null;
+  const verifiedEmail = account.emailVerified ? account.email : null;
+
+  const [profile] = await db.select().from(customerProfiles).where(eq(customerProfiles.userId, userId)).limit(1);
+  const addressRows = await db.select().from(addresses).where(eq(addresses.userId, userId)).orderBy(asc(addresses.createdAt));
+  const orderRows = await db.select().from(orders).where(ownedOrders(userId, verifiedEmail)).orderBy(asc(orders.placedAt));
+  const bundle = await loadOrderBundle(db, orderRows);
+
+  const wishlist = await db
+    .select({ productId: wishlistItems.productId, createdAt: wishlistItems.createdAt, name: products.name })
+    .from(wishlistItems)
+    .leftJoin(products, eq(products.id, wishlistItems.productId))
+    .where(eq(wishlistItems.userId, userId))
+    .orderBy(asc(wishlistItems.createdAt));
+
+  const messages = await loadContactMessages(db, account.email);
+
+  return {
+    formatVersion: EXPORT_FORMAT_VERSION,
+    exportedAt: new Date().toISOString(),
+    account: {
+      id: account.id,
+      name: account.name,
+      email: account.email,
+      emailVerified: account.emailVerified,
+      createdAt: account.createdAt.toISOString(),
+    },
+    profile: { phone: profile?.phone ?? null, marketingOptIn: profile?.marketingOptIn ?? false },
+    addresses: addressRows.map((a) => ({
+      name: a.name,
+      phone: a.phone,
+      line1: a.line1,
+      line2: a.line2,
+      landmark: a.landmark,
+      city: a.city,
+      state: a.state,
+      pincode: a.pincode,
+      isDefault: a.isDefault,
+      createdAt: a.createdAt.toISOString(),
     })),
+    orders: bundle.orders,
+    wishlist: wishlist.map((w) => ({ productId: w.productId, productName: w.name ?? null, savedAt: w.createdAt.toISOString() })),
+    supportCases: bundle.supportCases,
+    contactMessages: messages,
+  };
+}
+
+export interface GuestDataExport {
+  formatVersion: number;
+  exportedAt: string;
+  /** A guest has no account: the data is whatever was typed at checkout and in the contact form. */
+  guest: { email: string };
+  orders: ExportedOrder[];
+  supportCases: ExportedSupportCase[];
+  contactMessages: ExportedContactMessage[];
+}
+
+/**
+ * The data held about a buyer who checked out without an account: their orders (placed with this
+ * e-mail and linked to no account), support cases and contact-form messages. Used by the admin
+ * Customers module to answer a DPDP access request. Returns null when nothing is held.
+ */
+export async function exportGuestData(db: DbClient, email: string): Promise<GuestDataExport | null> {
+  const normalized = email.trim().toLowerCase();
+  const orderRows = await db
+    .select()
+    .from(orders)
+    .where(and(isNull(orders.userId), sql`lower(${orders.email}) = ${normalized}`))
+    .orderBy(asc(orders.placedAt));
+  const messages = await loadContactMessages(db, normalized);
+  if (orderRows.length === 0 && messages.length === 0) return null;
+  const bundle = await loadOrderBundle(db, orderRows);
+  return {
+    formatVersion: EXPORT_FORMAT_VERSION,
+    exportedAt: new Date().toISOString(),
+    guest: { email: normalized },
+    orders: bundle.orders,
+    supportCases: bundle.supportCases,
+    contactMessages: messages,
   };
 }
 
