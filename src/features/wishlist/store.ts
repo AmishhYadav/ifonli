@@ -97,6 +97,22 @@ export function mergeIntoWishlist(incoming: readonly WishlistEntry[]): void {
   set(mergeWishlists(getWishlist(), incoming));
 }
 
+/**
+ * Makes the device list equal to `incoming` WITHOUT pushing it back (the account list is where it came
+ * from). Used once the account is the source of truth, so a removal made on another device sticks.
+ */
+export function replaceWishlistLocal(incoming: readonly WishlistEntry[]): void {
+  load();
+  entries = mergeWishlists([], incoming);
+  writeStorage(entries);
+  emit();
+}
+
+/** Empties the device list without touching the account (sign-out: the next person starts clean). */
+export function clearWishlistLocal(): void {
+  replaceWishlistLocal([]);
+}
+
 export function subscribeWishlist(listener: () => void): () => void {
   listeners.add(listener);
   const onStorage = (event: StorageEvent) => {

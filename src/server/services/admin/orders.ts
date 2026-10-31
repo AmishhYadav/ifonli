@@ -54,7 +54,7 @@ export class OrderNotFoundError extends AdminInputError {
   }
 }
 
-type OrderRow = typeof orders.$inferSelect;
+export type OrderRow = typeof orders.$inferSelect;
 
 /** `assertTransition` with a message an admin can act on. */
 function step<A extends "status" | "payment" | "fulfillment">(
@@ -475,7 +475,7 @@ async function restockRemaining(
   tx: DbClient,
   order: OrderRow,
   reason: "cancel_restock" | "return_restock",
-  actorId: string,
+  actorId: string | null,
 ): Promise<string[]> {
   const [items, back] = await Promise.all([
     tx.select().from(orderItems).where(eq(orderItems.orderId, order.id)),
@@ -828,9 +828,53 @@ export async function cancelOrder(
 ): Promise<CancelResult> {
   assertCan(actor.role, "order:cancel");
   const input = cancelInputSchema.parse(raw);
+  return cancelOrderCore(db, orderId, {
+    reason: input.reason,
+    restock: input.restock,
+    actorId: actor.id,
+    ip: actor.ip,
+    by: "staff",
+    provider,
+  });
+}
+
+export interface CancelCoreParams {
+  /** Already validated by the caller. Written to the (internal) cancel_reason event and the audit row. */
+  reason: string;
+  /** Put the units back on the shelf (default yes). */
+  restock?: boolean;
+  /** Admin user id, the signed-in customer's id, or null for a guest holding the order link. */
+  actorId: string | null;
+  ip?: string | null;
+  /** Who is cancelling: shown in the internal timeline and the audit diff. */
+  by: "staff" | "customer";
+  provider?: PaymentProvider;
+  /**
+   * Extra eligibility check, run on the freshly locked order before anything changes (the customer
+   * path checks ownership state and the owner's `cancellable_statuses` here). Throw to refuse.
+   */
+  guard?: (order: OrderRow) => void;
+}
+
+/**
+ * The cancel transaction shared by the admin and the customer paths (plan 7.8): status, stock,
+ * coupon, timeline, audit and the customer e-mail in one transaction, then the automatic full
+ * refund of prepaid money. Callers do their own authorisation and input validation; the hard state
+ * rules (not yet shipped, status can still move to `cancelled`) live here for both.
+ */
+export async function cancelOrderCore(
+  db: DbClient,
+  orderId: string,
+  params: CancelCoreParams,
+): Promise<CancelResult> {
+  const input = { reason: params.reason, restock: params.restock };
+  const actor = { id: params.actorId, ip: params.ip ?? null };
+  const who = params.by === "customer" ? "customer" : "staff";
+  const provider = params.provider;
 
   const phase1 = await db.transaction(async (tx) => {
     const order = await lockOrder(tx, orderId);
+    params.guard?.(order);
     if (!["pending_payment", "confirmed", "processing"].includes(order.status)) {
       throw new AdminInputError(`A ${label(order.status)} order can't be cancelled.`);
     }
@@ -869,7 +913,7 @@ export async function cancelOrder(
     });
     await addOrderEvent(tx, orderId, {
       type: "cancel_reason",
-      note: `Cancelled by staff: ${input.reason}`,
+      note: `Cancelled by ${who}: ${input.reason}`,
       actorId: actor.id,
     });
     if (set.paymentStatus) {
@@ -895,7 +939,13 @@ export async function cancelOrder(
       action: "order.cancel",
       entity: "order",
       entityId: orderId,
-      diff: { ref: order.ref, from: order.status, reason: input.reason, restocked: !wasPending && input.restock !== false },
+      diff: {
+        ref: order.ref,
+        from: order.status,
+        reason: input.reason,
+        restocked: !wasPending && input.restock !== false,
+        by: params.by,
+      },
       ip: actor.ip,
     });
 

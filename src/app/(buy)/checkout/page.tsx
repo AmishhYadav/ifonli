@@ -7,6 +7,7 @@ import { EmptyCheckout } from "@/components/checkout/EmptyCheckout";
 import { getCurrentCartView } from "@/features/cart/queries";
 import { getSessionUser } from "@/features/cart/request";
 import { getDb } from "@/server/db";
+import { loadCheckoutPrefill } from "@/server/services/account";
 import { readSettings } from "@/server/services/queries/shared";
 
 export const metadata: Metadata = {
@@ -40,8 +41,16 @@ async function CheckoutContent() {
     returnSummary(),
   ]);
   if (cart.lines.length === 0) return <EmptyCheckout />;
+  // Signed-in customers start from their default saved address and profile phone.
+  const prefill = user ? await loadCheckoutPrefill(getDb(), user.id).catch(() => null) : null;
   return (
-    <CheckoutForm initialCart={cart} initialEmail={user?.email ?? null} returnSummary={summary} />
+    <CheckoutForm
+      initialCart={cart}
+      initialEmail={user?.email ?? null}
+      returnSummary={summary}
+      savedAddresses={prefill?.addresses ?? []}
+      initialPhone={prefill?.phone ?? null}
+    />
   );
 }
 

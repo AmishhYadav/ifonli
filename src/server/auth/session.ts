@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 
+import { accountLoginUrl } from "@/features/account/redirect";
+
 import { getAuth } from "./auth";
 import {
   assertCan,
@@ -110,6 +112,59 @@ export async function requireEnrolling(): Promise<AdminSession> {
  */
 export async function getEnrollmentSession(): Promise<AdminSession | null> {
   return getAdminCandidate();
+}
+
+/** The slice of a Better Auth session the storefront account area needs. */
+export interface CustomerSession {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    /** True after the e-mail OTP: the only way an account is created, so it gates "orders by e-mail". */
+    emailVerified: boolean;
+    role: "customer";
+  };
+}
+
+/**
+ * The signed-in storefront customer, or null for guests. An admin-role session (owner / admin /
+ * fulfilment) is deliberately NOT a customer: admins sign in with a password and TOTP, own no
+ * customer data, and must not browse or act in the storefront account area as one (it would mix
+ * staff access with personal data). They get null here and `requireCustomer` sends them to /admin.
+ */
+export async function getOptionalCustomer(): Promise<CustomerSession | null> {
+  const session = await getSession();
+  if (!session) return null;
+  const u = session.user as typeof session.user & { role?: string };
+  if (u.role !== "customer") return null;
+  return {
+    user: {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      emailVerified: u.emailVerified === true,
+      role: "customer",
+    },
+  };
+}
+
+/**
+ * Customer gate for /account pages and the account Server Actions (the proxy does not guard them).
+ *  - guests go to `/account/login?next=...` (or, with `{ denied: "throw" }`, get an `UnauthorizedError`);
+ *  - admin-role sessions go to /admin (or get a `ForbiddenError`): see `getOptionalCustomer`.
+ */
+export async function requireCustomer(
+  opts: { next?: string; denied?: "redirect" | "throw" } = {},
+): Promise<CustomerSession> {
+  const customer = await getOptionalCustomer();
+  if (customer) return customer;
+  const session = await getSession();
+  if (opts.denied === "throw") {
+    if (session) throw new ForbiddenError("This area is for customer accounts");
+    throw new UnauthorizedError();
+  }
+  if (session) redirect("/admin");
+  redirect(accountLoginUrl({ next: opts.next }));
 }
 
 /** Throws `ForbiddenError` unless the session's role may do `action` on `resource`. */
