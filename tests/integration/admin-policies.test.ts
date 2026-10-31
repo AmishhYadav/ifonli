@@ -49,7 +49,9 @@ describe("admin policies", () => {
     expect(row).toMatchObject({ exists: true, published: false, version: 1, hasDraft: true });
     const [v] = await getDb().select().from(policyVersions);
     expect(v).toMatchObject({ version: 1, publishedBy: null });
-    await expect(savePolicyDraft(getDb(), "not-a-policy", draft("x"), admin)).rejects.toThrow(/Unknown policy/);
+    await expect(savePolicyDraft(getDb(), "not-a-policy", draft("x"), admin)).rejects.toThrow(
+      /Unknown policy/,
+    );
   });
 
   it("an unpublished policy is edited in place (policy row and its version row together)", async () => {
@@ -72,17 +74,25 @@ describe("admin policies", () => {
     await savePolicyDraft(
       getDb(),
       "shipping",
-      draft("We ship in {{settings.processing_days}} days from {{settings.registered_address}}. {{settings.bogus}}"),
+      draft(
+        "We ship in {{settings.processing_days}} days from {{settings.registered_address}}. {{settings.bogus}}",
+      ),
       admin,
     );
-    await expect(publishPolicy(getDb(), "shipping", { effectiveDate: today() }, admin)).rejects.toThrow(/Forbidden/);
-    await expect(publishPolicy(getDb(), "shipping", { effectiveDate: today() }, fulfilment)).rejects.toThrow(
-      /Forbidden/,
-    );
+    await expect(
+      publishPolicy(getDb(), "shipping", { effectiveDate: today() }, admin),
+    ).rejects.toThrow(/Forbidden/);
+    await expect(
+      publishPolicy(getDb(), "shipping", { effectiveDate: today() }, fulfilment),
+    ).rejects.toThrow(/Forbidden/);
 
-    const err = await publishPolicy(getDb(), "shipping", { effectiveDate: today() }, owner).catch((e) => e);
+    const err = await publishPolicy(getDb(), "shipping", { effectiveDate: today() }, owner).catch(
+      (e) => e,
+    );
     expect(err).toBeInstanceOf(PolicyPublishBlockedError);
-    const kinds = (err as PolicyPublishBlockedError).problems.map((p) => `${p.kind}:${p.token}`).sort();
+    const kinds = (err as PolicyPublishBlockedError).problems
+      .map((p) => `${p.kind}:${p.token}`)
+      .sort();
     expect(kinds).toEqual([
       "placeholder:settings.processing_days",
       "placeholder:settings.registered_address",
@@ -100,13 +110,18 @@ describe("admin policies", () => {
       draft("We ship in {{settings.processing_days}} days from {{settings.registered_address}}."),
       admin,
     );
-    await expect(publishPolicy(getDb(), "shipping", { effectiveDate: today() }, owner)).resolves.toEqual({ version: 1 });
+    await expect(
+      publishPolicy(getDb(), "shipping", { effectiveDate: today() }, owner),
+    ).resolves.toEqual({ version: 1 });
     const [p] = await getDb().select().from(policies);
     expect(p).toMatchObject({ published: true, version: 1 });
     expect(p?.effectiveAt?.toISOString()).toBe(new Date(`${today()}T00:00:00+05:30`).toISOString());
     const [v] = await getDb().select().from(policyVersions);
     expect(v?.publishedBy).toBe(owner.id);
-    const [audit] = await getDb().select().from(adminAuditLog).where(eq(adminAuditLog.action, "policy.publish"));
+    const [audit] = await getDb()
+      .select()
+      .from(adminAuditLog)
+      .where(eq(adminAuditLog.action, "policy.publish"));
     expect(audit).toMatchObject({ actorId: owner.id, entity: "policy", entityId: "shipping" });
     expect(audit?.diff).toMatchObject({ version: { from: null, to: 1 }, effectiveDate: today() });
 
@@ -118,15 +133,27 @@ describe("admin policies", () => {
 
   it("publish validation: date, empty text, no draft, future dates", async () => {
     await actors();
-    await expect(publishPolicy(getDb(), "shipping", { effectiveDate: today() }, owner)).rejects.toThrow(/Save a draft/);
+    await expect(
+      publishPolicy(getDb(), "shipping", { effectiveDate: today() }, owner),
+    ).rejects.toThrow(/Save a draft/);
     await savePolicyDraft(getDb(), "shipping", draft("Hello"), admin);
     await expect(publishPolicy(getDb(), "shipping", {}, owner)).rejects.toBeInstanceOf(ZodError);
-    await expect(publishPolicy(getDb(), "shipping", { effectiveDate: "01-11-2026" }, owner)).rejects.toBeInstanceOf(ZodError);
-    await expect(publishPolicy(getDb(), "shipping", { effectiveDate: "2999-01-01" }, owner)).rejects.toThrow(/future/);
-    await expect(savePolicyDraft(getDb(), "shipping", draft("   "), admin)).rejects.toBeInstanceOf(ZodError);
-    await expect(savePolicyDraft(getDb(), "shipping", draft("x", " "), admin)).rejects.toBeInstanceOf(ZodError);
+    await expect(
+      publishPolicy(getDb(), "shipping", { effectiveDate: "01-11-2026" }, owner),
+    ).rejects.toBeInstanceOf(ZodError);
+    await expect(
+      publishPolicy(getDb(), "shipping", { effectiveDate: "2999-01-01" }, owner),
+    ).rejects.toThrow(/future/);
+    await expect(savePolicyDraft(getDb(), "shipping", draft("   "), admin)).rejects.toBeInstanceOf(
+      ZodError,
+    );
+    await expect(
+      savePolicyDraft(getDb(), "shipping", draft("x", " "), admin),
+    ).rejects.toBeInstanceOf(ZodError);
     // A past date is fine (records when it took effect).
-    await expect(publishPolicy(getDb(), "shipping", { effectiveDate: "2026-01-05" }, owner)).resolves.toEqual({ version: 1 });
+    await expect(
+      publishPolicy(getDb(), "shipping", { effectiveDate: "2026-01-05" }, owner),
+    ).resolves.toEqual({ version: 1 });
   });
 
   it("versioning: editing a published policy writes a draft; live text is untouched until publish", async () => {
@@ -138,11 +165,15 @@ describe("admin policies", () => {
     let editor = await getPolicyEditor(getDb(), "terms");
     expect(editor).toMatchObject({ published: true, liveVersion: 1 });
     expect(editor?.draft).toMatchObject({ version: 2, saved: false, bodyMd: "v1 text" });
-    await expect(publishPolicy(getDb(), "terms", { effectiveDate: today() }, owner)).rejects.toThrow(/no draft/);
+    await expect(
+      publishPolicy(getDb(), "terms", { effectiveDate: today() }, owner),
+    ).rejects.toThrow(/no draft/);
 
     // An unchanged draft cannot be published as a new version.
     await savePolicyDraft(getDb(), "terms", draft("v1 text", "Terms"), admin);
-    await expect(publishPolicy(getDb(), "terms", { effectiveDate: today() }, owner)).rejects.toThrow(/identical/);
+    await expect(
+      publishPolicy(getDb(), "terms", { effectiveDate: today() }, owner),
+    ).rejects.toThrow(/identical/);
 
     await savePolicyDraft(getDb(), "terms", draft("v2 text", "Terms (new)"), admin);
     const [live] = await getDb().select().from(policies);
@@ -157,13 +188,25 @@ describe("admin policies", () => {
     });
 
     editor = await getPolicyEditor(getDb(), "terms");
-    expect(editor?.draft).toMatchObject({ version: 2, saved: true, bodyMd: "v2 text", title: "Terms (new)" });
+    expect(editor?.draft).toMatchObject({
+      version: 2,
+      saved: true,
+      bodyMd: "v2 text",
+      title: "Terms (new)",
+    });
     expect(editor?.history.map((h) => [h.version, h.isLive])).toEqual([[1, true]]);
 
-    await expect(publishPolicy(getDb(), "terms", { effectiveDate: "2026-10-15" }, owner)).resolves.toEqual({ version: 2 });
+    await expect(
+      publishPolicy(getDb(), "terms", { effectiveDate: "2026-10-15" }, owner),
+    ).resolves.toEqual({ version: 2 });
     const [now] = await getDb().select().from(policies);
-    expect(now).toMatchObject({ bodyMd: "v2 text", title: "Terms (new)", version: 2, published: true });
-    expect((await getPolicy(getDb(), "terms"))).toMatchObject({ version: 2, bodyMd: "v2 text" });
+    expect(now).toMatchObject({
+      bodyMd: "v2 text",
+      title: "Terms (new)",
+      version: 2,
+      published: true,
+    });
+    expect(await getPolicy(getDb(), "terms")).toMatchObject({ version: 2, bodyMd: "v2 text" });
     expect(await policiesWithPendingDraft(getDb())).toEqual([]);
 
     editor = await getPolicyEditor(getDb(), "terms");
@@ -189,10 +232,18 @@ describe("admin policies", () => {
     await publishPolicy(getDb(), "privacy", { effectiveDate: "2026-10-10" }, owner);
     await savePolicyDraft(getDb(), "privacy", draft("third draft", "Privacy"), admin);
 
-    await expect(restorePolicyVersion(getDb(), "privacy", 3, admin)).rejects.toThrow(/not in the history/);
-    await expect(restorePolicyVersion(getDb(), "privacy", 9, admin)).rejects.toThrow(/not in the history/);
-    await expect(restorePolicyVersion(getDb(), "privacy", 1, fulfilment)).rejects.toThrow(/Forbidden/);
-    await expect(restorePolicyVersion(getDb(), "privacy", 1, admin)).resolves.toEqual({ version: 3 });
+    await expect(restorePolicyVersion(getDb(), "privacy", 3, admin)).rejects.toThrow(
+      /not in the history/,
+    );
+    await expect(restorePolicyVersion(getDb(), "privacy", 9, admin)).rejects.toThrow(
+      /not in the history/,
+    );
+    await expect(restorePolicyVersion(getDb(), "privacy", 1, fulfilment)).rejects.toThrow(
+      /Forbidden/,
+    );
+    await expect(restorePolicyVersion(getDb(), "privacy", 1, admin)).resolves.toEqual({
+      version: 3,
+    });
     const editor = await getPolicyEditor(getDb(), "privacy");
     expect(editor?.draft.bodyMd).toBe("first");
     expect((await getDb().select().from(policies))[0]?.bodyMd).toBe("second"); // live untouched
@@ -200,10 +251,12 @@ describe("admin policies", () => {
 
   it("RBAC for editing: admin and owner may edit drafts, fulfilment may not", async () => {
     await actors();
-    await expect(savePolicyDraft(getDb(), "shipping", draft("x"), fulfilment)).rejects.toThrow(/Forbidden/);
-    await expect(savePolicyDraft(getDb(), "shipping", draft("x"), { id: "c", role: "customer" })).rejects.toThrow(
+    await expect(savePolicyDraft(getDb(), "shipping", draft("x"), fulfilment)).rejects.toThrow(
       /Forbidden/,
     );
+    await expect(
+      savePolicyDraft(getDb(), "shipping", draft("x"), { id: "c", role: "customer" }),
+    ).rejects.toThrow(/Forbidden/);
     await expect(savePolicyDraft(getDb(), "shipping", draft("x"), admin)).resolves.toBeTruthy();
     await expect(savePolicyDraft(getDb(), "shipping", draft("y"), owner)).resolves.toBeTruthy();
   });

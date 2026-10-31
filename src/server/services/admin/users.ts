@@ -6,10 +6,7 @@ import { hashPassword } from "better-auth/crypto";
 import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import {
-  MIN_ADMIN_PASSWORD_LENGTH,
-  upsertAdminUser,
-} from "@/server/auth/admin-user";
+import { MIN_ADMIN_PASSWORD_LENGTH, upsertAdminUser } from "@/server/auth/admin-user";
 import { ADMIN_ROLES, assertCan } from "@/server/auth/permissions";
 import { account, session, twoFactor, user } from "@/server/db/schema";
 import { writeAudit } from "@/server/services/audit";
@@ -44,7 +41,10 @@ export interface StaffUserRow {
   lastSignInAt: Date | null;
 }
 
-export async function listStaffUsers(db: DbClient, now: Date = new Date()): Promise<StaffUserRow[]> {
+export async function listStaffUsers(
+  db: DbClient,
+  now: Date = new Date(),
+): Promise<StaffUserRow[]> {
   const rows = await db
     .select()
     .from(user)
@@ -54,7 +54,12 @@ export async function listStaffUsers(db: DbClient, now: Date = new Date()): Prom
   const sessions = await db
     .select({ userId: session.userId, expiresAt: session.expiresAt, createdAt: session.createdAt })
     .from(session)
-    .where(inArray(session.userId, rows.map((r) => r.id)));
+    .where(
+      inArray(
+        session.userId,
+        rows.map((r) => r.id),
+      ),
+    );
   const byUser = new Map<string, { active: number; last: Date | null }>();
   for (const s of sessions) {
     const entry = byUser.get(s.userId) ?? { active: 0, last: null };
@@ -131,7 +136,10 @@ export async function createStaffUser(
   const input = newStaffSchema.parse(raw);
   const password = input.password ?? generateTempPassword();
   return db.transaction(async (tx) => {
-    const [existing] = await tx.select({ id: user.id }).from(user).where(eq(user.email, input.email));
+    const [existing] = await tx
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.email, input.email));
     if (existing) throw new AdminInputError("An account with that email already exists");
     const { userId } = await upsertAdminUser(tx, {
       email: input.email,
@@ -258,7 +266,10 @@ export async function resetStaffTwoFactor(
       action: "user.reset_2fa",
       entity: "user",
       entityId: userId,
-      diff: { email: target.email, twoFactorEnabled: { from: target.twoFactorEnabled === true, to: false } },
+      diff: {
+        email: target.email,
+        twoFactorEnabled: { from: target.twoFactorEnabled === true, to: false },
+      },
       ip: actor.ip,
     });
   });

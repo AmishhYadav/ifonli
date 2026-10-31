@@ -123,7 +123,7 @@ export const NAV: NavGroupDef[] = [
         label: "Content",
         icon: "content",
         permission: "content:view",
-        built: false,
+        built: true,
         blurb: "Banners and homepage sets.",
       },
       {
@@ -131,7 +131,7 @@ export const NAV: NavGroupDef[] = [
         label: "FAQ",
         icon: "faq",
         permission: "content:view",
-        built: false,
+        built: true,
         blurb: "Questions and answers shown on the storefront.",
       },
       {
@@ -139,7 +139,7 @@ export const NAV: NavGroupDef[] = [
         label: "Policies",
         icon: "policies",
         permission: "policy:view",
-        built: false,
+        built: true,
         blurb: "Shipping, returns, privacy and terms, with version history.",
       },
     ],
@@ -173,7 +173,7 @@ export const NAV: NavGroupDef[] = [
         label: "Settings",
         icon: "settings",
         permission: "setting:view",
-        built: false,
+        built: true,
         blurb: "Store settings, tax, shipping, COD and launch checklist.",
       },
       {
@@ -181,7 +181,7 @@ export const NAV: NavGroupDef[] = [
         label: "Users",
         icon: "users",
         permission: "user:list",
-        built: false,
+        built: true,
         blurb: "Staff accounts and roles.",
       },
       {
@@ -189,7 +189,7 @@ export const NAV: NavGroupDef[] = [
         label: "Audit log",
         icon: "audit",
         permission: "audit:view",
-        built: false,
+        built: true,
         blurb: "Who changed what, and when.",
       },
     ],

@@ -11,7 +11,12 @@ import {
 } from "@/server/services/admin/launch";
 import { publishPolicy, savePolicyDraft } from "@/server/services/admin/policies";
 import { updateSettingAdmin } from "@/server/services/admin/settings";
-import { SETTINGS, SETTING_KEYS, isRequiredForLaunch, seedMissingSettings } from "@/server/services/settings";
+import {
+  SETTINGS,
+  SETTING_KEYS,
+  isRequiredForLaunch,
+  seedMissingSettings,
+} from "@/server/services/settings";
 
 import { seedCatalogFixture } from "./catalog-fixture";
 
@@ -37,7 +42,9 @@ const ids = (r: LaunchReadiness, category?: string) =>
   r.items.filter((i) => !category || i.category === category).map((i) => i.id);
 
 async function owner1() {
-  await getDb().insert(user).values({ id: "owner-1", name: "Owner", email: "owner@example.com", role: "owner" });
+  await getDb()
+    .insert(user)
+    .values({ id: "owner-1", name: "Owner", email: "owner@example.com", role: "owner" });
 }
 
 /** Fill every launch-required setting with a real-looking value (through the same validation as the UI). */
@@ -50,7 +57,12 @@ async function fillAllSettings() {
     support_phone: "+91 98765 43210",
     support_hours: "Mon-Sat 10:00-18:00 IST",
     response_time: "within 24 hours",
-    grievance_officer: { name: "Asha Rao", designation: "Grievance Officer", email: "go@ifonli.in", phone: "+91 98765 43210" },
+    grievance_officer: {
+      name: "Asha Rao",
+      designation: "Grievance Officer",
+      email: "go@ifonli.in",
+      phone: "+91 98765 43210",
+    },
     default_manufacturer: { name: "IfOnli Crafts", address: "12 Example Road, Pune" },
     default_country_of_origin: "India",
     default_gst_rate_bp: 300,
@@ -89,7 +101,8 @@ async function fillAllSettings() {
     "policy.retention_order_records": "8 years",
     "policy.retention_period": "2 years",
   };
-  for (const [key, value] of Object.entries(real)) await updateSettingAdmin(getDb(), key, value, owner);
+  for (const [key, value] of Object.entries(real))
+    await updateSettingAdmin(getDb(), key, value, owner);
 }
 
 describe("getLaunchReadiness", () => {
@@ -99,20 +112,33 @@ describe("getLaunchReadiness", () => {
     const r = await getLaunchReadiness(getDb(), { env: {} });
     expect(r.ready).toBe(false);
     expect(r.blockers).toBeGreaterThan(20);
-    expect(r.categories.map((c) => c.id)).toEqual(["settings", "products", "policies", "environment", "content"]);
+    expect(r.categories.map((c) => c.id)).toEqual([
+      "settings",
+      "products",
+      "policies",
+      "environment",
+      "content",
+    ]);
 
     // Every required, still-placeholder setting is listed with a link to its form.
-    const required = SETTING_KEYS.filter((k) => isRequiredForLaunch(SETTINGS[k], () => "no_returns"));
+    const required = SETTING_KEYS.filter((k) =>
+      isRequiredForLaunch(SETTINGS[k], () => "no_returns"),
+    );
     expect(ids(r, "settings").sort()).toEqual(required.map((k) => `setting:${k}`).sort());
     const legal = r.items.find((i) => i.id === "setting:legal_name")!;
-    expect(legal).toMatchObject({ severity: "blocker", href: "/admin/settings?group=store#setting-legal_name" });
+    expect(legal).toMatchObject({
+      severity: "blocker",
+      href: "/admin/settings?group=store#setting-legal_name",
+    });
     // Optional keys and the conditional return-policy copy are not listed.
     expect(ids(r)).not.toContain("setting:brand_name");
     expect(ids(r)).not.toContain("setting:policy.return_conditions");
 
     expect(ids(r, "products")).toEqual(["products:none"]);
     expect(ids(r, "policies")).toEqual(POLICY_SLUGS.map((s) => `policy:${s}`));
-    expect(ids(r, "environment")).toEqual(expect.arrayContaining(["env:razorpay", "env:resend", "env:site-url"]));
+    expect(ids(r, "environment")).toEqual(
+      expect.arrayContaining(["env:razorpay", "env:resend", "env:site-url"]),
+    );
   });
 
   it("settings drop off the list as they are saved; return copy joins when returns are enabled", async () => {
@@ -127,7 +153,10 @@ describe("getLaunchReadiness", () => {
     await updateSettingAdmin(getDb(), "return_policy_type", "returns_window", owner);
     const withReturns = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
     expect(ids(withReturns, "settings")).toEqual(
-      expect.arrayContaining(["setting:policy.return_conditions", "setting:policy.non_returnable_items"]),
+      expect.arrayContaining([
+        "setting:policy.return_conditions",
+        "setting:policy.non_returnable_items",
+      ]),
     );
   });
 
@@ -143,14 +172,27 @@ describe("getLaunchReadiness", () => {
     // A draft product's placeholder does not matter.
     await getDb()
       .insert(productImages)
-      .values({ productId: f.products["draft-thing"]!, kind: "photo", path: "/p.svg", alt: "p", isPlaceholder: true });
+      .values({
+        productId: f.products["draft-thing"]!,
+        kind: "photo",
+        path: "/p.svg",
+        alt: "p",
+        isPlaceholder: true,
+      });
 
     const r = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
-    expect(ids(r, "products")).toEqual(["products:placeholder-images", "products:placeholder-skus"]);
+    expect(ids(r, "products")).toEqual([
+      "products:placeholder-images",
+      "products:placeholder-skus",
+    ]);
     const img = r.items.find((i) => i.id === "products:placeholder-images")!;
     expect(img.title).toMatch(/^1 active product uses placeholder images/);
-    expect(img.detail).toBe("1 placeholder cutout and 1 placeholder photo. Replace them with real photography.");
-    expect(img.links).toEqual([{ label: "Skull Charm", href: `/admin/products/${f.products["skull-charm"]}` }]);
+    expect(img.detail).toBe(
+      "1 placeholder cutout and 1 placeholder photo. Replace them with real photography.",
+    );
+    expect(img.links).toEqual([
+      { label: "Skull Charm", href: `/admin/products/${f.products["skull-charm"]}` },
+    ]);
     const sku = r.items.find((i) => i.id === "products:placeholder-skus")!;
     expect(sku.links?.[0]?.label).toBe("Cat Sticker");
 
@@ -162,7 +204,12 @@ describe("getLaunchReadiness", () => {
   it("policies: missing, unpublished, and published-but-unresolved are each a blocker", async () => {
     await owner1();
     await seedMissingSettings();
-    await savePolicyDraft(getDb(), "shipping", { title: "Shipping", bodyMd: "Ships from {{settings.registered_address}}." }, owner);
+    await savePolicyDraft(
+      getDb(),
+      "shipping",
+      { title: "Shipping", bodyMd: "Ships from {{settings.registered_address}}." },
+      owner,
+    );
     let r = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
     expect(r.items.find((i) => i.id === "policy:shipping")).toMatchObject({
       title: "Shipping is not published",
@@ -176,7 +223,9 @@ describe("getLaunchReadiness", () => {
     expect(r.items.find((i) => i.id === "policy:shipping")).toMatchObject({
       title: "Shipping has unresolved settings",
     });
-    expect(r.items.find((i) => i.id === "policy:shipping")?.detail).toContain("settings.registered_address");
+    expect(r.items.find((i) => i.id === "policy:shipping")?.detail).toContain(
+      "settings.registered_address",
+    );
 
     await updateSettingAdmin(getDb(), "registered_address", "12 Example Road, Pune", owner);
     r = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
@@ -188,9 +237,18 @@ describe("getLaunchReadiness", () => {
     await seedMissingSettings();
     let r = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
     expect(r.items.find((i) => i.id === "content:faq-empty")?.severity).toBe("warning");
-    await getDb().insert(faqs).values({ category: "delivery", question: "q", answerMd: "{{settings.support_phone}}", position: 1 });
+    await getDb()
+      .insert(faqs)
+      .values({
+        category: "delivery",
+        question: "q",
+        answerMd: "{{settings.support_phone}}",
+        position: 1,
+      });
     r = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
-    expect(r.items.find((i) => i.id === "content:faq-hidden")).toMatchObject({ severity: "warning" });
+    expect(r.items.find((i) => i.id === "content:faq-hidden")).toMatchObject({
+      severity: "warning",
+    });
     expect(ids(r)).not.toContain("content:faq-empty");
   });
 
@@ -200,8 +258,15 @@ describe("getLaunchReadiness", () => {
     await seedCatalogFixture();
     const r = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
     const hero = r.items.filter((i) => i.id.startsWith("content:hero:"));
-    expect(hero.map((i) => i.id)).toEqual(["content:hero:cute", "content:hero:bold", "content:hero:gothic"]);
-    expect(hero[0]).toMatchObject({ severity: "warning", title: "Cute hero has 1 of 8 product cutouts" });
+    expect(hero.map((i) => i.id)).toEqual([
+      "content:hero:cute",
+      "content:hero:bold",
+      "content:hero:gothic",
+    ]);
+    expect(hero[0]).toMatchObject({
+      severity: "warning",
+      title: "Cute hero has 1 of 8 product cutouts",
+    });
   });
 
   it("is ready: yes only when there are no blockers (warnings allowed)", async () => {
@@ -210,10 +275,16 @@ describe("getLaunchReadiness", () => {
     await seedCatalogFixture();
     await fillAllSettings();
     for (const slug of POLICY_SLUGS) {
-      await savePolicyDraft(getDb(), slug, { title: `Policy ${slug}`, bodyMd: `Text for {{settings.brand_name}} (${slug})` }, owner);
+      await savePolicyDraft(
+        getDb(),
+        slug,
+        { title: `Policy ${slug}`, bodyMd: `Text for {{settings.brand_name}} (${slug})` },
+        owner,
+      );
     }
     // brand_name is still a placeholder but not required for launch, so tokens resolve.
-    for (const slug of POLICY_SLUGS) await publishPolicy(getDb(), slug, { effectiveDate: "2026-10-01" }, owner);
+    for (const slug of POLICY_SLUGS)
+      await publishPolicy(getDb(), slug, { effectiveDate: "2026-10-01" }, owner);
 
     const r = await getLaunchReadiness(getDb(), { env: LIVE_ENV });
     expect(r.items.filter((i) => i.severity === "blocker")).toEqual([]);
@@ -223,10 +294,15 @@ describe("getLaunchReadiness", () => {
     expect(r.categories.every((c) => c.blockers === 0)).toBe(true);
 
     // Breaking one thing flips it back.
-    const broken = await getLaunchReadiness(getDb(), { env: { ...LIVE_ENV, RAZORPAY_KEY_ID: "rzp_test_abc" } });
+    const broken = await getLaunchReadiness(getDb(), {
+      env: { ...LIVE_ENV, RAZORPAY_KEY_ID: "rzp_test_abc" },
+    });
     expect(broken.ready).toBe(false);
     expect(ids(broken, "environment")).toEqual(["env:razorpay"]);
-    await getDb().update(settings).set({ isPlaceholder: true }).where(eq(settings.key, "legal_name"));
+    await getDb()
+      .update(settings)
+      .set({ isPlaceholder: true })
+      .where(eq(settings.key, "legal_name"));
     expect((await getLaunchReadiness(getDb(), { env: LIVE_ENV })).ready).toBe(false);
   });
 });
@@ -234,9 +310,9 @@ describe("getLaunchReadiness", () => {
 describe("checkEnvironment", () => {
   it("passes a complete production environment (only optional-service warnings can remain)", () => {
     expect(checkEnvironment(LIVE_ENV)).toEqual([]);
-    expect(checkEnvironment({ ...LIVE_ENV, SENTRY_DSN: undefined }).map((i) => [i.id, i.severity])).toEqual([
-      ["env:sentry", "warning"],
-    ]);
+    expect(
+      checkEnvironment({ ...LIVE_ENV, SENTRY_DSN: undefined }).map((i) => [i.id, i.severity]),
+    ).toEqual([["env:sentry", "warning"]]);
   });
 
   it("blocks on missing or test Razorpay keys and webhook secret", () => {
@@ -248,7 +324,8 @@ describe("checkEnvironment", () => {
   });
 
   it("blocks on Resend, secrets, storage and a non-https or local site URL", () => {
-    const ids = (over: Record<string, string | undefined>) => checkEnvironment({ ...LIVE_ENV, ...over }).map((i) => i.id);
+    const ids = (over: Record<string, string | undefined>) =>
+      checkEnvironment({ ...LIVE_ENV, ...over }).map((i) => i.id);
     expect(ids({ RESEND_API_KEY: undefined })).toEqual(["env:resend"]);
     expect(ids({ EMAIL_FROM: undefined })).toEqual(["env:email-from"]);
     expect(ids({ BETTER_AUTH_SECRET: "short" })).toEqual(["env:auth-secret"]);
@@ -261,7 +338,9 @@ describe("checkEnvironment", () => {
   });
 
   it("no item ever echoes a secret value", () => {
-    const text = JSON.stringify(checkEnvironment({ ...LIVE_ENV, RAZORPAY_KEY_ID: "rzp_test_SECRETKEYID" }));
+    const text = JSON.stringify(
+      checkEnvironment({ ...LIVE_ENV, RAZORPAY_KEY_ID: "rzp_test_SECRETKEYID" }),
+    );
     expect(text).not.toContain("SECRETKEYID");
   });
 });

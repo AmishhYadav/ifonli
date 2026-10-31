@@ -66,7 +66,11 @@ export async function listFaqsAdmin(db: DbClient): Promise<AdminFaq[]> {
   );
 }
 
-export async function createFaq(db: DbClient, raw: unknown, actor: AdminActor): Promise<{ id: string }> {
+export async function createFaq(
+  db: DbClient,
+  raw: unknown,
+  actor: AdminActor,
+): Promise<{ id: string }> {
   assertCan(actor.role, "content:manage");
   const input = faqInputSchema.parse(raw);
   return db.transaction(async (tx) => {
@@ -110,7 +114,10 @@ export async function updateFaq(
         .where(eq(faqs.category, input.category));
       position = (last?.pos ?? 0) + 1;
     }
-    await tx.update(faqs).set({ ...input, position }).where(eq(faqs.id, faqId));
+    await tx
+      .update(faqs)
+      .set({ ...input, position })
+      .where(eq(faqs.id, faqId));
     await writeAudit(tx, {
       actorId: actor.id,
       action: "faq.update",

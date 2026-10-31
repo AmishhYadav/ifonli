@@ -10,7 +10,12 @@ import {
   updateSettingAdmin,
 } from "@/server/services/admin/settings";
 import { AdminInputError } from "@/server/services/admin/products";
-import { SETTING_KEYS, getSetting, getSettingEntry, seedMissingSettings } from "@/server/services/settings";
+import {
+  SETTING_KEYS,
+  getSetting,
+  getSettingEntry,
+  seedMissingSettings,
+} from "@/server/services/settings";
 
 const owner = { id: "owner-1", role: "owner" };
 const admin = { id: "admin-1", role: "admin" };
@@ -25,7 +30,8 @@ async function setup() {
   await seedMissingSettings();
 }
 
-const save = (key: string, value: unknown, who = owner) => updateSettingAdmin(getDb(), key, value, who);
+const save = (key: string, value: unknown, who = owner) =>
+  updateSettingAdmin(getDb(), key, value, who);
 async function issuesOf(key: string, value: unknown): Promise<{ path: string; message: string }[]> {
   const err = await save(key, value).catch((e: unknown) => e);
   expect(err).toBeInstanceOf(SettingAdminValidationError);
@@ -38,25 +44,46 @@ describe("admin settings: listing", () => {
     const rows = await listSettingsAdmin(getDb());
     expect(rows.map((r) => r.key)).toEqual(SETTING_KEYS);
     const legal = rows.find((r) => r.key === "legal_name")!;
-    expect(legal).toMatchObject({ isPlaceholder: true, blocksLaunch: true, locked: false, group: "store" });
-    expect(rows.find((r) => r.key === "prices_include_gst")).toMatchObject({ locked: true, isPlaceholder: false });
-    expect(rows.find((r) => r.key === "brand_name")).toMatchObject({ isPlaceholder: true, blocksLaunch: false });
+    expect(legal).toMatchObject({
+      isPlaceholder: true,
+      blocksLaunch: true,
+      locked: false,
+      group: "store",
+    });
+    expect(rows.find((r) => r.key === "prices_include_gst")).toMatchObject({
+      locked: true,
+      isPlaceholder: false,
+    });
+    expect(rows.find((r) => r.key === "brand_name")).toMatchObject({
+      isPlaceholder: true,
+      blocksLaunch: false,
+    });
     // Return-policy copy only blocks launch once returns exist.
     expect(rows.find((r) => r.key === "policy.return_conditions")?.blocksLaunch).toBe(false);
     await save("return_policy_type", "returns_window");
-    expect((await listSettingsAdmin(getDb())).find((r) => r.key === "policy.return_conditions")?.blocksLaunch).toBe(true);
+    expect(
+      (await listSettingsAdmin(getDb())).find((r) => r.key === "policy.return_conditions")
+        ?.blocksLaunch,
+    ).toBe(true);
   });
 
   it("works on an empty settings table (every key falls back to its placeholder)", async () => {
-    await getDb().insert(user).values({ id: "owner-1", name: "O", email: "o@example.com", role: "owner" });
+    await getDb()
+      .insert(user)
+      .values({ id: "owner-1", name: "O", email: "o@example.com", role: "owner" });
     const rows = await listSettingsAdmin(getDb());
     expect(rows).toHaveLength(SETTING_KEYS.length);
-    expect(rows.every((r) => r.isPlaceholder || r.locked || r.key === "guest_checkout_enabled")).toBe(true);
+    expect(
+      rows.every((r) => r.isPlaceholder || r.locked || r.key === "guest_checkout_enabled"),
+    ).toBe(true);
   });
 
   it("a stored value that no longer satisfies the schema shows as unset", async () => {
     await setup();
-    await getDb().update(settings).set({ value: "not-an-email", isPlaceholder: false }).where(eq(settings.key, "support_email"));
+    await getDb()
+      .update(settings)
+      .set({ value: "not-an-email", isPlaceholder: false })
+      .where(eq(settings.key, "support_email"));
     const row = (await listSettingsAdmin(getDb())).find((r) => r.key === "support_email")!;
     expect(row.isPlaceholder).toBe(true);
     expect(row.value).toBe("placeholder@example.invalid");
@@ -72,7 +99,10 @@ describe("admin settings: saving each kind of value", () => {
     expect(entry).toMatchObject({ value: "IfOnli Crafts Pvt Ltd", isPlaceholder: false });
     const [row] = await getDb().select().from(settings).where(eq(settings.key, "legal_name"));
     expect(row?.updatedBy).toBe(owner.id);
-    const [audit] = await getDb().select().from(adminAuditLog).where(eq(adminAuditLog.action, "setting.update"));
+    const [audit] = await getDb()
+      .select()
+      .from(adminAuditLog)
+      .where(eq(adminAuditLog.action, "setting.update"));
     expect(audit).toMatchObject({ actorId: owner.id, entity: "setting", entityId: "legal_name" });
     expect(audit?.diff).toEqual({
       before: { value: "PLACEHOLDER — Legal entity name", isPlaceholder: true },
@@ -153,16 +183,25 @@ describe("admin settings: saving each kind of value", () => {
     await save("cancellable_statuses", []);
     await issuesOf("admin_alert_emails", []);
     await issuesOf("admin_alert_emails", ["ok@ifonli.in", "nope"]);
-    expect((await issuesOf("admin_alert_emails", ["a@ifonli.in", "A@ifonli.in"]))[0]?.message).toMatch(/twice/);
+    expect(
+      (await issuesOf("admin_alert_emails", ["a@ifonli.in", "A@ifonli.in"]))[0]?.message,
+    ).toMatch(/twice/);
     await save("admin_alert_emails", ["ops@ifonli.in", "owner@ifonli.in"]);
     await issuesOf("cod_excluded_pincodes", ["12345"]);
-    expect((await issuesOf("cod_excluded_pincodes", ["560001", "560001"]))[0]?.message).toMatch(/twice/);
+    expect((await issuesOf("cod_excluded_pincodes", ["560001", "560001"]))[0]?.message).toMatch(
+      /twice/,
+    );
     await save("cod_excluded_pincodes", ["560001", "110001"]);
   });
 
   it("nested objects report the failing field path", async () => {
     await setup();
-    const issues = await issuesOf("grievance_officer", { name: "Asha", designation: "", email: "bad", phone: "98" });
+    const issues = await issuesOf("grievance_officer", {
+      name: "Asha",
+      designation: "",
+      email: "bad",
+      phone: "98",
+    });
     expect(issues.map((i) => i.path).sort()).toEqual(["designation", "email"]);
     await save("grievance_officer", {
       name: "Asha Rao",
@@ -187,13 +226,17 @@ describe("admin settings: saving each kind of value", () => {
     expect(await getSetting("zone_overrides")).toEqual({ north_east: 9900 });
     await save("zone_overrides", {});
 
-    const bad = await issuesOf("delivery_estimates_by_zone", { metro_region: { minDays: 5, maxDays: 2 } });
+    const bad = await issuesOf("delivery_estimates_by_zone", {
+      metro_region: { minDays: 5, maxDays: 2 },
+    });
     expect(bad[0]?.message).toMatch(/maxDays/);
     await save("delivery_estimates_by_zone", {
       metro_region: { minDays: 2, maxDays: 4 },
       rest_of_india: { minDays: 4, maxDays: 7 },
     });
-    expect(await getSetting("delivery_estimates_by_zone")).toMatchObject({ metro_region: { minDays: 2, maxDays: 4 } });
+    expect(await getSetting("delivery_estimates_by_zone")).toMatchObject({
+      metro_region: { minDays: 2, maxDays: 4 },
+    });
   });
 
   it("vibes: known slugs only, no duplicates, default may be 'random'", async () => {
@@ -211,7 +254,15 @@ describe("admin settings: saving each kind of value", () => {
   it("state must be a known state once reference data is loaded", async () => {
     await setup();
     await save("state", "Anything goes while the reference table is empty");
-    await getDb().insert(states).values({ code: "27", name: "Maharashtra", iso: "IN-MH", type: "state", zone: "rest_of_india" });
+    await getDb()
+      .insert(states)
+      .values({
+        code: "27",
+        name: "Maharashtra",
+        iso: "IN-MH",
+        type: "state",
+        zone: "rest_of_india",
+      });
     expect((await issuesOf("state", "Atlantis"))[0]?.message).toMatch(/Not a known/);
     await save("state", "maharashtra");
     expect(await getSetting("state")).toBe("maharashtra");
@@ -228,8 +279,12 @@ describe("admin settings: saving each kind of value", () => {
 describe("admin settings: guard rails", () => {
   it("refuses placeholder text, keeping the flag set", async () => {
     await setup();
-    expect((await issuesOf("legal_name", "PLACEHOLDER — Legal entity name"))[0]?.message).toMatch(/placeholder/i);
-    expect((await issuesOf("support_email", "placeholder@example.invalid"))[0]?.message).toMatch(/placeholder/i);
+    expect((await issuesOf("legal_name", "PLACEHOLDER — Legal entity name"))[0]?.message).toMatch(
+      /placeholder/i,
+    );
+    expect((await issuesOf("support_email", "placeholder@example.invalid"))[0]?.message).toMatch(
+      /placeholder/i,
+    );
     const issues = await issuesOf("grievance_officer", {
       name: "PLACEHOLDER — Officer name",
       designation: "GO",
@@ -253,7 +308,9 @@ describe("admin settings: guard rails", () => {
   it("is owner-only (setting:update)", async () => {
     await setup();
     await expect(save("brand_name", "X", admin)).rejects.toThrow(/Forbidden/);
-    await expect(save("brand_name", "X", { id: "f", role: "fulfilment" })).rejects.toThrow(/Forbidden/);
+    await expect(save("brand_name", "X", { id: "f", role: "fulfilment" })).rejects.toThrow(
+      /Forbidden/,
+    );
     expect((await getSettingEntry("brand_name")).isPlaceholder).toBe(true);
     expect(await getDb().select().from(adminAuditLog)).toHaveLength(0);
   });

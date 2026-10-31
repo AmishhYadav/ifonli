@@ -132,8 +132,14 @@ export interface AuditFacets {
 export async function getAuditFacets(db: DbClient, viewer: { role: string }): Promise<AuditFacets> {
   assertCan(viewer.role, "audit:view");
   const [entities, actions, actors] = await Promise.all([
-    db.selectDistinct({ v: adminAuditLog.entity }).from(adminAuditLog).orderBy(adminAuditLog.entity),
-    db.selectDistinct({ v: adminAuditLog.action }).from(adminAuditLog).orderBy(adminAuditLog.action),
+    db
+      .selectDistinct({ v: adminAuditLog.entity })
+      .from(adminAuditLog)
+      .orderBy(adminAuditLog.entity),
+    db
+      .selectDistinct({ v: adminAuditLog.action })
+      .from(adminAuditLog)
+      .orderBy(adminAuditLog.action),
     db
       .selectDistinct({ id: user.id, name: user.name, email: user.email })
       .from(adminAuditLog)
@@ -155,7 +161,16 @@ function csvCell(value: string): string {
 }
 
 export function auditCsv(rows: readonly AuditRow[]): string {
-  const header = ["Time (UTC)", "Actor", "Actor email", "Action", "Entity", "Entity id", "IP", "Changes"];
+  const header = [
+    "Time (UTC)",
+    "Actor",
+    "Actor email",
+    "Action",
+    "Entity",
+    "Entity id",
+    "IP",
+    "Changes",
+  ];
   const lines = rows.map((r) =>
     [
       r.createdAt.toISOString(),

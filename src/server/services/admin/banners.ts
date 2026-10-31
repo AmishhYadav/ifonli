@@ -22,7 +22,10 @@ import { deleteStorageObjects, readPublicObject } from "./storage";
  */
 
 export type BannerPlacement = (typeof banners.$inferSelect)["placement"];
-export const BANNER_PLACEMENTS = ["home_offer", "announcement"] as const satisfies readonly BannerPlacement[];
+export const BANNER_PLACEMENTS = [
+  "home_offer",
+  "announcement",
+] as const satisfies readonly BannerPlacement[];
 
 export type BannerState = "live" | "scheduled" | "expired" | "inactive";
 
@@ -45,7 +48,10 @@ export const bannerLinkSchema = z
   .nullish()
   .transform((v) => (v ? v : null))
   .refine(
-    (v) => v === null || (v.startsWith("/") && !v.startsWith("//") && !/\s/.test(v)) || /^https:\/\/[^\s]+$/i.test(v),
+    (v) =>
+      v === null ||
+      (v.startsWith("/") && !v.startsWith("//") && !/\s/.test(v)) ||
+      /^https:\/\/[^\s]+$/i.test(v),
     "Use a path on this site (like /shop) or a full https:// link",
   );
 
@@ -58,7 +64,10 @@ const dateInput = z
 export const bannerInputSchema = z
   .object({
     placement: z.enum(BANNER_PLACEMENTS),
-    vibeId: z.uuid().nullish().transform((v) => v ?? null),
+    vibeId: z
+      .uuid()
+      .nullish()
+      .transform((v) => v ?? null),
     title: z.string().trim().min(1, "Title is required").max(120, "At most 120 characters"),
     body: optionalText(300),
     imagePath: z
@@ -68,7 +77,9 @@ export const bannerInputSchema = z
       .nullish()
       .transform((v) => (v ? v : null))
       .refine(
-        (v) => v === null || (v.startsWith(BANNER_IMAGE_PREFIX) && !v.includes("..") && /^[A-Za-z0-9/_.-]+$/.test(v)),
+        (v) =>
+          v === null ||
+          (v.startsWith(BANNER_IMAGE_PREFIX) && !v.includes("..") && /^[A-Za-z0-9/_.-]+$/.test(v)),
         "Unexpected image path",
       ),
     link: bannerLinkSchema,
@@ -78,7 +89,11 @@ export const bannerInputSchema = z
   })
   .superRefine((v, ctx) => {
     if (v.startsAt && v.endsAt && v.endsAt <= v.startsAt) {
-      ctx.addIssue({ code: "custom", path: ["endsAt"], message: "The end must be after the start" });
+      ctx.addIssue({
+        code: "custom",
+        path: ["endsAt"],
+        message: "The end must be after the start",
+      });
     }
     if (v.placement === "announcement" && v.vibeId) {
       ctx.addIssue({
@@ -88,7 +103,11 @@ export const bannerInputSchema = z
       });
     }
     if (v.placement === "announcement" && v.imagePath) {
-      ctx.addIssue({ code: "custom", path: ["imagePath"], message: "The announcement bar has no image" });
+      ctx.addIssue({
+        code: "custom",
+        path: ["imagePath"],
+        message: "The announcement bar has no image",
+      });
     }
   });
 export type BannerInput = z.input<typeof bannerInputSchema>;
@@ -184,7 +203,11 @@ function snapshot(b: {
 /** Deletes an uploaded image from storage once no banner points at it any more (best effort). */
 async function dropOrphanImage(db: DbClient, path: string | null): Promise<void> {
   if (!path || !path.startsWith(BANNER_IMAGE_PREFIX)) return;
-  const [still] = await db.select({ id: banners.id }).from(banners).where(eq(banners.imagePath, path)).limit(1);
+  const [still] = await db
+    .select({ id: banners.id })
+    .from(banners)
+    .where(eq(banners.imagePath, path))
+    .limit(1);
   if (still) return;
   await deleteStorageObjects("content", [path.slice("content/".length)]).catch(() => undefined);
 }
@@ -232,7 +255,9 @@ export async function updateBanner(
     const [before] = await tx.select().from(banners).where(eq(banners.id, bannerId)).for("update");
     if (!before) throw new AdminInputError("Banner not found");
     if (before.placement !== input.placement) {
-      throw new AdminInputError("A banner cannot move between the home page and the announcement bar");
+      throw new AdminInputError(
+        "A banner cannot move between the home page and the announcement bar",
+      );
     }
     await tx.update(banners).set(input).where(eq(banners.id, bannerId));
     await writeAudit(tx, {
@@ -272,7 +297,11 @@ export async function setBannerActive(
   });
 }
 
-export async function deleteBanner(db: DbClient, bannerId: string, actor: AdminActor): Promise<void> {
+export async function deleteBanner(
+  db: DbClient,
+  bannerId: string,
+  actor: AdminActor,
+): Promise<void> {
   assertCan(actor.role, "content:manage");
   const image = await db.transaction(async (tx) => {
     const [before] = await tx.select().from(banners).where(eq(banners.id, bannerId)).for("update");
@@ -377,7 +406,12 @@ export async function verifyBannerImage(
   const objectPath = input.dbPath.slice("content/".length);
   try {
     const info = await inspectImage(await readPublicObject("content", objectPath), "photo");
-    return { dbPath: input.dbPath, width: info.width, height: info.height, warnings: info.warnings };
+    return {
+      dbPath: input.dbPath,
+      width: info.width,
+      height: info.height,
+      warnings: info.warnings,
+    };
   } catch (error) {
     await deleteStorageObjects("content", [objectPath]).catch(() => undefined);
     throw error;
@@ -386,5 +420,8 @@ export async function verifyBannerImage(
 
 /** The announcement the storefront bar shows right now (the first live global one), for the "showing now" marker. */
 export function liveAnnouncementId(list: readonly AdminBanner[]): string | null {
-  return list.find((b) => b.placement === "announcement" && b.state === "live" && b.vibeId === null)?.id ?? null;
+  return (
+    list.find((b) => b.placement === "announcement" && b.state === "live" && b.vibeId === null)
+      ?.id ?? null
+  );
 }

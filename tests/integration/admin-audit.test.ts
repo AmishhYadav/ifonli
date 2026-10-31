@@ -24,11 +24,45 @@ async function seed() {
   await db()
     .insert(adminAuditLog)
     .values([
-      { actorId: "owner-1", action: "setting.update", entity: "setting", entityId: "legal_name", diff: { before: 1, after: 2 }, createdAt: at("2026-10-01T10:00:00+05:30") },
-      { actorId: "admin-1", action: "product.update", entity: "product", entityId: "p-1", diff: { name: { from: "a", to: "b" } }, createdAt: at("2026-10-02T09:00:00+05:30") },
-      { actorId: "admin-1", action: "product.create", entity: "product", entityId: "p-2", diff: null, ip: "203.0.113.9", createdAt: at("2026-10-02T23:59:00+05:30") },
-      { actorId: "owner-1", action: "policy.publish", entity: "policy", entityId: "terms", createdAt: at("2026-10-03T00:00:00+05:30") },
-      { actorId: null, action: "stock.adjust", entity: "variant", entityId: "v-1", createdAt: at("2026-10-04T12:00:00+05:30") },
+      {
+        actorId: "owner-1",
+        action: "setting.update",
+        entity: "setting",
+        entityId: "legal_name",
+        diff: { before: 1, after: 2 },
+        createdAt: at("2026-10-01T10:00:00+05:30"),
+      },
+      {
+        actorId: "admin-1",
+        action: "product.update",
+        entity: "product",
+        entityId: "p-1",
+        diff: { name: { from: "a", to: "b" } },
+        createdAt: at("2026-10-02T09:00:00+05:30"),
+      },
+      {
+        actorId: "admin-1",
+        action: "product.create",
+        entity: "product",
+        entityId: "p-2",
+        diff: null,
+        ip: "203.0.113.9",
+        createdAt: at("2026-10-02T23:59:00+05:30"),
+      },
+      {
+        actorId: "owner-1",
+        action: "policy.publish",
+        entity: "policy",
+        entityId: "terms",
+        createdAt: at("2026-10-03T00:00:00+05:30"),
+      },
+      {
+        actorId: null,
+        action: "stock.adjust",
+        entity: "variant",
+        entityId: "v-1",
+        createdAt: at("2026-10-04T12:00:00+05:30"),
+      },
     ]);
 }
 
@@ -47,7 +81,11 @@ describe("audit log: listing and filters", () => {
       "product.update",
       "setting.update",
     ]);
-    expect(page.items[1]).toMatchObject({ actorName: "Olivia Owner", actorEmail: "olivia@example.com", entityId: "terms" });
+    expect(page.items[1]).toMatchObject({
+      actorName: "Olivia Owner",
+      actorEmail: "olivia@example.com",
+      entityId: "terms",
+    });
     expect(page.items[0]).toMatchObject({ actorId: null, actorName: null });
   });
 
@@ -74,16 +112,18 @@ describe("audit log: listing and filters", () => {
   it("filters by an inclusive IST date range", async () => {
     await seed();
     // 2 Oct 23:59 IST and 3 Oct 00:00 IST are on different IST days (both are 2 Oct in UTC).
-    expect(await actions({ from: "2026-10-02", to: "2026-10-02" })).toEqual(["product.create", "product.update"]);
+    expect(await actions({ from: "2026-10-02", to: "2026-10-02" })).toEqual([
+      "product.create",
+      "product.update",
+    ]);
     expect(await actions({ from: "2026-10-03", to: "2026-10-03" })).toEqual(["policy.publish"]);
     expect(await actions({ from: "2026-10-03" })).toEqual(["stock.adjust", "policy.publish"]);
     expect(await actions({ to: "2026-10-01" })).toEqual(["setting.update"]);
     // Bad dates are ignored rather than failing.
     expect((await actions({ from: "yesterday", to: "2026-13-45" })).length).toBe(5);
-    expect(await actions({ from: "2026-10-02", to: "2026-10-03", actor: "adam", entity: "product" })).toEqual([
-      "product.create",
-      "product.update",
-    ]);
+    expect(
+      await actions({ from: "2026-10-02", to: "2026-10-03", actor: "adam", entity: "product" }),
+    ).toEqual(["product.create", "product.update"]);
   });
 
   it("paginates and clamps the page", async () => {
@@ -105,14 +145,22 @@ describe("audit log: listing and filters", () => {
     expect(third.items[19]?.entityId).toBe("0");
     expect((await listAuditLog(db(), owner, { action: "bulk.action", page: 99 })).page).toBe(3);
     expect((await listAuditLog(db(), owner, { action: "bulk.action", page: -4 })).page).toBe(1);
-    expect((await listAuditLog(db(), owner, { action: "bulk.action", pageSize: 10 })).pageCount).toBe(12);
+    expect(
+      (await listAuditLog(db(), owner, { action: "bulk.action", pageSize: 10 })).pageCount,
+    ).toBe(12);
   });
 
   it("facets list distinct entities, actions and actors for the dropdowns", async () => {
     await seed();
     const facets = await getAuditFacets(db(), owner);
     expect(facets.entities).toEqual(["policy", "product", "setting", "variant"]);
-    expect(facets.actions).toEqual(["policy.publish", "product.create", "product.update", "setting.update", "stock.adjust"]);
+    expect(facets.actions).toEqual([
+      "policy.publish",
+      "product.create",
+      "product.update",
+      "setting.update",
+      "stock.adjust",
+    ]);
     expect(facets.actors).toEqual([
       { id: "admin-1", label: "Adam Admin (adam@example.com)" },
       { id: "owner-1", label: "Olivia Owner (olivia@example.com)" },
@@ -131,20 +179,24 @@ describe("audit log: listing and filters", () => {
 describe("audit log: CSV export", () => {
   it("exports the filtered rows with quoted JSON and neutralised formulas", async () => {
     await seed();
-    await db().insert(adminAuditLog).values({
-      actorId: "owner-1",
-      action: "setting.update",
-      entity: "setting",
-      entityId: "=HYPERLINK(\"http://evil\")",
-      diff: { note: "line1\nline2, \"quoted\"" },
-      createdAt: new Date("2026-10-05T00:00:00Z"),
-    });
+    await db()
+      .insert(adminAuditLog)
+      .values({
+        actorId: "owner-1",
+        action: "setting.update",
+        entity: "setting",
+        entityId: '=HYPERLINK("http://evil")',
+        diff: { note: 'line1\nline2, "quoted"' },
+        createdAt: new Date("2026-10-05T00:00:00Z"),
+      });
     const { rows, truncated } = await exportAuditLog(db(), owner, { entity: "setting" });
     expect(truncated).toBe(false);
     const csv = auditCsv(rows);
     const lines = csv.split("\r\n");
     expect(lines[0]).toBe("Time (UTC),Actor,Actor email,Action,Entity,Entity id,IP,Changes");
-    expect(csv).toContain("2026-10-05T00:00:00.000Z,Olivia Owner,olivia@example.com,setting.update,setting,");
+    expect(csv).toContain(
+      "2026-10-05T00:00:00.000Z,Olivia Owner,olivia@example.com,setting.update,setting,",
+    );
     expect(csv).toContain(`"'=HYPERLINK(""http://evil"")"`); // apostrophe-prefixed, quotes doubled
     expect(csv).toContain(`"{""note"":""line1\\nline2, \\""quoted\\""""}"`);
     expect(csv.endsWith("\r\n")).toBe(true);

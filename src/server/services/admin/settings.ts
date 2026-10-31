@@ -52,7 +52,10 @@ export class SettingAdminValidationError extends AdminInputError {
     readonly key: string,
     readonly issues: SettingIssue[],
   ) {
-    super(issues.map((i) => (i.path ? `${i.path}: ${i.message}` : i.message)).join("; ") || "Invalid value");
+    super(
+      issues.map((i) => (i.path ? `${i.path}: ${i.message}` : i.message)).join("; ") ||
+        "Invalid value",
+    );
     this.name = "SettingAdminValidationError";
   }
 }
@@ -65,9 +68,12 @@ export function placeholderTextPaths(value: unknown, path = ""): string[] {
   if (typeof value === "string") {
     return PLACEHOLDER_TEXT.test(value) || PLACEHOLDER_EMAIL.test(value.trim()) ? [path] : [];
   }
-  if (Array.isArray(value)) return value.flatMap((v, i) => placeholderTextPaths(v, path ? `${path}.${i}` : String(i)));
+  if (Array.isArray(value))
+    return value.flatMap((v, i) => placeholderTextPaths(v, path ? `${path}.${i}` : String(i)));
   if (value && typeof value === "object") {
-    return Object.entries(value).flatMap(([k, v]) => placeholderTextPaths(v, path ? `${path}.${k}` : k));
+    return Object.entries(value).flatMap(([k, v]) =>
+      placeholderTextPaths(v, path ? `${path}.${k}` : k),
+    );
   }
   return [];
 }
@@ -130,7 +136,8 @@ async function extraIssues(db: DbClient, key: SettingKey, value: unknown): Promi
       const list = value as string[];
       const bad = list.filter((v) => !knownVibes.includes(v));
       if (bad.length) issues.push({ path: "", message: `Unknown vibe: ${bad.join(", ")}` });
-      if (new Set(list).size !== list.length) issues.push({ path: "", message: "A vibe is listed twice" });
+      if (new Set(list).size !== list.length)
+        issues.push({ path: "", message: "A vibe is listed twice" });
       break;
     }
     case "admin_alert_emails": {
@@ -142,13 +149,17 @@ async function extraIssues(db: DbClient, key: SettingKey, value: unknown): Promi
     }
     case "cod_excluded_pincodes": {
       const list = value as string[];
-      if (new Set(list).size !== list.length) issues.push({ path: "", message: "A pincode is listed twice" });
+      if (new Set(list).size !== list.length)
+        issues.push({ path: "", message: "A pincode is listed twice" });
       break;
     }
     case "state": {
       // GST place of supply must match a `states` row, when the reference data is loaded.
       const known = await db.select({ name: states.name }).from(states);
-      if (known.length > 0 && !known.some((s) => s.name.toLowerCase() === String(value).trim().toLowerCase())) {
+      if (
+        known.length > 0 &&
+        !known.some((s) => s.name.toLowerCase() === String(value).trim().toLowerCase())
+      ) {
         issues.push({ path: "", message: "Not a known Indian state or union territory name" });
       }
       break;
@@ -172,7 +183,8 @@ export async function updateSettingAdmin(
   assertCan(actor.role, "setting:update");
   if (!isSettingKey(key)) throw new AdminInputError("Unknown setting");
   const def = SETTINGS[key];
-  if ("locked" in def && def.locked) throw new AdminInputError(`"${def.label}" is locked and cannot be changed`);
+  if ("locked" in def && def.locked)
+    throw new AdminInputError(`"${def.label}" is locked and cannot be changed`);
 
   const parsed = def.schema.safeParse(rawValue);
   if (!parsed.success) {

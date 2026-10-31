@@ -18,7 +18,10 @@ import { AdminInputError, type AdminActor } from "./products";
  */
 
 export type FeaturedPlacement = (typeof featuredSlots.$inferSelect)["placement"];
-export const FEATURED_PLACEMENTS = ["home_featured", "hero_tiles"] as const satisfies readonly FeaturedPlacement[];
+export const FEATURED_PLACEMENTS = [
+  "home_featured",
+  "hero_tiles",
+] as const satisfies readonly FeaturedPlacement[];
 
 /** Hero tiles per vibe needed for a full collage (plan section 9). */
 export const HERO_TILES_MIN = 8;
@@ -65,7 +68,10 @@ export interface FeaturedAdminData {
   candidates: SlotProduct[];
 }
 
-async function productInfo(db: DbClient, ids?: readonly string[]): Promise<Map<string, SlotProduct>> {
+async function productInfo(
+  db: DbClient,
+  ids?: readonly string[],
+): Promise<Map<string, SlotProduct>> {
   if (ids && ids.length === 0) return new Map();
   const rows = await db
     .select({
@@ -87,7 +93,10 @@ async function productInfo(db: DbClient, ids?: readonly string[]): Promise<Map<s
     .where(
       and(
         eq(productImages.kind, "cutout"),
-        inArray(productImages.productId, rows.map((r) => r.id)),
+        inArray(
+          productImages.productId,
+          rows.map((r) => r.id),
+        ),
       ),
     );
   const hasCutout = new Set(cutouts.map((c) => c.productId));
@@ -107,7 +116,10 @@ async function productInfo(db: DbClient, ids?: readonly string[]): Promise<Map<s
   );
 }
 
-export async function getFeaturedAdmin(db: DbClient, opts: { now?: Date } = {}): Promise<FeaturedAdminData> {
+export async function getFeaturedAdmin(
+  db: DbClient,
+  opts: { now?: Date } = {},
+): Promise<FeaturedAdminData> {
   const [vibeRows, slotRows, info, tiles] = await Promise.all([
     db.select().from(vibes).orderBy(asc(vibes.sort), asc(vibes.name)),
     db
@@ -123,7 +135,8 @@ export async function getFeaturedAdmin(db: DbClient, opts: { now?: Date } = {}):
   if (missing.length) {
     for (const [id, p] of await productInfo(db, missing)) info.set(id, p);
   }
-  const placeholderCutoutOf = (productId: string) => info.get(productId)?.placeholderCutout ?? false;
+  const placeholderCutoutOf = (productId: string) =>
+    info.get(productId)?.placeholderCutout ?? false;
 
   return {
     candidates: [...info.values()].filter((p) => p.status !== "archived"),
@@ -185,7 +198,8 @@ export async function setFeaturedSlots(
         .select({ id: products.id, status: products.status })
         .from(products)
         .where(inArray(products.id, input.productIds));
-      if (found.length !== input.productIds.length) throw new AdminInputError("A product no longer exists");
+      if (found.length !== input.productIds.length)
+        throw new AdminInputError("A product no longer exists");
       if (found.some((p) => p.status === "archived")) {
         throw new AdminInputError("Archived products cannot be featured");
       }
@@ -193,11 +207,15 @@ export async function setFeaturedSlots(
     const before = await tx
       .select({ productId: featuredSlots.productId })
       .from(featuredSlots)
-      .where(and(eq(featuredSlots.vibeId, input.vibeId), eq(featuredSlots.placement, input.placement)))
+      .where(
+        and(eq(featuredSlots.vibeId, input.vibeId), eq(featuredSlots.placement, input.placement)),
+      )
       .orderBy(asc(featuredSlots.rank), asc(featuredSlots.createdAt), asc(featuredSlots.id));
     await tx
       .delete(featuredSlots)
-      .where(and(eq(featuredSlots.vibeId, input.vibeId), eq(featuredSlots.placement, input.placement)));
+      .where(
+        and(eq(featuredSlots.vibeId, input.vibeId), eq(featuredSlots.placement, input.placement)),
+      );
     if (input.productIds.length) {
       await tx.insert(featuredSlots).values(
         input.productIds.map((productId, rank) => ({
@@ -213,7 +231,12 @@ export async function setFeaturedSlots(
       action: input.placement === "hero_tiles" ? "hero_tiles.set" : "featured.set",
       entity: "vibe",
       entityId: input.vibeId,
-      diff: { vibe: vibe.slug, placement: input.placement, from: before.map((b) => b.productId), to: input.productIds },
+      diff: {
+        vibe: vibe.slug,
+        placement: input.placement,
+        from: before.map((b) => b.productId),
+        to: input.productIds,
+      },
       ip: actor.ip,
     });
     return { productIds: input.productIds };

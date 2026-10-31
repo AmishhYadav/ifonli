@@ -5,7 +5,12 @@ import { z } from "zod";
 
 import { assertCan } from "@/server/auth/permissions";
 import { renderMarkdown } from "@/server/content/markdown";
-import { POLICY_SLUGS, isPolicySlug, loadTemplateContext, type PolicySlug } from "@/server/content/policies";
+import {
+  POLICY_SLUGS,
+  isPolicySlug,
+  loadTemplateContext,
+  type PolicySlug,
+} from "@/server/content/policies";
 import { renderTemplate, type TemplateProblem } from "@/server/content/render-template";
 import { policies, policyVersions, user } from "@/server/db/schema";
 import { writeAudit } from "@/server/services/audit";
@@ -48,7 +53,10 @@ export class PolicyPublishBlockedError extends AdminInputError {
 
 export const policyDraftSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(150),
-  bodyMd: z.string().max(100_000, "That is too long").refine((v) => v.trim().length > 0, "The policy text is empty"),
+  bodyMd: z
+    .string()
+    .max(100_000, "That is too long")
+    .refine((v) => v.trim().length > 0, "The policy text is empty"),
 });
 
 /** A `YYYY-MM-DD` date in IST, today or earlier. */
@@ -140,7 +148,10 @@ export function draftVersionOf(policy: { published: boolean; version: number }):
   return policy.published ? policy.version + 1 : policy.version;
 }
 
-export async function getPolicyEditor(db: DbClient, slug: string): Promise<PolicyEditorData | null> {
+export async function getPolicyEditor(
+  db: DbClient,
+  slug: string,
+): Promise<PolicyEditorData | null> {
   if (!isPolicySlug(slug)) return null;
   const [row] = await db.select().from(policies).where(eq(policies.slug, slug)).limit(1);
   const ctx = await loadTemplateContext(db);
@@ -193,7 +204,9 @@ export async function getPolicyEditor(db: DbClient, slug: string): Promise<Polic
     exists: true,
     published: row.published,
     liveVersion: row.published ? row.version : null,
-    live: row.published ? { title: row.title, bodyMd: row.bodyMd, effectiveAt: row.effectiveAt } : null,
+    live: row.published
+      ? { title: row.title, bodyMd: row.bodyMd, effectiveAt: row.effectiveAt }
+      : null,
     draft,
     problems: renderTemplate(draft.bodyMd, ctx).problems,
     history,
@@ -211,10 +224,14 @@ export interface PolicyPreview {
 }
 
 /** Editor preview: tokens filled from settings, problem spots marked (`<mark>`), through the safe renderer. */
-export async function previewPolicyBody(db: DbClient, bodyMd: string): Promise<PolicyPreview> {
+export async function previewPolicyBody(
+  db: DbClient,
+  bodyMd: string,
+  opts: { dropTitle?: boolean } = {},
+): Promise<PolicyPreview> {
   const ctx = await loadTemplateContext(db);
   const { text, problems } = renderTemplate(bodyMd.slice(0, 100_000), ctx, { preview: true });
-  return { html: renderMarkdown(text).html, problems };
+  return { html: renderMarkdown(text, { dropTitle: opts.dropTitle }).html, problems };
 }
 
 /**
@@ -247,7 +264,10 @@ export async function savePolicyDraft(
       version = draftVersionOf(row);
       if (!row.published) {
         before = { title: row.title, bodyMd: row.bodyMd };
-        await tx.update(policies).set({ title: input.title, bodyMd: input.bodyMd }).where(eq(policies.id, policyId));
+        await tx
+          .update(policies)
+          .set({ title: input.title, bodyMd: input.bodyMd })
+          .where(eq(policies.id, policyId));
       }
     }
     const [existingVersion] = await tx
@@ -261,7 +281,9 @@ export async function savePolicyDraft(
         .set({ title: input.title, bodyMd: input.bodyMd })
         .where(eq(policyVersions.id, existingVersion.id));
     } else {
-      await tx.insert(policyVersions).values({ policyId, version, title: input.title, bodyMd: input.bodyMd });
+      await tx
+        .insert(policyVersions)
+        .values({ policyId, version, title: input.title, bodyMd: input.bodyMd });
     }
     await writeAudit(tx, {
       actorId: actor.id,
@@ -270,7 +292,10 @@ export async function savePolicyDraft(
       entityId: slug,
       diff: {
         version,
-        title: before && before.title !== input.title ? { from: before.title, to: input.title } : undefined,
+        title:
+          before && before.title !== input.title
+            ? { from: before.title, to: input.title }
+            : undefined,
         bodyChars: { from: before?.bodyMd.length ?? 0, to: input.bodyMd.length },
       },
       ip: actor.ip,
@@ -348,7 +373,12 @@ export async function publishPolicy(
         published: true,
       })
       .where(eq(policies.id, row.id));
-    const stamp = { title: source.title, bodyMd: source.bodyMd, effectiveAt, publishedBy: actor.id };
+    const stamp = {
+      title: source.title,
+      bodyMd: source.bodyMd,
+      effectiveAt,
+      publishedBy: actor.id,
+    };
     if (draft) {
       await tx.update(policyVersions).set(stamp).where(eq(policyVersions.id, draft.id));
     } else {

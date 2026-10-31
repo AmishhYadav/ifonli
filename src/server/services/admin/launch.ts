@@ -68,50 +68,106 @@ const present = (v: string | undefined) => (v ?? "").trim().length > 0;
 /** Environment checks (pure). Everything here is configured in the hosting dashboard, not in the admin. */
 export function checkEnvironment(env: Env): LaunchItem[] {
   const items: LaunchItem[] = [];
-  const add = (
-    id: string,
-    severity: LaunchSeverity,
-    title: string,
-    detail: string,
-  ) => items.push({ id: `env:${id}`, category: "environment", severity, title, detail, href: null });
+  const add = (id: string, severity: LaunchSeverity, title: string, detail: string) =>
+    items.push({ id: `env:${id}`, category: "environment", severity, title, detail, href: null });
 
   const keyId = env.RAZORPAY_KEY_ID?.trim();
   if (!keyId || !present(env.RAZORPAY_KEY_SECRET)) {
-    add("razorpay", "blocker", "Razorpay live keys are missing", "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to the live keys (after KYC approval).");
+    add(
+      "razorpay",
+      "blocker",
+      "Razorpay live keys are missing",
+      "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to the live keys (after KYC approval).",
+    );
   } else if (!keyId.startsWith("rzp_live_")) {
-    add("razorpay", "blocker", "Razorpay is using test keys", "RAZORPAY_KEY_ID must start with rzp_live_ before real customers pay.");
+    add(
+      "razorpay",
+      "blocker",
+      "Razorpay is using test keys",
+      "RAZORPAY_KEY_ID must start with rzp_live_ before real customers pay.",
+    );
   }
   if (!present(env.RAZORPAY_WEBHOOK_SECRET)) {
-    add("razorpay-webhook", "blocker", "Razorpay webhook secret is missing", "Set RAZORPAY_WEBHOOK_SECRET (a different secret from the key secret) and register the webhook URL.");
+    add(
+      "razorpay-webhook",
+      "blocker",
+      "Razorpay webhook secret is missing",
+      "Set RAZORPAY_WEBHOOK_SECRET (a different secret from the key secret) and register the webhook URL.",
+    );
   }
   if (!present(env.RESEND_API_KEY)) {
-    add("resend", "blocker", "Resend API key is missing", "Set RESEND_API_KEY so order emails and login codes are delivered.");
+    add(
+      "resend",
+      "blocker",
+      "Resend API key is missing",
+      "Set RESEND_API_KEY so order emails and login codes are delivered.",
+    );
   }
   if (!present(env.EMAIL_FROM)) {
-    add("email-from", "blocker", "Sender address is missing", "Set EMAIL_FROM to an address on the verified Resend domain, e.g. IfOnli <orders@your-domain>.");
+    add(
+      "email-from",
+      "blocker",
+      "Sender address is missing",
+      "Set EMAIL_FROM to an address on the verified Resend domain, e.g. IfOnli <orders@your-domain>.",
+    );
   }
   const secret = env.BETTER_AUTH_SECRET?.trim() ?? "";
   if (secret.length < 32) {
-    add("auth-secret", "blocker", "Sign-in secret is missing or too short", "Set BETTER_AUTH_SECRET to at least 32 random characters (openssl rand -hex 32).");
+    add(
+      "auth-secret",
+      "blocker",
+      "Sign-in secret is missing or too short",
+      "Set BETTER_AUTH_SECRET to at least 32 random characters (openssl rand -hex 32).",
+    );
   }
   if (!present(env.ORDER_TOKEN_SECRET)) {
-    add("order-token", "blocker", "Order link secret is missing", "Set ORDER_TOKEN_SECRET (openssl rand -hex 32).");
+    add(
+      "order-token",
+      "blocker",
+      "Order link secret is missing",
+      "Set ORDER_TOKEN_SECRET (openssl rand -hex 32).",
+    );
   }
   if (!present(env.CRON_SECRET)) {
-    add("cron", "blocker", "Cron secret is missing", "Set CRON_SECRET so Vercel Cron can call the reservation and notification jobs.");
+    add(
+      "cron",
+      "blocker",
+      "Cron secret is missing",
+      "Set CRON_SECRET so Vercel Cron can call the reservation and notification jobs.",
+    );
   }
   const site = env.NEXT_PUBLIC_SITE_URL?.trim();
   if (!site || !/^https:\/\//i.test(site) || /localhost|127\.0\.0\.1/.test(site)) {
-    add("site-url", "blocker", "Public site URL is not a production https URL", "Set NEXT_PUBLIC_SITE_URL to the live domain (https://...).");
+    add(
+      "site-url",
+      "blocker",
+      "Public site URL is not a production https URL",
+      "Set NEXT_PUBLIC_SITE_URL to the live domain (https://...).",
+    );
   }
   if (!present(env.SUPABASE_URL) || !present(env.SUPABASE_SERVICE_ROLE_KEY)) {
-    add("storage", "blocker", "Image storage is not configured", "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY so product and banner images can be uploaded.");
+    add(
+      "storage",
+      "blocker",
+      "Image storage is not configured",
+      "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY so product and banner images can be uploaded.",
+    );
   }
   if (!present(env.SENTRY_DSN)) {
-    add("sentry", "warning", "Error monitoring is off", "Set SENTRY_DSN to be told about production errors.");
+    add(
+      "sentry",
+      "warning",
+      "Error monitoring is off",
+      "Set SENTRY_DSN to be told about production errors.",
+    );
   }
   if (env.NODE_ENV !== "production") {
-    add("node-env", "warning", "This server is not running in production mode", "These checks reflect the environment this page is served from.");
+    add(
+      "node-env",
+      "warning",
+      "This server is not running in production mode",
+      "These checks reflect the environment this page is served from.",
+    );
   }
   return items;
 }
@@ -128,7 +184,8 @@ export async function getLaunchReadiness(
 
   // ---- settings ---------------------------------------------------------------------------------
   const readings = await readSettings(db, SETTING_KEYS);
-  const valueOf = (key: string) => (key in readings ? readings[key as SettingKey].value : undefined);
+  const valueOf = (key: string) =>
+    key in readings ? readings[key as SettingKey].value : undefined;
   for (const key of SETTING_KEYS) {
     const def = SETTINGS[key];
     if (!readings[key].isPlaceholder || !isRequiredForLaunch(def, valueOf)) continue;
@@ -136,7 +193,7 @@ export async function getLaunchReadiness(
       id: `setting:${key}`,
       category: "settings",
       severity: "blocker",
-      title: def.label,
+      title: def.label.replace(/\s*\(paise\)/i, ""),
       detail: "Still a placeholder: set the real value.",
       href: `/admin/settings?group=${def.group}#setting-${key}`,
     });
@@ -179,7 +236,9 @@ export async function getLaunchReadiness(
       title: `${phProducts.size} active ${phProducts.size === 1 ? "product uses" : "products use"} placeholder images`,
       detail: `${cutouts} placeholder ${cutouts === 1 ? "cutout" : "cutouts"} and ${photos} placeholder ${photos === 1 ? "photo" : "photos"}. Replace them with real photography.`,
       href: "/admin/products",
-      links: [...phProducts].slice(0, ACTIVE_PRODUCT_SAMPLE).map(([id, name]) => ({ label: name, href: `/admin/products/${id}` })),
+      links: [...phProducts]
+        .slice(0, ACTIVE_PRODUCT_SAMPLE)
+        .map(([id, name]) => ({ label: name, href: `/admin/products/${id}` })),
     });
   }
   const placeholderSkus = await db
@@ -196,21 +255,40 @@ export async function getLaunchReadiness(
       title: `${placeholderSkus.length} active ${placeholderSkus.length === 1 ? "product has" : "products have"} placeholder SKUs (PH-)`,
       detail: "These come from the dev seed. Replace them with the real catalogue.",
       href: "/admin/products",
-      links: placeholderSkus.slice(0, ACTIVE_PRODUCT_SAMPLE).map((p) => ({ label: p.name, href: `/admin/products/${p.productId}` })),
+      links: placeholderSkus
+        .slice(0, ACTIVE_PRODUCT_SAMPLE)
+        .map((p) => ({ label: p.name, href: `/admin/products/${p.productId}` })),
     });
   }
 
   // ---- policies ---------------------------------------------------------------------------------
   const ctx = await loadTemplateContext(db);
-  const policyRows = await db.select().from(policies).where(inArray(policies.slug, [...POLICY_SLUGS]));
+  const policyRows = await db
+    .select()
+    .from(policies)
+    .where(inArray(policies.slug, [...POLICY_SLUGS]));
   for (const slug of POLICY_SLUGS) {
     const row = policyRows.find((p) => p.slug === slug);
     const title = row?.title ?? POLICY_TITLES[slug];
     const href = `/admin/policies/${slug}`;
     if (!row) {
-      items.push({ id: `policy:${slug}`, category: "policies", severity: "blocker", title: `${title} does not exist yet`, detail: "Create the draft and publish it.", href });
+      items.push({
+        id: `policy:${slug}`,
+        category: "policies",
+        severity: "blocker",
+        title: `${title} does not exist yet`,
+        detail: "Create the draft and publish it.",
+        href,
+      });
     } else if (!row.published) {
-      items.push({ id: `policy:${slug}`, category: "policies", severity: "blocker", title: `${title} is not published`, detail: "The owner publishes it after legal review.", href });
+      items.push({
+        id: `policy:${slug}`,
+        category: "policies",
+        severity: "blocker",
+        title: `${title} is not published`,
+        detail: "The owner publishes it after legal review.",
+        href,
+      });
     } else {
       const { problems } = renderTemplate(row.bodyMd, ctx);
       if (problems.length > 0) {
@@ -219,7 +297,12 @@ export async function getLaunchReadiness(
           category: "policies",
           severity: "blocker",
           title: `${title} has unresolved settings`,
-          detail: `${problems.length} ${problems.length === 1 ? "token is" : "tokens are"} a placeholder or missing (${problems.slice(0, 3).map((p) => p.token).join(", ")}${problems.length > 3 ? ", ..." : ""}); the page is hidden on the live site until fixed.`,
+          detail: `${problems.length} ${problems.length === 1 ? "token is" : "tokens are"} a placeholder or missing (${problems
+            .slice(0, 3)
+            .map((p) => p.token)
+            .join(
+              ", ",
+            )}${problems.length > 3 ? ", ..." : ""}); the page is hidden on the live site until fixed.`,
           href,
         });
       }
@@ -229,7 +312,14 @@ export async function getLaunchReadiness(
   // ---- content ----------------------------------------------------------------------------------
   const faqRows = await db.select().from(faqs).where(eq(faqs.published, true));
   if (faqRows.length === 0) {
-    items.push({ id: "content:faq-empty", category: "content", severity: "warning", title: "No published FAQ", detail: "The Help page has no questions.", href: "/admin/faq" });
+    items.push({
+      id: "content:faq-empty",
+      category: "content",
+      severity: "warning",
+      title: "No published FAQ",
+      detail: "The Help page has no questions.",
+      href: "/admin/faq",
+    });
   } else {
     const hidden = faqRows.filter((f) => renderTemplate(f.answerMd, ctx).problems.length > 0);
     if (hidden.length > 0) {
