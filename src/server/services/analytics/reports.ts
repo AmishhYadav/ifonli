@@ -3,6 +3,7 @@ import "server-only";
 import { sql, type SQL } from "drizzle-orm";
 
 import { COUNTED_STATUSES, UNCOUNTED_PAYMENT } from "@/server/services/admin/dashboard";
+import { REPLACEMENT_KEY_PREFIX } from "@/server/services/replacement-orders";
 import type { DbClient } from "@/server/services/queries/shared";
 
 import { fillBuckets, rangeBounds, type Bucket, type DateRange } from "./dates";
@@ -23,9 +24,12 @@ const list = (values: readonly string[]): SQL =>
     sql`, `,
   );
 
-/** SQL predicate for orders that count as sales, over the table alias `o`. */
+/**
+ * SQL predicate for orders that count as sales, over the table alias `o`. Same definition as the
+ * dashboard, including leaving out no-charge support replacement orders.
+ */
 function countedOrders(): SQL {
-  return sql`o.status IN (${list(COUNTED_STATUSES)}) AND o.payment_status NOT IN (${list(UNCOUNTED_PAYMENT)})`;
+  return sql`o.status IN (${list(COUNTED_STATUSES)}) AND o.payment_status NOT IN (${list(UNCOUNTED_PAYMENT)}) AND o.idempotency_key NOT LIKE ${`${REPLACEMENT_KEY_PREFIX}%`}`;
 }
 
 function placedIn(range: DateRange): SQL {
