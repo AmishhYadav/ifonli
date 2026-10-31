@@ -15,6 +15,7 @@ import {
   refunds,
   shipments,
   stockReservations,
+  supportCases,
   user,
   invoices,
 } from "@/server/db/schema";
@@ -30,6 +31,9 @@ import {
   type OrderStatus,
   type PaymentMethod,
   type PaymentStatus,
+  type SupportResolution,
+  type SupportStatus,
+  type SupportType,
 } from "@/server/domain";
 import { enqueueCustomerNotification, enqueueNotification, type NotificationTemplate } from "@/server/notify/outbox";
 import type { PaymentProvider } from "@/server/payments/provider";
@@ -39,6 +43,7 @@ import { adjustStock } from "@/server/services/inventory";
 import { addOrderEvent } from "@/server/services/order-events";
 import type { DbClient } from "@/server/services/queries/shared";
 import { createRefund, dispositionOf, loadRefundTotals, type PaymentDisposition } from "@/server/services/refunds";
+import { REPLACEMENT_KEY_PREFIX, replacementKey } from "@/server/services/replacement-orders";
 
 import { trackingUrlFor } from "./couriers";
 import { AdminInputError, type AdminActor } from "./products";
@@ -351,6 +356,18 @@ export interface AdminOrderDetail {
   }[];
   invoice: { number: string; kind: "tax_invoice" | "bill_of_supply"; hasPdf: boolean } | null;
   notifications: { id: string; template: string; status: string; attempts: number; createdAt: Date }[];
+  /** Support cases reported on this order (`support_cases.order_id`), newest first. */
+  supportCases: {
+    id: string;
+    type: SupportType;
+    status: SupportStatus;
+    resolution: SupportResolution | null;
+    createdAt: Date;
+  }[];
+  /** Set when this order is a no-charge replacement: the order it replaces, and the case that asked for it. */
+  replacementFor: { orderId: string; ref: string; caseId: string } | null;
+  /** Replacement orders created from this order's support cases (key `replacement:<caseId>`). */
+  replacements: { orderId: string; ref: string; caseId: string }[];
   money: {
     capturedPaise: number;
     /** Pending + processed + manual: not available for another refund. */
@@ -398,6 +415,7 @@ export async function getAdminOrderDetail(db: DbClient, orderId: string): Promis
       restockedByVariant(db, orderId),
       loadRefundTotals(db, order),
     ]);
+  const links = await loadSupportLinks(db, order);
 
   const refundablePaise = refundableAmount(totals.capturedPaise, totals.committedPaise);
   const invoice = invoiceRows[0];
@@ -445,6 +463,9 @@ export async function getAdminOrderDetail(db: DbClient, orderId: string): Promis
     })),
     invoice: invoice ? { number: invoice.number, kind: invoice.kind, hasPdf: invoice.pdfPath !== null } : null,
     notifications: outbox,
+    supportCases: links.cases,
+    replacementFor: links.replacementFor,
+    replacements: links.replacements,
     money: {
       capturedPaise: totals.capturedPaise,
       committedPaise: totals.committedPaise,
@@ -452,6 +473,66 @@ export async function getAdminOrderDetail(db: DbClient, orderId: string): Promis
       refundablePaise,
     },
     actions: orderActions(order, { refundablePaise, hasShipment: shipmentRows.length > 0 }),
+  };
+}
+
+const CASE_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Support cases on the order, plus the replacement links in both directions. A replacement order's
+ * idempotency key is `replacement:<caseId>` (see replacement-orders.ts): the key leads from a case to
+ * its replacement order, and from a replacement order back to the case and the order it replaces.
+ */
+async function loadSupportLinks(
+  db: DbClient,
+  order: OrderRow,
+): Promise<{
+  cases: AdminOrderDetail["supportCases"];
+  replacementFor: AdminOrderDetail["replacementFor"];
+  replacements: AdminOrderDetail["replacements"];
+}> {
+  const caseRows = await db
+    .select({
+      id: supportCases.id,
+      type: supportCases.type,
+      status: supportCases.status,
+      resolution: supportCases.resolution,
+      createdAt: supportCases.createdAt,
+    })
+    .from(supportCases)
+    .where(eq(supportCases.orderId, order.id))
+    .orderBy(desc(supportCases.createdAt), desc(supportCases.id));
+
+  const replacementRows = caseRows.length
+    ? await db
+        .select({ id: orders.id, ref: orders.ref, key: orders.idempotencyKey })
+        .from(orders)
+        .where(inArray(orders.idempotencyKey, caseRows.map((c) => replacementKey(c.id))))
+        .orderBy(asc(orders.placedAt), asc(orders.id))
+    : [];
+
+  let replacementFor: AdminOrderDetail["replacementFor"] = null;
+  if (order.idempotencyKey.startsWith(REPLACEMENT_KEY_PREFIX)) {
+    const caseId = order.idempotencyKey.slice(REPLACEMENT_KEY_PREFIX.length);
+    if (CASE_ID_RE.test(caseId)) {
+      const [original] = await db
+        .select({ id: orders.id, ref: orders.ref })
+        .from(supportCases)
+        .innerJoin(orders, eq(orders.id, supportCases.orderId))
+        .where(eq(supportCases.id, caseId))
+        .limit(1);
+      if (original) replacementFor = { orderId: original.id, ref: original.ref, caseId };
+    }
+  }
+
+  return {
+    cases: caseRows,
+    replacementFor,
+    replacements: replacementRows.map((r) => ({
+      orderId: r.id,
+      ref: r.ref,
+      caseId: r.key.slice(REPLACEMENT_KEY_PREFIX.length),
+    })),
   };
 }
 
