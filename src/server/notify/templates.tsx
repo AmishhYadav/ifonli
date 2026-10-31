@@ -7,7 +7,7 @@ import { LowStockDigest, NewContact, NewOrder, NewSupportCase, OutboxFailure, Pa
 import { CodPlaced, OrderCancelled, OrderConfirmed, OrderDelivered, OrderShipped, PaymentFailed } from "../../../emails/customer/order";
 import { LoginOtp } from "../../../emails/customer/otp";
 import { LateCaptureRefunded, RefundInitiated, RefundProcessed } from "../../../emails/customer/refund";
-import { ContactAck, SupportCaseUpdate } from "../../../emails/customer/support";
+import { ContactAck, ContactReply, SupportCaseUpdate } from "../../../emails/customer/support";
 import { payloadSchemas, type PayloadOf, type TemplateName, type TemplateProps } from "../../../emails/payloads";
 import type { EmailContext } from "../../../emails/types";
 
@@ -93,6 +93,12 @@ export const TEMPLATES: { [T in TemplateName]: TemplateDef<T> } = {
     attachInvoice: false,
     subject: () => "We got your message",
     Component: ContactAck,
+  }),
+  contact_reply: def({
+    audience: "customer",
+    attachInvoice: false,
+    subject: (_p, ctx) => `Re: your message to ${ctx.store.brandName}`,
+    Component: ContactReply,
   }),
   login_otp: def({
     audience: "customer",

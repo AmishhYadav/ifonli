@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gte, inArray, lt, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lt, notInArray, notLike, or, sql } from "drizzle-orm";
 
 import {
   adminAuditLog,
@@ -15,6 +15,7 @@ import {
 import { istDateString, type FulfillmentStatus, type OrderStatus, type PaymentMethod, type PaymentStatus } from "@/server/domain";
 import { listLowStock } from "@/server/services/inventory";
 import type { DbClient } from "@/server/services/queries/shared";
+import { REPLACEMENT_KEY_PREFIX } from "@/server/services/replacement-orders";
 
 export interface SalesWindow {
   orders: number;
@@ -121,6 +122,8 @@ export async function getDashboardStats(
           gte(orders.placedAt, weekStart),
           inArray(orders.status, COUNTED_STATUSES),
           notInArray(orders.paymentStatus, UNCOUNTED_PAYMENT),
+          // No-charge replacement orders (support) are not sales: they would only drag the AOV down.
+          notLike(orders.idempotencyKey, `${REPLACEMENT_KEY_PREFIX}%`),
         ),
       ),
     db

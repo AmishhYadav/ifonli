@@ -57,6 +57,15 @@ export const payloadSchemas = {
     note: text(1000).nullable().optional(),
   }),
   contact_ack: z.object({ name: text(120), messageId: z.string().optional() }),
+  /** A team member's reply to a contact-form message (admin Support inbox). */
+  contact_reply: z.object({
+    name: text(120),
+    /** The reply, plain text; line breaks are kept. */
+    message: z.string().min(1).max(4000),
+    /** What the customer wrote, quoted under the reply. */
+    original: text(4000).nullable().optional(),
+    messageId: z.string().optional(),
+  }),
   login_otp: z.object({
     otp: z.string().regex(/^\d{4,10}$/),
     type: z.enum(["sign-in", "email-verification", "forget-password", "change-email"]),

@@ -121,6 +121,19 @@ describe("template registry", () => {
     expect(fail.text).toContain("order_confirmed");
   });
 
+  it("contact_reply greets by first name, keeps the reply's line breaks, quotes the original and escapes markup", async () => {
+    const r = await renderTemplate("contact_reply", FIXTURE_PAYLOADS.contact_reply, fixtureContext());
+    expect(r.subject).toBe("Re: your message to IfOnli");
+    expect(r.text).toContain("Hi Asha,");
+    expect(r.text).toContain("Yes, we can change the address");
+    expect(r.text).toContain("You wrote:");
+    expect(r.text).toContain("Can I change the delivery address?");
+    expect(r.html).toContain("white-space:pre-line");
+    const evil = await renderTemplate("contact_reply", { name: "A", message: "<b onclick=x>hi</b>", original: null }, fixtureContext());
+    expect(evil.html).not.toContain("<b onclick=x>");
+    expect(evil.text).not.toContain("You wrote:");
+  });
+
   it("escapes markup in free text (contact message, support note)", async () => {
     const r = await renderTemplate("new_contact", { ...FIXTURE_PAYLOADS.new_contact, message: "<script>alert(1)</script>" }, fixtureContext());
     expect(r.html).not.toContain("<script>alert(1)</script>");
