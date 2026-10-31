@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BuyFooter } from "@/components/store/footer/BuyFooter";
 import { Logo } from "@/components/store/header/Logo";
 import { Icon } from "@/components/ui";
+import { AnalyticsMount } from "@/features/analytics/AnalyticsMount";
 
 /**
  * Cart, checkout, confirmation and tracking: palette only (`data-vibe-scope="buy"` resets shape, type and
@@ -37,6 +38,7 @@ export default function BuyLayout({ children }: Readonly<{ children: React.React
         {children}
       </main>
       <BuyFooter />
+      <AnalyticsMount />
     </>
   );
 }

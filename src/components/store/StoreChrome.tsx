@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import "@/styles/store.css";
 
+import { AnalyticsMount } from "@/features/analytics/AnalyticsMount";
+
 import { Footer } from "./footer/Footer";
 import { AnnouncementBar } from "./header/AnnouncementBar";
 import { Header } from "./header/Header";
@@ -22,6 +24,7 @@ export function StoreChrome({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
+      <AnalyticsMount />
     </>
   );
 }

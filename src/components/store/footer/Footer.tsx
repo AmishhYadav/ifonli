@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/ui";
+import { AnalyticsFooterLink } from "@/features/analytics/AnalyticsMount";
 import { getCollections } from "@/server/cache/catalog";
 import { getStoreInfo } from "@/server/cache/settings";
 
@@ -135,7 +136,8 @@ export async function Footer() {
       </div>
       <div className="border-t border-border">
         <p className="mx-auto max-w-[1440px] px-4 py-5 text-sm text-ink-muted sm:px-6">
-          All prices are in Indian rupees and include all taxes. &copy; {info.brandName}
+          All prices are in Indian rupees and include all taxes. &copy; {info.brandName}{" "}
+          <AnalyticsFooterLink className="ml-2 inline-flex min-h-11 items-center text-ink underline underline-offset-4 hover:no-underline md:min-h-9" />
         </p>
       </div>
     </footer>
