@@ -4,20 +4,16 @@ import { notificationOutbox } from "@/server/db/schema";
 import { readSettings, type DbClient } from "@/server/services/queries/shared";
 import { NOTIFICATION_EVENTS } from "@/server/services/settings-registry";
 
+import type { TemplateName } from "../../../emails/payloads";
+
 /**
  * Transactional outbox (plan 7.10). Callers pass the OPEN transaction of the state change, so the
- * row commits or rolls back with it. Sending (Resend / WhatsApp), retries and backoff are a later
- * phase: until then rows simply sit `pending` with `next_attempt_at = now`.
+ * row commits or rolls back with it. Delivery is `sender.ts`: it runs right after the response
+ * (`dispatchOutboxSoon`) and again from the `notify-retry` cron, which retries with backoff.
  */
 
-/** Templates written by the payment flows. Customer templates come first. */
-export type NotificationTemplate =
-  | "order_confirmed"
-  | "refund_initiated"
-  | "refund_processed"
-  | "payment_late_refund"
-  | "new_order"
-  | "payment_anomaly";
+/** Every template that can be queued (all but `login_otp`, which is sent directly and never queued). */
+export type NotificationTemplate = Exclude<TemplateName, "login_otp">;
 
 export interface EnqueueInput {
   orderId?: string | null;
@@ -38,11 +34,20 @@ export async function enqueueNotification(tx: DbClient, input: EnqueueInput): Pr
   });
 }
 
+/** Template name -> key in the `notification_channels` setting, where the two differ. */
+const CHANNEL_EVENT: Partial<Record<NotificationTemplate, string>> = {
+  cod_placed: "cod_order_placed",
+  order_shipped: "shipped",
+  order_delivered: "delivered",
+  order_cancelled: "cancelled",
+};
+
 /** Customer message, skipped when the owner turned the e-mail channel off for that event. */
 export async function enqueueCustomerNotification(tx: DbClient, input: EnqueueInput): Promise<boolean> {
-  if ((NOTIFICATION_EVENTS as readonly string[]).includes(input.template)) {
+  const eventKey = CHANNEL_EVENT[input.template] ?? input.template;
+  if ((NOTIFICATION_EVENTS as readonly string[]).includes(eventKey)) {
     const { notification_channels } = await readSettings(tx, ["notification_channels"]);
-    const flags = (notification_channels.value as Record<string, { email: boolean }>)[input.template];
+    const flags = (notification_channels.value as Record<string, { email: boolean }>)[eventKey];
     if (flags && !flags.email) return false;
   }
   await enqueueNotification(tx, input);

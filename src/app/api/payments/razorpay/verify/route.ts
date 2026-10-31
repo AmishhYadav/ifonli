@@ -1,5 +1,6 @@
 import { revalidateStock } from "@/server/cache/revalidate";
 import { getDb } from "@/server/db";
+import { dispatchOutboxSoon } from "@/server/notify/dispatch";
 import { PaymentConfigError } from "@/server/payments/provider";
 import { getPaymentProvider } from "@/server/payments/registry";
 import { handleVerifyRequest } from "@/server/payments/verify";
@@ -24,6 +25,8 @@ export async function POST(req: Request): Promise<Response> {
   }
   try {
     const out = await handleVerifyRequest(getDb(), getPaymentProvider(), body, { ip: clientIp(req) });
+    // Confirmation e-mails were queued in the same transaction; send them right after the response.
+    dispatchOutboxSoon();
     if (out.productIds.length > 0) {
       try {
         revalidateStock({ productIds: out.productIds }, { via: "route" });

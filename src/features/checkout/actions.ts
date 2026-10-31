@@ -4,6 +4,8 @@ import { unstable_rethrow } from "next/navigation";
 
 import { revalidateStock } from "@/server/cache/revalidate";
 import { getDb } from "@/server/db";
+import { dispatchOutboxSoon } from "@/server/notify/dispatch";
+import { onOrderPlacedInTransaction } from "@/server/notify/order-hooks";
 import { findCartByToken, findUserCart } from "@/server/services/cart";
 import {
   getCheckoutQuote as buildCheckoutQuote,
@@ -143,8 +145,11 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
       form: input,
       userId: user?.id ?? null,
       initiatePayment,
+      hooks: { onPlacedInTransaction: onOrderPlacedInTransaction },
     });
     if (!result.ok) return { ok: false, error: result.error };
+    // COD confirmation e-mails were queued with the order; send them right after the response.
+    if (!result.replayed && result.order.paymentMethod === "cod") dispatchOutboxSoon();
 
     // Reservations (prepaid) and sales (COD) change live availability on cached cards.
     if (!result.replayed && result.productIds.length > 0) {
