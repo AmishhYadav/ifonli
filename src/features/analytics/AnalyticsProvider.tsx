@@ -3,10 +3,12 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { HERO_ANALYTICS_EVENT, type HeroEventDetail } from "@/features/hero/stage/analytics";
 import { VIBE_CHANGE_EVENT } from "@/features/vibe/config";
 import type { VibeChangeDetail } from "@/features/vibe/store";
 import { track } from "@/lib/analytics/client";
 
+import { heroEventToTrack } from "./hero-bridge";
 import { PRODUCT_SELECTOR, startImpressionObserver, type ImpressionObserver } from "./impressions";
 
 /**
@@ -14,7 +16,9 @@ import { PRODUCT_SELECTOR, startImpressionObserver, type ImpressionObserver } fr
  *  - `page_view` on every client-side navigation, plus `view_cart` / `begin_checkout` for those pages;
  *  - `product_impression` through the impression observer (cards are found by `data-product-id`);
  *  - `product_click` through one delegated listener (a click on the link of a card);
- *  - `vibe_switch` from the vibe store's change event (user-driven switches only).
+ *  - `vibe_switch` from the vibe store's change event (user-driven switches only);
+ *  - the hero's events (`hero_impression`, `hero_tile_click`, `hero_pause`, `hero_play`), which the hero
+ *    dispatches as a DOM event so it never depends on this module (see docs/HERO.md).
  * PDP views and scroll depth come from `PdpTracker`; everything else is an explicit `track()` call.
  */
 export function AnalyticsProvider() {
@@ -59,11 +63,19 @@ export function AnalyticsProvider() {
     };
     window.addEventListener(VIBE_CHANGE_EVENT, onVibe);
 
+    const onHero = (e: CustomEvent<HeroEventDetail>) => {
+      if (!e.detail) return;
+      const { name, props } = heroEventToTrack(e.detail);
+      track(name, props);
+    };
+    window.addEventListener(HERO_ANALYTICS_EVENT, onHero);
+
     return () => {
       observer.current?.stop();
       observer.current = null;
       document.removeEventListener("click", onClick, { capture: true });
       window.removeEventListener(VIBE_CHANGE_EVENT, onVibe);
+      window.removeEventListener(HERO_ANALYTICS_EVENT, onHero);
     };
   }, []);
 
