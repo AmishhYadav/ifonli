@@ -50,10 +50,30 @@ pnpm dev                    # http://localhost:3000
 | `pnpm db:migrate`  | Apply migrations                                       |
 | `pnpm db:studio`   | Open Drizzle Studio                                    |
 | `pnpm db:seed`     | Seed the database                                      |
+| `pnpm db:seed-products` / `db:seed-content` | Placeholder catalogue (dev only) / policies and FAQs |
 | `pnpm contrast`    | Check vibe token contrast pairs                        |
+
+## Running e2e specs locally
+
+`pnpm e2e` starts `pnpm dev` (or uses `E2E_BASE_URL`). The prepaid-payment specs need `next dev` (the payment mock refuses to run in a production build). The security/CSP spec is meant for a production build:
+
+```bash
+pnpm build && pnpm start -p 3107
+E2E_BASE_URL=http://localhost:3107 pnpm e2e --project=chromium-desktop --grep "security:"
+```
+
+If your machine has a Chromium that is not the build Playwright expects (typical in sandboxes), point Playwright at it instead of editing the config:
+
+```bash
+PW_CHROMIUM_PATH=/path/to/chrome pnpm e2e --project=chromium-desktop
+```
+
+`PW_CHROMIUM_PATH` only sets `launchOptions.executablePath` for Chromium projects and is never needed in CI. Other switches: `E2E_ADMIN_FLOW=1` (admin flows that need the dev database), `E2E_MOCK_CHECKOUT=1` (checkout up to the dev mock payment dialog, `next dev` only).
 
 ## Docs
 
 - [docs/PLAN.md](docs/PLAN.md): the approved implementation plan
 - [docs/DECISIONS.md](docs/DECISIONS.md): decision log
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): system diagram, data flows, caching, auth
+- [docs/RUNBOOK.md](docs/RUNBOOK.md): env vars, deploy/rollback, migrations, key rotation, backups, rate limits, CSP switch
 - [docs/OWNER-INPUTS.md](docs/OWNER-INPUTS.md): what the owner still needs to supply, by phase

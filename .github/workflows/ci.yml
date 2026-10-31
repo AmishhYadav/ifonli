@@ -9,40 +9,240 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Why several jobs and two e2e modes:
+#  - `next build` prerenders product/vibe/type pages FROM THE DATABASE (as Vercel does against the
+#    production DB), so every job that builds needs a migrated + seeded Postgres service.
+#  - The dev payment mock refuses to run under NODE_ENV=production (by design), so the functional e2e
+#    suite (checkout, prepaid payments) runs against `next dev`; the security/CSP spec and Lighthouse
+#    run against `next start` on the production build, which is what ships.
+
+env:
+  CI: true
+  NODE_VERSION: 22
+
 jobs:
-  verify:
+  # ---------------------------------------------------------------------------------------------
+  # Fast checks: no database needed.
+  # ---------------------------------------------------------------------------------------------
+  static:
+    name: Lint, types, unit, contrast
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-
-      - name: Install
-        run: pnpm install --frozen-lockfile
-
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec next typegen
       - name: Lint
         run: pnpm lint
-
       - name: Typecheck
         run: pnpm typecheck
-
       - name: Unit tests
         run: pnpm test
-
       - name: Contrast check
         run: pnpm contrast
 
+  # ---------------------------------------------------------------------------------------------
+  # Integration tests against a real Postgres 16 (migrations run from scratch every time).
+  # ---------------------------------------------------------------------------------------------
+  integration:
+    name: Integration tests (Postgres 16)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      # pg_trgm / unaccent are created by the migrations; the official image ships contrib.
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      BETTER_AUTH_SECRET: ci-dummy-secret-not-for-production-use-00000000
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      ORDER_TOKEN_SECRET: ci-order-token-secret-00000000000000000000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Integration tests
+        run: pnpm test:integration
+
+  # ---------------------------------------------------------------------------------------------
+  # Functional e2e (chromium-desktop) against `pnpm dev` on the seeded service database.
+  # ---------------------------------------------------------------------------------------------
+  e2e-dev:
+    name: e2e (functional, next dev)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      BETTER_AUTH_SECRET: ci-dummy-secret-not-for-production-use-00000000
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      ORDER_TOKEN_SECRET: ci-order-token-secret-00000000000000000000
+      CRON_SECRET: ci-cron-secret
+      SEED_OWNER_EMAIL: owner@ifonli.local
+      # The payment mock only exists outside production builds, so the prepaid specs need `next dev`.
+      E2E_MOCK_CHECKOUT: "1"
+      E2E_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Migrate and seed
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+          pnpm db:seed-products
+          pnpm db:seed-content
+          pnpm db:import-reference
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start dev server and warm up key routes
+        run: |
+          nohup pnpm dev > dev-server.log 2>&1 &
+          for i in $(seq 1 90); do
+            curl -fsS -o /dev/null http://localhost:3000/api/health && break
+            sleep 2
+          done
+          # First hit of a route compiles it under `next dev`; do that before the timed tests.
+          for path in / /shop /products/heart-charm /vibes/cute /cart /checkout /track /help /search /wishlist /admin/login /policies/shipping; do
+            curl -sS -o /dev/null -m 120 "http://localhost:3000${path}" || true
+          done
+      - name: Playwright (chromium-desktop)
+        run: pnpm e2e --project=chromium-desktop
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-dev
+          path: |
+            playwright-report/
+            test-results/
+            dev-server.log
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------------------------
+  # Production build: build against the migrated + seeded DB, then verify what ships:
+  # security headers / CSP in a real browser, and Lighthouse budgets (non-blocking for now).
+  # ---------------------------------------------------------------------------------------------
+  prod:
+    name: Build, security e2e, Lighthouse
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      DIRECT_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+      BETTER_AUTH_SECRET: ci-dummy-secret-not-for-production-use-00000000
+      BETTER_AUTH_URL: http://localhost:3107
+      NEXT_PUBLIC_SITE_URL: http://localhost:3107
+      ORDER_TOKEN_SECRET: ci-order-token-secret-00000000000000000000
+      CRON_SECRET: ci-cron-secret
+      SEED_OWNER_EMAIL: owner@ifonli.local
+      # CSP_MODE is read at BUILD time (next.config headers); CI verifies the enforced policy.
+      CSP_MODE: enforce
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Migrate and seed
+        run: |
+          pnpm db:migrate
+          pnpm db:seed
+          pnpm db:seed-products
+          pnpm db:seed-content
       - name: Build
         run: pnpm build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start production server
+        run: |
+          nohup pnpm start -p 3107 > prod-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null http://localhost:3107/api/health && break
+            sleep 2
+          done
+          curl -fsS http://localhost:3107/api/health
+      - name: Security headers / CSP e2e (production build)
+        run: pnpm e2e --project=chromium-desktop --grep "security:"
         env:
-          # Dummy values: the build must not need real services.
-          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
-          BETTER_AUTH_SECRET: ci-dummy-secret-not-for-production-use-00000000
-          BETTER_AUTH_URL: http://localhost:3000
-          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          E2E_BASE_URL: http://localhost:3107
+          E2E_ADMIN_FLOW: "1"
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-prod
+          path: |
+            playwright-report/
+            test-results/
+            prod-server.log
+          retention-days: 7
+      # Lighthouse starts its own server (lighthouserc.json); stop ours first.
+      - name: Stop production server
+        if: always()
+        run: pkill -f "next start" || true
+      # Non-blocking at first (continue-on-error): shared runners are noisy and the budgets are
+      # still being tuned. Flip to blocking once a baseline of green runs exists.
+      - name: Lighthouse CI (mobile budgets, plan 13)
+        continue-on-error: true
+        run: pnpm dlx @lhci/cli@0.15.1 autorun --config=lighthouserc.json
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+      - name: Upload Lighthouse results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse
+          path: .lighthouseci/
+          retention-days: 7
