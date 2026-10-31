@@ -109,3 +109,12 @@ Status values:
 | D-ANA-5 | Rollup | Whole India days are rebuilt (delete and insert) for the last 3 days, hourly; rollup rows outlive raw events (13-month retention setting) |
 | D-ANA-6 | Funnel | Nested per session (page view, product view, add to cart, checkout, purchase); orders without a known visit are sales but not funnel steps |
 | D-ANA-7 | Search terms | Stored normalised in `meta.q`; terms that look like an e-mail address or phone number are never stored |
+
+## Admin customers (Phase 6, 2026-10-31, plan-resolved/reversible)
+
+| ID | Decision | Resolution |
+|---|---|---|
+| D-CUS-1 | Who is a customer | One person per lower-cased e-mail: an account (`user.role = customer`) or a guest (an e-mail with at least one real order and no `user` row). Staff roles never appear. Orders belong to the account they are linked to, else to whoever owns the order e-mail (D-ACC-2). Checkouts that never completed (`pending_payment`, `expired`) do not make anyone a customer. No customer table: the list is one grouped query over `orders` joined to `user`. |
+| D-CUS-2 | Order count and lifetime value | The dashboard's counted sale: confirmed/processing/completed, payment not refunded or failed, no `replacement:` orders. A partially refunded order counts in full, as on the dashboard. |
+| D-CUS-3 | Customer URLs | An account is its user id; a guest is `o-<order id>` (any of their orders), so no e-mail address sits in a URL. A guest link whose e-mail later became an account redirects to the account. |
+| D-CUS-4 | DPDP requests in admin | Export reuses `exportCustomerData` (accounts) and `exportGuestData` (guests: orders, cases, messages). Delete reuses `deleteCustomerAccount` after the admin types the customer's e-mail; guests are refused with an explanation (orders are retained records, D-DPDP-1). Both write audit rows (`customer.export`, `customer.delete`) with counts only. Permissions `customer:export` and `customer:delete` are owner and admin only; fulfilment has no customer access. |
