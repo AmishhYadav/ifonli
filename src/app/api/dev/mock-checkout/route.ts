@@ -4,8 +4,8 @@ import { z } from "zod";
 import { revalidateStock } from "@/server/cache/revalidate";
 import { getDb } from "@/server/db";
 import { payments } from "@/server/db/schema";
-import { MockPaymentProvider } from "@/server/payments/mock";
-import { getPaymentProvider } from "@/server/payments/registry";
+import type { MockPaymentProvider } from "@/server/payments/mock";
+import { getPaymentProvider, isMockProvider } from "@/server/payments/registry";
 import { handleRazorpayWebhook } from "@/server/payments/webhook";
 
 /**
@@ -32,13 +32,16 @@ const notFound = () => new Response("Not found", { status: 404 });
 
 export async function POST(req: Request): Promise<Response> {
   if (process.env.NODE_ENV === "production") return notFound();
-  let provider;
+  let provider: MockPaymentProvider;
   try {
-    provider = getPaymentProvider();
+    const active = getPaymentProvider();
+    // By name, not `instanceof`: the dev server bundles this route and the registry separately, so each
+    // gets its own copy of the class and `instanceof` is false for the very instance the registry made.
+    if (!isMockProvider(active)) return notFound();
+    provider = active as MockPaymentProvider;
   } catch {
     return notFound();
   }
-  if (!(provider instanceof MockPaymentProvider)) return notFound();
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json({ ok: false, error: "invalid_request" }, { status: 400 });
