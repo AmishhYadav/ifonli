@@ -27,11 +27,27 @@ import { EmptyCheckout } from "./EmptyCheckout";
 import { PaymentStatusPanel } from "./PaymentStatusPanel";
 import { usePayment } from "./usePayment";
 
+/** What a signed-in customer's account can fill in. Every part is still editable. */
+export interface CheckoutPrefill {
+  phone: string;
+  address: {
+    name: string;
+    line1: string;
+    line2: string;
+    landmark: string;
+    city: string;
+    state: string;
+    pincode: string;
+  } | null;
+}
+
 export interface CheckoutFormProps {
   /** The cart as rendered on the server (the first paint; the live quote replaces it). */
   initialCart: CartView;
   /** Signed-in customer's email; prefilled. Guests start empty. */
   initialEmail: string | null;
+  /** Signed-in customer's saved contact details and default address; prefilled. Guests: null. */
+  initialPrefill?: CheckoutPrefill | null;
   /** One or two sentences on returns, shown with the acknowledgement. */
   returnSummary: string;
 }
@@ -167,7 +183,12 @@ function focusFirstInvalid(form: HTMLFormElement | null) {
   el?.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
-export function CheckoutForm({ initialCart, initialEmail, returnSummary }: CheckoutFormProps) {
+export function CheckoutForm({
+  initialCart,
+  initialEmail,
+  initialPrefill = null,
+  returnSummary,
+}: CheckoutFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
@@ -193,15 +214,15 @@ export function CheckoutForm({ initialCart, initialEmail, returnSummary }: Check
     shouldFocusError: false,
     defaultValues: {
       email: initialEmail ?? "",
-      phone: "",
+      phone: initialPrefill?.phone ?? "",
       shippingAddress: {
-        pincode: "",
-        city: "",
-        state: "",
-        name: "",
-        line1: "",
-        line2: "",
-        landmark: "",
+        pincode: initialPrefill?.address?.pincode ?? "",
+        city: initialPrefill?.address?.city ?? "",
+        state: initialPrefill?.address?.state ?? "",
+        name: initialPrefill?.address?.name ?? "",
+        line1: initialPrefill?.address?.line1 ?? "",
+        line2: initialPrefill?.address?.line2 ?? "",
+        landmark: initialPrefill?.address?.landmark ?? "",
       },
       paymentMethod: "razorpay",
       policyAck: UNTICKED,

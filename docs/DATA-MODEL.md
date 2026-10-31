@@ -46,7 +46,7 @@ GROUP BY v.id;
 Expiry is evaluated at read time, so correctness never depends on the release cron: an expired `active` row simply stops counting. When reserving, lock the variant rows first (`SELECT ... FOR UPDATE ... ORDER BY id`) and recompute availability inside the same transaction. A paid order flips its reservations to `converted` and decrements `stock_on_hand` with a `sale` movement; COD orders decrement directly with no reservation; cancel/expiry sets `released` (and `cancel_restock` for paid stock).
 
 ## Customers and carts (`customers.ts`, `cart.ts`)
-- `customer_profiles` (1:1 with `user`, `phone`, `marketing_opt_in`, `deleted_at`).
+- `customer_profiles` (1:1 with `user`, `phone`, `marketing_opt_in`, `deleted_at`). After account deletion it is a tombstone and the `user` row is anonymised (D-AUTH-3).
 - `addresses` (per user; partial unique index allows one `is_default` per user).
 - `wishlist_items` (PK `user_id`, `product_id`).
 - `carts` (`token` unique = httpOnly cookie, `user_id` nullable, `coupon_code`, `version`, `expires_at`), `cart_items` (unique per cart+variant, `qty > 0`).

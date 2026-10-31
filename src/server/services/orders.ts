@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lte } from "drizzle-orm";
 
 import {
   cartItems,
@@ -9,6 +9,7 @@ import {
   orderItems,
   orders,
   policies,
+  shipments,
   stockReservations,
   vibes,
 } from "@/server/db/schema";
@@ -39,6 +40,7 @@ import { ensureInvoiceNumber } from "./invoice-number";
 import { loadVariantSnapshots, toCartLine } from "./pricing";
 import type { DbClient } from "./queries/shared";
 import { loadVariantStock } from "./queries/stock";
+import { safeHttpUrl } from "./tracking";
 
 export type { PaymentInitiator, RazorpayCheckoutPayload };
 
@@ -763,6 +765,14 @@ export interface CustomerOrderItem {
   taxPaise: number;
 }
 
+export interface CustomerOrderShipment {
+  courier: string;
+  awb: string | null;
+  /** Courier's tracking page; only http(s) links are ever returned. */
+  trackingUrl: string | null;
+  status: string;
+}
+
 export interface CustomerOrderView {
   id: string;
   ref: string;
@@ -788,6 +798,10 @@ export interface CustomerOrderView {
   items: CustomerOrderItem[];
   /** Timeline, customer-visible events only. */
   events: { type: string; note: string | null; createdAt: Date }[];
+  /** Latest shipment, or null before dispatch. */
+  shipment: CustomerOrderShipment | null;
+  /** True when the order belongs to an account (the guest page then offers "View in your account"). */
+  hasAccount: boolean;
 }
 
 /** Equal-cost dummy so an unknown ref and a wrong token take the same time. */
@@ -811,13 +825,38 @@ export async function getOrderForCustomer(
   const ok = verifyAccessToken(token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
   if (!order || !order.accessTokenHash || !ok) return null;
 
-  const [items, events] = await Promise.all([
+  return loadCustomerOrderView(db, order);
+}
+
+/**
+ * Order detail for a signed-in customer: only orders attached to `userId` are returned. Another
+ * customer's ref, a guest order and an unknown ref are all the same `null`.
+ */
+export async function getOrderForUser(
+  db: DbClient,
+  ref: string,
+  userId: string,
+): Promise<CustomerOrderView | null> {
+  const [order] = await db
+    .select()
+    .from(orders)
+    .where(and(eq(orders.ref, normalizeOrderRef(ref)), eq(orders.userId, userId)))
+    .limit(1);
+  return order ? loadCustomerOrderView(db, order) : null;
+}
+
+async function loadCustomerOrderView(
+  db: DbClient,
+  order: typeof orders.$inferSelect,
+): Promise<CustomerOrderView> {
+  const [items, events, [shipment]] = await Promise.all([
     db.select().from(orderItems).where(eq(orderItems.orderId, order.id)).orderBy(asc(orderItems.createdAt), asc(orderItems.id)),
     db
       .select()
       .from(orderEvents)
       .where(and(eq(orderEvents.orderId, order.id), eq(orderEvents.visibleToCustomer, true)))
       .orderBy(asc(orderEvents.createdAt), asc(orderEvents.id)),
+    db.select().from(shipments).where(eq(shipments.orderId, order.id)).orderBy(desc(shipments.createdAt)).limit(1),
   ]);
   return {
     id: order.id,
@@ -854,7 +893,17 @@ export async function getOrderForCustomer(
       taxPaise: i.taxPaise,
     })),
     events: events.map((e) => ({ type: e.type, note: e.note, createdAt: e.createdAt })),
+    shipment: shipment
+      ? {
+          courier: shipment.courier,
+          awb: shipment.awb,
+          trackingUrl: safeHttpUrl(shipment.trackingUrl),
+          status: shipment.status,
+        }
+      : null,
+    hasAccount: order.userId !== null,
   };
 }
+
 
 export type { CheckoutFormValues };

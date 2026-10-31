@@ -1,12 +1,16 @@
 import type { ReactNode } from "react";
 
+import { AccountWishlistBoot } from "@/features/wishlist/AccountWishlistBoot";
 import "@/styles/store.css";
 
 import { Footer } from "./footer/Footer";
 import { AnnouncementBar } from "./header/AnnouncementBar";
 import { Header } from "./header/Header";
 
-/** Skip link, announcement bar, header, `<main id="main">` and footer: the frame of every discovery page. */
+/**
+ * Skip link, announcement bar, header, `<main id="main">` and footer: the frame of every discovery page.
+ * `AccountWishlistBoot` renders nothing; it reconnects the device wishlist to a signed-in account.
+ */
 export function StoreChrome({ children }: { children: ReactNode }) {
   return (
     <>
@@ -22,6 +26,7 @@ export function StoreChrome({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
+      <AccountWishlistBoot />
     </>
   );
 }

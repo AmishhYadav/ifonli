@@ -125,6 +125,39 @@ export function assertPermission<R extends Resource>(
   }
 }
 
+/** The slice of a Better Auth session the customer account needs. */
+export interface CustomerSession {
+  user: { id: string; name: string; email: string };
+}
+
+/** Where an admin-role session that opens /account is sent (a short notice, no customer data). */
+export const ADMIN_SESSION_NOTICE_PATH = "/account/admin-session";
+
+/**
+ * Customer gate for the /account layout, pages and Server Actions (the proxy is only a coarse
+ * cookie check; this is the real one).
+ *
+ * - no session: redirect to /account/login (Server Actions: `{ denied: "throw" }` gets an
+ *   `UnauthorizedError`);
+ * - an admin-role session: redirect to the notice page, or a `ForbiddenError`. Staff accounts have no
+ *   customer data and must never be shown any.
+ */
+export async function requireCustomer(
+  opts: { denied?: "redirect" | "throw" } = {},
+): Promise<CustomerSession> {
+  const session = await getSession();
+  if (!session) {
+    if (opts.denied === "throw") throw new UnauthorizedError();
+    redirect("/account/login");
+  }
+  const u = session.user as typeof session.user & { role?: string };
+  if (isAdminRole(u.role)) {
+    if (opts.denied === "throw") throw new ForbiddenError();
+    redirect(ADMIN_SESSION_NOTICE_PATH);
+  }
+  return { user: { id: u.id, name: u.name, email: u.email } };
+}
+
 /** Best-effort client IP for audit rows and rate-limit keys. */
 export async function getClientIp(): Promise<string | null> {
   const h = await headers();

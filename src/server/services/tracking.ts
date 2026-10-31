@@ -72,7 +72,7 @@ function sameSecret(a: string, b: string): boolean {
 }
 
 /** Customers see only these; anything else on a shipment row is treated as "not usable". */
-function safeHttpUrl(value: string | null): string | null {
+export function safeHttpUrl(value: string | null): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);

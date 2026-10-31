@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import { CheckoutForm, type CheckoutPrefill } from "@/components/checkout/CheckoutForm";
 import { CheckoutSkeleton } from "@/components/checkout/CheckoutSkeleton";
 import { EmptyCheckout } from "@/components/checkout/EmptyCheckout";
 import { getCurrentCartView } from "@/features/cart/queries";
 import { getSessionUser } from "@/features/cart/request";
 import { getDb } from "@/server/db";
+import { getCustomerProfile, getDefaultAddress } from "@/server/services/accounts";
 import { readSettings } from "@/server/services/queries/shared";
 
 export const metadata: Metadata = {
@@ -33,6 +34,46 @@ async function returnSummary(): Promise<string> {
   return `We don't accept returns or exchanges for change of mind. ${claim}`;
 }
 
+/** The signed-in customer's saved mobile number and default address, for the contact and delivery fields. */
+async function loadPrefill(userId: string): Promise<CheckoutPrefill | null> {
+  try {
+    const db = getDb();
+    const [profile, address] = await Promise.all([
+      getCustomerProfile(db, userId),
+      getDefaultAddress(db, userId),
+    ]);
+    if (!profile && !address) return null;
+    return {
+      phone: address?.phone ?? profile?.phone ?? "",
+      address: address
+        ? {
+            name: address.name,
+            line1: address.line1,
+            line2: address.line2 ?? "",
+            landmark: address.landmark ?? "",
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+          }
+        : profile?.name
+          ? {
+              name: profile.name,
+              line1: "",
+              line2: "",
+              landmark: "",
+              city: "",
+              state: "",
+              pincode: "",
+            }
+          : null,
+    };
+  } catch (error) {
+    // Prefill is a convenience: the form works without it.
+    console.error("checkout prefill failed", error instanceof Error ? error.message : "unknown");
+    return null;
+  }
+}
+
 async function CheckoutContent() {
   const [cart, user, summary] = await Promise.all([
     getCurrentCartView(),
@@ -40,8 +81,14 @@ async function CheckoutContent() {
     returnSummary(),
   ]);
   if (cart.lines.length === 0) return <EmptyCheckout />;
+  const prefill = user ? await loadPrefill(user.id) : null;
   return (
-    <CheckoutForm initialCart={cart} initialEmail={user?.email ?? null} returnSummary={summary} />
+    <CheckoutForm
+      initialCart={cart}
+      initialEmail={user?.email ?? null}
+      initialPrefill={prefill}
+      returnSummary={summary}
+    />
   );
 }
 

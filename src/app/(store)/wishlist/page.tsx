@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
 import { VibeCopy } from "@/components/store/VibeCopy";
@@ -6,7 +7,7 @@ import { WishlistView } from "@/features/wishlist/WishlistView";
 
 export const metadata: Metadata = {
   title: "Your wishlist",
-  description: "Products you saved on this device.",
+  description: "Products you saved.",
   robots: { index: false, follow: true },
   alternates: { canonical: "/wishlist" },
 };
@@ -20,9 +21,18 @@ export default function WishlistPage() {
           { name: "Wishlist", path: "/wishlist" },
         ]}
       />
-      <h1 className="mt-3 font-display text-4xl leading-tight display-fx sm:text-5xl">Your wishlist</h1>
+      <h1 className="mt-3 font-display text-4xl leading-tight display-fx sm:text-5xl">
+        Your wishlist
+      </h1>
       <p className="mt-2 max-w-2xl text-lg text-ink-muted">
-        Saved on this device. Sign-in sync is coming later, so clearing your browser data clears this list.
+        Saved on this device.{" "}
+        <Link
+          href="/account/login?next=/wishlist"
+          className="text-link underline underline-offset-4 hover:no-underline"
+        >
+          Sign in
+        </Link>{" "}
+        to keep your list on every device. Without an account, clearing your browser data clears it.
       </p>
       <div className="mt-6">
         <WishlistView
