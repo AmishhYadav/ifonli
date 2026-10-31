@@ -21,6 +21,7 @@ import { enqueueAdminAlert, enqueueCustomerNotification } from "@/server/notify/
 import type { PaymentProvider } from "@/server/payments/provider";
 import { getPaymentProvider } from "@/server/payments/registry";
 
+import { recordPurchase } from "./analytics/purchase";
 import { clearCartForOrder } from "./cart";
 import { confirmRedemption } from "./coupons";
 import { adjustStock } from "./inventory";
@@ -320,6 +321,9 @@ async function finalizeInTransaction(
     });
     await addOrderEvent(tx, orderId, { type: "invoice_assigned", note: number });
   }
+
+  // Analytics (fail-safe, own savepoint): the sale is recorded in the same transaction as the capture.
+  await recordPurchase(tx, orderId, { now });
 
   return { outcome: "finalized", orderId, late, productIds, refundIds: [] };
 }

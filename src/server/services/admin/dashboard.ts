@@ -74,8 +74,8 @@ export interface DashboardStats {
 }
 
 /** Orders that count as sales: confirmed onwards, not cancelled, not fully refunded, COD not failed. */
-const COUNTED_STATUSES: OrderStatus[] = ["confirmed", "processing", "completed"];
-const UNCOUNTED_PAYMENT: PaymentStatus[] = ["refunded", "failed"];
+export const COUNTED_STATUSES: OrderStatus[] = ["confirmed", "processing", "completed"];
+export const UNCOUNTED_PAYMENT: PaymentStatus[] = ["refunded", "failed"];
 
 /** Midnight (IST) of the calendar day containing `d`. */
 function istMidnight(d: Date): Date {

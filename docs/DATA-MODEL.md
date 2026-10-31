@@ -75,7 +75,7 @@ Expiry is evaluated at read time, so correctness never depends on the release cr
 `settings` (key PK, jsonb `value`, `is_placeholder`, `updated_by`), `contact_messages`, `support_cases` (`photo_paths text[]`), `notification_outbox` (indexed by `status`, `next_attempt_at`), `admin_audit_log`, `rate_limits` (PK `key`, `window_start`).
 
 ## Analytics (`analytics.ts`)
-`analytics_events` (indexes (`event`, `ts`), (`product_id`, `ts`), session, `ts`; `product_id` is intentionally not an FK), `product_engagement_daily` (unique (`date`, `product_id`)).
+`analytics_events` (indexes (`event`, `ts`), (`product_id`, `ts`), session, `ts`; `product_id` is intentionally not an FK), `product_engagement_daily` (unique (`date`, `product_id`); counts `impressions`, `clicks`, `pdp_views`, `unique_viewers`, `add_to_carts`, `purchases` and `revenue_paise`, plus `avg_scroll_depth` and `reached_75_pct`; rebuilt per India day by the rollup cron). See [ANALYTICS.md](./ANALYTICS.md).
 
 ## Reference (`reference.ts`)
 `states` (`code` char(2) = GST state code, `name` unique, `iso`, `type` state/ut, `zone`), `pincodes` (`pincode` char(6) with a digits-only CHECK, `district`, `state_code` FK, `zone`, `serviceable`, `cod_allowed`). Loaded by `pnpm db:import-reference` from `data/reference/`; re-imports refresh names/districts/zones but never overwrite `serviceable` or `cod_allowed`.

@@ -85,3 +85,15 @@ Status values:
 | ID | Decision | Resolution |
 |---|---|---|
 | D-AUTH-1 | Mandatory admin TOTP vs email-OTP login | Better Auth's twoFactor hook does not fire on `/sign-in/email-otp`. **Admins (owner/admin/fulfilment) sign in with email + password + TOTP** (native Better Auth credential flow with 2FA); **customers use passwordless email OTP**. Enable `emailAndPassword` but reject credential sign-in for `customer` role and reject email-OTP sign-in for admin roles. Phase 3 admin gate additionally checks `twoFactorEnabled` and forces TOTP enrolment on first admin login. |
+
+## Analytics decisions (Phase 6, 2026-10-31, plan-resolved/reversible)
+
+| ID | Decision | Resolution |
+|---|---|---|
+| D-ANA-1 | Consent for first-party counting | Anonymous, aggregate first-party counting is always on (D-23); only GA4 waits for consent. The privacy template discloses the visit counter. Legal review still required |
+| D-ANA-2 | Session id | Random id in `sessionStorage` (plan 12), renewed after 30 idle minutes, mirrored into a session cookie `ifonli_sid` so checkout can link an order to its visit. No persistent identifier |
+| D-ANA-3 | Where GA4 is configured | `NEXT_PUBLIC_GA4_ID` wins, the admin setting `ga4_measurement_id` is the fallback; `consent_required` (default true) controls the banner |
+| D-ANA-4 | Purchase events | Written server-side in the order transactions (own savepoint, never blocks an order): `purchase` per order, `purchase_item` per product, `order_placed` to remember the visit |
+| D-ANA-5 | Rollup | Whole India days are rebuilt (delete and insert) for the last 3 days, hourly; rollup rows outlive raw events (13-month retention setting) |
+| D-ANA-6 | Funnel | Nested per session (page view, product view, add to cart, checkout, purchase); orders without a known visit are sales but not funnel steps |
+| D-ANA-7 | Search terms | Stored normalised in `meta.q`; terms that look like an e-mail address or phone number are never stored |

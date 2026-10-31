@@ -1,0 +1,5 @@
+ALTER TABLE "product_engagement_daily" DROP CONSTRAINT "product_engagement_daily_counts_nonneg";--> statement-breakpoint
+ALTER TABLE "product_engagement_daily" ADD COLUMN "clicks" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "product_engagement_daily" ADD COLUMN "purchases" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "product_engagement_daily" ADD COLUMN "revenue_paise" bigint DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "product_engagement_daily" ADD CONSTRAINT "product_engagement_daily_counts_nonneg" CHECK ("product_engagement_daily"."impressions" >= 0 AND "product_engagement_daily"."pdp_views" >= 0 AND "product_engagement_daily"."unique_viewers" >= 0 AND "product_engagement_daily"."reached_75_pct" >= 0 AND "product_engagement_daily"."add_to_carts" >= 0 AND "product_engagement_daily"."clicks" >= 0 AND "product_engagement_daily"."purchases" >= 0 AND "product_engagement_daily"."revenue_paise" >= 0);
