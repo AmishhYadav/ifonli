@@ -1,5 +1,12 @@
 import { eq } from "drizzle-orm";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// The route also accepts a signed-in owner; these tests call it outside a Next request, as an
+// anonymous visitor, so the session lookup is stubbed to "nobody signed in".
+vi.mock("@/server/auth/session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/auth/session")>()),
+  getOptionalCustomer: vi.fn(async () => null),
+}));
 
 import { GET as customerInvoice } from "@/app/api/orders/[ref]/invoice/route";
 import { getDb } from "@/server/db";
