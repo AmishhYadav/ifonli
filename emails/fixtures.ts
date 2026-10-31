@@ -63,6 +63,12 @@ export const FIXTURE_PAYLOADS: { [T in TemplateName]: PayloadOf<T> } = {
     note: "Sorry about the cracked handle. A replacement mug ships tomorrow; no need to return the damaged one.",
   },
   contact_ack: { name: "Asha Rao" },
+  contact_reply: {
+    name: "Asha Rao",
+    message:
+      "Yes, we can change the address until the parcel is packed. Your order has not been packed yet, so we have updated it.\n\nThanks for writing in.",
+    original: "Can I change the delivery address?",
+  },
   login_otp: { otp: "482913", type: "sign-in", expiresMinutes: 10 },
   new_order: { ref: "IFO-2611-7K3Q", orderId: "0b8c5c1e-6f4a-4f3b-9d7e-1a2b3c4d5e6f", totalPaise: 125730, paymentMethod: "razorpay" },
   low_stock_digest: {

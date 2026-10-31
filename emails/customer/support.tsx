@@ -37,6 +37,31 @@ export function SupportCaseUpdate({ payload, ctx }: TemplateProps<"support_case_
   );
 }
 
+export function ContactReply({ payload, ctx }: TemplateProps<"contact_reply">) {
+  const name = payload.name.trim().split(/\s+/)[0] ?? "";
+  return (
+    <Layout ctx={ctx} preview="A reply to your message." heading="A reply from our team">
+      {name ? <P ctx={ctx}>Hi {name},</P> : null}
+      <P ctx={ctx} style={{ whiteSpace: "pre-line" }}>
+        {payload.message}
+      </P>
+      {payload.original ? (
+        <>
+          <P ctx={ctx} muted>
+            You wrote:
+          </P>
+          <P ctx={ctx} muted style={{ whiteSpace: "pre-line" }}>
+            {payload.original}
+          </P>
+        </>
+      ) : null}
+      <P ctx={ctx} muted>
+        Just reply to this email if you want to add anything. Our support hours are {ctx.store.supportHours}.
+      </P>
+    </Layout>
+  );
+}
+
 export function ContactAck({ payload, ctx }: TemplateProps<"contact_ack">) {
   const name = payload.name.trim().split(/\s+/)[0] ?? "";
   return (
