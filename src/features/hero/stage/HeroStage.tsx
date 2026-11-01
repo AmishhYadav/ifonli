@@ -30,7 +30,7 @@ function seedTiles(tiles: Record<Vibe, StageTile[]>, vibe: Vibe): StageTile[] {
 /**
  * The animated hero stage (default export of the lazily loaded chunk). It renders the markup once for the
  * current layout and hands it to the Director; the Director then owns it. React never re-renders it on a
- * vibe switch, so the profile changes only at the next scene boundary.
+ * vibe switch: the Director dissolves, swaps the profile and tiles, and restarts the loop itself.
  */
 export default function HeroStage({ tiles }: { tiles: Record<Vibe, StageTile[]> }) {
   const router = useRouter();

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { hash01, hesitate, wobbleAt } from "@/features/hero/stage/eases";
 import {
+  FIRST_SCENE_LUMINANCE,
   LUMI,
   MAX_FLICKER_AMP,
   MAX_FLICKER_HZ,
@@ -14,7 +15,12 @@ import {
   type LuminanceEvent,
 } from "@/features/hero/stage/flash";
 import { PROFILES, profileFor } from "@/features/hero/stage/profiles";
-import { BOUNDARIES, MIN_DISSOLVE, PROFILE_FADE, sceneStart } from "@/features/hero/stage/schedule";
+import {
+  MIN_DISSOLVE,
+  MIN_SWITCH_SPACING,
+  PROFILE_FADE,
+  sceneStart,
+} from "@/features/hero/stage/schedule";
 import { VIBES } from "@/features/vibe/config";
 
 describe("motion profiles", () => {
@@ -103,12 +109,18 @@ describe("flash-rate guard (WCAG 2.3.1)", () => {
     expect(PROFILE_FADE).toBeGreaterThanOrEqual(MIN_DISSOLVE);
     const sw = worstCaseSwitchEvents();
     const outs = sw.filter((e) => e.label.startsWith("switch-out"));
-    expect(outs.length).toBeGreaterThan(3);
-    const boundaries = outs.map((e) => e.at + PROFILE_FADE);
-    boundaries
-      .slice(1)
-      .forEach((b, i) => expect(b - boundaries[i]!).toBeGreaterThanOrEqual(1 - 1e-9));
-    expect(boundaries.every((b) => BOUNDARIES.some((x) => Math.abs(x - b) < 1e-9))).toBe(true);
+    expect(outs.length).toBeGreaterThan(10);
+    outs.slice(1).forEach((e, i) => {
+      expect(e.at - outs[i]!.at).toBeGreaterThanOrEqual(MIN_SWITCH_SPACING - 1e-9);
+    });
+    expect(maxStartsInWindow(sw)).toBeLessThanOrEqual(MAX_TRANSITIONS_PER_SECOND);
+  });
+
+  it("scene luminance changes start well after a restart, so they never overlap a switch burst", () => {
+    expect(FIRST_SCENE_LUMINANCE).toBeGreaterThanOrEqual(1);
+    for (const v of VIBES) {
+      for (const e of luminanceEvents(PROFILES[v])) expect(e.at).toBeGreaterThanOrEqual(1);
+    }
   });
 
   it("counts transitions per second including the loop wrap", () => {
