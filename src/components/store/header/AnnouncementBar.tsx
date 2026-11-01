@@ -20,10 +20,10 @@ export async function AnnouncementBar() {
     </>
   );
   return (
-    <div data-testid="announcement-bar" className="bg-accent text-on-accent">
-      <p className="mx-auto flex min-h-10 max-w-[1440px] items-center justify-center px-4 py-2 text-center text-sm sm:px-6">
+    <div data-testid="announcement-bar" className="bg-[color-mix(in_srgb,var(--accent)_10%,var(--bg))] text-ink">
+      <p className="mx-auto flex min-h-9 max-w-[1440px] items-center justify-center px-4 py-1.5 text-center text-xs sm:px-6 sm:text-sm">
         {banner.link ? (
-          <Link href={banner.link} className="underline underline-offset-4 hover:no-underline">
+          <Link href={banner.link} className="underline decoration-[color-mix(in_srgb,currentColor_40%,transparent)] underline-offset-4 hover:no-underline">
             {text}
           </Link>
         ) : (

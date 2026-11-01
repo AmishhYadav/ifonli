@@ -3,6 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import { ToastProvider } from "@/components/ui/Toast";
 import { ProductCardView } from "@/components/store/ProductCardView";
 import { Button, IconButton } from "@/components/ui/Button";
 import { ICON_NAMES } from "@/components/ui/Icon";
@@ -98,6 +99,7 @@ const base: ProductCard = {
   hasPriceRange: false,
   inStock: true,
   lowStock: false,
+  quickAddVariantId: null,
   image: null,
   cutout: null,
 };
@@ -125,5 +127,32 @@ describe("ProductCardView", () => {
     expect(card({})).not.toContain("From");
     expect(card({})).not.toContain("<s ");
     expect(card({ mrpFromPaise: 44900 })).toContain("<s ");
+  });
+
+  it("shows the rounded percent off next to a struck MRP, and none for an equal MRP", () => {
+    expect(card({ priceFromPaise: 31800, mrpFromPaise: 50000 })).toContain("(36% OFF)");
+    expect(card({})).not.toContain("OFF)");
+  });
+
+  it("quick action: Choose options for several variants, a disabled Sold out, else Add to bag", () => {
+    const choose = card({ quickAddVariantId: null });
+    expect(choose).toContain("Choose options");
+    expect(choose).not.toContain("quick-add");
+    const sold = card({ inStock: false, quickAddVariantId: null });
+    expect(sold).toMatch(/<button[^>]*disabled[^>]*>Sold out<\/button>/);
+    const add = html(
+      createElement(ToastProvider, null, createElement(ProductCardView, {
+        product: { ...base, quickAddVariantId: "v1" },
+        image: null,
+        isCutout: false,
+      })),
+    );
+    expect(add).toContain('data-testid="quick-add"');
+    expect(add).toContain("Add to bag");
+  });
+
+  it("the image tile wears the product's vibe gradient (neutral without one)", () => {
+    expect(card({ primaryVibe: "gothic" })).toContain("art-gothic");
+    expect(card({ primaryVibe: null })).toContain("art-none");
   });
 });

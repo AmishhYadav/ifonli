@@ -217,30 +217,43 @@ test.describe("search", () => {
 });
 
 test.describe("header", () => {
-  test("keyboard: skip link, hand button, then the Vibes menu opens, moves and closes", async ({ page, isMobile }) => {
+  test("keyboard: skip link, hand button, logo, search, icons, then the nav pills in order", async ({ page, isMobile }) => {
     test.skip(isMobile, "desktop navigation");
     await page.goto("/home");
-    // Enter on the menu button before React attaches does nothing: wait for hydration.
+    // Wait for hydration so the lazy header buttons are live.
     await page.waitForLoadState("networkidle");
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(page.locator("button[data-vibe-hand]").first()).toBeFocused();
     await page.keyboard.press("Tab"); // logo
-    await page.keyboard.press("Tab"); // Shop
-    await page.keyboard.press("Tab"); // Vibes
-    const vibes = page.getByRole("button", { name: "Vibes" });
-    await expect(vibes).toBeFocused();
-    await expect(vibes).toHaveAttribute("aria-expanded", "false");
-    await page.keyboard.press("Enter");
-    await expect(vibes).toHaveAttribute("aria-expanded", "true");
-    await page.keyboard.press("ArrowDown");
-    await expect(page.getByRole("link", { name: "Mochi" }).first()).toBeFocused();
-    await page.keyboard.press("ArrowDown");
-    await expect(page.getByRole("link", { name: "Chaos Cabinet" }).first()).toBeFocused();
-    await page.keyboard.press("Escape");
-    await expect(vibes).toHaveAttribute("aria-expanded", "false");
-    await expect(vibes).toBeFocused();
+    await expect(page.getByRole("link", { name: /IfOnli, home/ }).first()).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: /Search/ }).first()).toBeFocused();
+    await page.keyboard.press("Tab"); // account
+    await page.keyboard.press("Tab"); // wishlist
+    await page.keyboard.press("Tab"); // cart
+    await expect(page.locator('[data-testid="cart-button"]:visible')).toBeFocused();
+    const primary = page.getByRole("navigation", { name: "Primary" });
+    await page.keyboard.press("Tab");
+    await expect(primary.getByRole("link", { name: "Mochi" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(primary.getByRole("link", { name: "Chaos Cabinet" })).toBeFocused();
+  });
+
+  test("the nav pills are links to every vibe and type plus Shop all, and the current page is the filled one", async ({ page }) => {
+    await page.goto("/vibes/gothic");
+    const primary = page.getByRole("navigation", { name: "Primary" });
+    await expect(primary.getByRole("link")).toHaveCount(9); // 4 vibes + 4 types + Shop all
+    await expect(primary.getByRole("link", { name: "Shop all" })).toHaveAttribute("href", "/shop");
+    await expect(primary.getByRole("link", { name: "After the Dark" })).toHaveAttribute("aria-current", "page");
+    await expect(primary.locator('[aria-current="page"]')).toHaveCount(1);
+    await page.goto("/types/charms");
+    await expect(primary.getByRole("link", { name: "Charms" })).toHaveAttribute("aria-current", "page");
+    await page.goto("/shop");
+    await expect(primary.getByRole("link", { name: "Shop all" })).toHaveAttribute("aria-current", "page");
+    await page.goto("/home");
+    await expect(primary.locator('[aria-current="page"]')).toHaveCount(0);
   });
 
   test("the hand button is top-left and keyboard-operable", async ({ page }) => {

@@ -26,6 +26,7 @@ export function sampleProduct(overrides: Partial<ProductCard> & { file?: string 
     hasPriceRange: false,
     inStock: true,
     lowStock: false,
+    quickAddVariantId: null,
     image,
     cutout: image,
     ...rest,

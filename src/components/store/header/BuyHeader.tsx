@@ -78,7 +78,7 @@ function Bar() {
  */
 export function BuyHeader() {
   return (
-    <header className="border-b border-border bg-bg">
+    <header className="border-b border-hairline bg-bg">
       <Suspense fallback={<ShopBar pathname={null} />}>
         <Bar />
       </Suspense>

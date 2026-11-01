@@ -43,13 +43,21 @@ export function WishlistHeart({ productId, productName, appearance = "card", cla
         else void flyToTarget(event.currentTarget, "wishlist", { emoji: "\u2764\uFE0F" });
       }}
       className={cn(
-        "inline-flex size-11 items-center justify-center rounded-button text-ink transition-[transform,background-color] ease-vibe",
-        "hover:scale-105 active:scale-95",
-        appearance === "card" ? "bg-surface/90 hover:bg-surface" : "border-token bg-surface hover:bg-surface-2",
+        "group/heart inline-flex size-11 items-center justify-center rounded-full text-ink transition-transform ease-vibe",
+        "active:scale-95",
         className,
       )}
     >
-      <Icon name={saved ? "heart-filled" : "heart"} className={cn("size-6", saved && "text-sale")} />
+      <span
+        className={cn(
+          "grid place-items-center rounded-full transition-[transform,background-color] ease-vibe group-hover/heart:scale-105",
+          appearance === "card"
+            ? "size-9 bg-surface/80 backdrop-blur group-hover/heart:bg-surface"
+            : "size-11 bg-surface-2 group-hover/heart:bg-surface",
+        )}
+      >
+        <Icon name={saved ? "heart-filled" : "heart"} className={cn("size-5", saved && "text-sale")} />
+      </span>
     </button>
   );
 }

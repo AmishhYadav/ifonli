@@ -190,6 +190,25 @@ test.describe("cart", () => {
     await expect(drawer(page)).toContainText(/\w/);
   });
 
+  test("a card's quick Add to bag adds a one-variant product (toast, badge) and links several-variant ones to their page", async ({ page }) => {
+    await expect(async () => {
+      await page.goto("/shop?vibe=cute");
+      await settle(page);
+      await expect(cartCount(page)).toHaveCount(0);
+    }).toPass();
+    // Heart charm has three variants: the card sends the shopper to choose.
+    const heart = page.locator('[data-testid="product-card"]:visible', { hasText: "Heart charm" }).first();
+    await expect(heart.getByRole("link", { name: /Choose options/ })).toHaveAttribute("href", "/products/heart-charm");
+    await expect(heart.getByTestId("quick-add")).toHaveCount(0);
+    // A one-variant product that is in stock gets the button.
+    const quick = page.locator('[data-testid="product-card"]:visible').getByTestId("quick-add").first();
+    await quick.scrollIntoViewIfNeeded();
+    await quick.click();
+    await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+    await expect(cartCount(page)).toHaveText("1");
+    await expect(page).toHaveURL(/\/shop/); // the click did not follow the card's link
+  });
+
   test("the cart page matches the drawer; its totals are the sum of its lines", async ({ page }) => {
     await addFromPdp(page, "star-charm");
     await addFromPdp(page, "heart-charm", "Red");

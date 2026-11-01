@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Button, IconButton } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
 import { Icon } from "@/components/ui/Icon";
 import { Input } from "@/components/ui/Field";
 import { Spinner } from "@/components/ui/Spinner";
 import { formatINR } from "@/lib/money";
 
+import { SearchTrigger } from "./SearchTrigger";
 import { quickSearchAction, type QuickResults } from "./actions";
 
 const DEBOUNCE_MS = 200;
@@ -66,7 +67,7 @@ export function SearchSheetPanel({ shortcuts, defaultOpen = false }: SearchSheet
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <IconButton icon="search" label="Search" />
+        <SearchTrigger />
       </DialogTrigger>
       <DialogContent
         title="Search"
@@ -125,7 +126,7 @@ export function SearchSheetPanel({ shortcuts, defaultOpen = false }: SearchSheet
                       <DialogClose asChild>
                         <Link
                           href={c.kind === "vibe" ? `/vibes/${c.slug}` : `/types/${c.slug}`}
-                          className="inline-flex min-h-11 items-center gap-1.5 rounded-button border-token bg-surface-2 px-3.5 text-sm font-semibold text-ink"
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-button bg-surface-2 px-3.5 text-sm font-semibold text-ink"
                         >
                           {c.name}
                           <span className="text-ink-muted">{c.kind === "vibe" ? "vibe" : "type"}</span>
@@ -138,13 +139,13 @@ export function SearchSheetPanel({ shortcuts, defaultOpen = false }: SearchSheet
               {results.products.length > 0 ? (
                 <ul className="flex flex-col" aria-label="Quick results">
                   {results.products.map((p) => (
-                    <li key={p.slug} className="border-b border-border last:border-b-0">
+                    <li key={p.slug} className="border-b border-hairline last:border-b-0">
                       <DialogClose asChild>
                         <Link
                           href={`/products/${p.slug}`}
                           className="flex min-h-14 items-center gap-3 rounded-input py-2 text-ink hover:bg-surface-2"
                         >
-                          <span className="relative size-12 flex-none overflow-hidden rounded-input border border-border bg-surface-2">
+                          <span className="relative size-12 flex-none overflow-hidden rounded-input bg-surface-2">
                             {p.imageSrc ? (
                               <Image
                                 src={p.imageSrc}
@@ -198,7 +199,7 @@ export function SearchSheetPanel({ shortcuts, defaultOpen = false }: SearchSheet
                     <DialogClose asChild>
                       <Link
                         href={s.href}
-                        className="inline-flex min-h-11 items-center rounded-button border-token bg-surface px-3.5 text-sm font-semibold text-ink hover:bg-surface-2"
+                        className="inline-flex min-h-11 items-center rounded-button bg-surface-2 px-3.5 text-sm font-semibold text-ink transition-colors ease-vibe hover:bg-[color-mix(in_srgb,var(--accent)_14%,var(--surface-2))]"
                       >
                         {s.label}
                       </Link>

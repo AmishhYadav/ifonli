@@ -134,6 +134,23 @@ describe("listProducts", () => {
     expect(r3.items.find((i) => i.slug === "cat-sticker")!.lowStock).toBe(true);
   });
 
+  it("quickAddVariantId: the only active variant when it has stock, else null", async () => {
+    const f = await seedCatalogFixture();
+    const bySlug = async () => Object.fromEntries((await listProducts(db(), {})).items.map((i) => [i.slug, i]));
+    const first = await bySlug();
+    expect(first["skull-charm"]!.quickAddVariantId).toBe(f.variants.skull);
+    expect(first["cat-sticker"]!.quickAddVariantId).toBe(f.variants.cat);
+    // Two active variants: the shopper has to choose on the product page.
+    expect(first["heart-charm"]!.quickAddVariantId).toBeNull();
+    // An active reservation that takes all stock sold the variant out; an expired one does not.
+    await reserve(f.variants.cat!, 3, 10);
+    await reserve(f.variants.ghost!, 20, -5);
+    const after = await bySlug();
+    expect(after["cat-sticker"]!.inStock).toBe(false);
+    expect(after["cat-sticker"]!.quickAddVariantId).toBeNull();
+    expect(after["ghost-sticker"]!.quickAddVariantId).toBe(f.variants.ghost);
+  });
+
   it("a sold-out product is never lowStock", async () => {
     const f = await seedCatalogFixture();
     await reserve(f.variants.cat!, 3, 10);

@@ -34,6 +34,11 @@ export interface ProductCard {
   inStock: boolean;
   /** In stock, but every active variant is at or below its low-stock threshold. */
   lowStock: boolean;
+  /**
+   * Variant the card's quick "Add to bag" adds: the product's only active variant, when it has available
+   * stock (on hand minus live reservations, the `inStock` rule). `null` for several variants or sold out.
+   */
+  quickAddVariantId: string | null;
   /** Primary image: first photo, else first cutout. */
   image: ImageRef | null;
   /** First cutout image, if any. */
