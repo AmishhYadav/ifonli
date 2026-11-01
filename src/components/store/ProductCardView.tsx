@@ -2,14 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
-import { Price } from "@/components/ui/Price";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { VibeDot } from "@/components/ui/Chip";
-import { VIBE_NAMES, isVibe } from "@/features/vibe/config";
+import { VIBE_NAMES, isVibe, type Vibe } from "@/features/vibe/config";
 import { cn } from "@/lib/cn";
+import { formatINR } from "@/lib/money";
 import type { ProductCard as ProductCardData } from "@/server/services/queries/types";
+
+import { QuickAdd } from "./QuickAdd";
 
 /** An image ready for `next/image` (the shape `imageProps()` returns). */
 export interface ResolvedImage {
@@ -36,9 +36,25 @@ export interface ProductCardViewProps {
   className?: string;
 }
 
+/** Literal class names so Tailwind finds them: the tile wears its PRODUCT's vibe gradient, whatever the site theme. */
+const ART_CLASS: Record<Vibe, string> = {
+  cute: "art-cute",
+  funky: "art-funky",
+  bold: "art-bold",
+  gothic: "art-gothic",
+};
+
+/** Whole-number percent off (rounded), or 0 when the MRP is not above the price. */
+function percentOff(pricePaise: number, mrpPaise: number): number {
+  if (mrpPaise <= pricePaise || mrpPaise <= 0) return 0;
+  return Math.round((1 - pricePaise / mrpPaise) * 100);
+}
+
 /**
  * Presentational product card (no server imports, so it can also render inside client components).
- * The whole card is one link to `/products/{slug}` through a stretched link on the name; the wishlist slot sits above it.
+ * No box: a rounded image tile on the vibe's art gradient, then the text on the page background. The whole
+ * card is one link to `/products/{slug}` through a stretched link on the name; the wishlist heart and the
+ * quick "Add to bag" sit above it.
  */
 export function ProductCardView({
   product,
@@ -52,13 +68,14 @@ export function ProductCardView({
   const { name, typeName, slug, inStock, lowStock, hasPriceRange, primaryVibe } = product;
   const vibeName = primaryVibe && isVibe(primaryVibe) ? VIBE_NAMES[primaryVibe] : null;
   const soldOut = !inStock;
+  const off = percentOff(product.priceFromPaise, product.mrpFromPaise);
 
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-card border-token bg-surface text-ink shadow-card",
-        "transition-transform ease-vibe hover:-translate-y-1",
-        "has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus-ring",
+        "group relative flex h-full flex-col rounded-card text-ink",
+        // Keyboard focus on the card's link rings the whole card (image, text and button), softly offset.
+        "has-[h3_a:focus-visible]:outline-3 has-[h3_a:focus-visible]:outline-offset-4 has-[h3_a:focus-visible]:outline-focus-ring",
         className,
       )}
       data-testid="product-card"
@@ -67,8 +84,10 @@ export function ProductCardView({
     >
       <div
         className={cn(
-          "relative aspect-square w-full overflow-hidden border-b border-border",
-          isCutout || !image ? "bg-surface-2" : "bg-surface",
+          "relative aspect-[4/5] w-full overflow-hidden rounded-card shadow-card",
+          "transition-[box-shadow,transform] ease-vibe group-hover:-translate-y-0.5",
+          "group-hover:shadow-[var(--shadow-card),0_16px_32px_-14px_color-mix(in_srgb,var(--accent)_45%,transparent)]",
+          primaryVibe && isVibe(primaryVibe) ? ART_CLASS[primaryVibe] : "art-none",
         )}
       >
         {image ? (
@@ -91,33 +110,32 @@ export function ProductCardView({
           </span>
         )}
 
-        <div className="pointer-events-none absolute top-2 left-2 flex max-w-[calc(100%-4rem)] flex-wrap gap-1.5">
+        <div className="pointer-events-none absolute top-3 left-3 flex max-w-[calc(100%-3.75rem)] flex-wrap gap-1.5">
           {vibeName && primaryVibe ? (
-            <span className="inline-flex items-center gap-1.5 rounded-button bg-surface px-2 py-0.5 text-xs font-semibold text-ink border-token">
-              <VibeDot vibe={primaryVibe} />
-              {vibeName}
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-surface/80 px-2 py-1 text-[11px] font-semibold text-ink backdrop-blur sm:px-2.5 sm:text-xs">
+              <span aria-hidden="true" data-vibe={primaryVibe} className="size-2 flex-none rounded-full bg-accent max-sm:hidden" />
+              <span className="truncate">{vibeName}</span>
             </span>
           ) : null}
         </div>
 
-        {wishlist ? <div className="absolute top-1 right-1 z-10">{wishlist}</div> : null}
-
-        {soldOut || lowStock ? (
-          <div className="pointer-events-none absolute bottom-2 left-2">
-            {soldOut ? (
-              <Badge tone="neutral" className="border-token bg-surface">
-                Sold out
-              </Badge>
-            ) : (
-              <Badge tone="warning">Low stock</Badge>
-            )}
-          </div>
+        {soldOut ? (
+          <span className="pointer-events-none absolute inset-x-0 bottom-3 mx-auto w-fit rounded-full bg-ink px-3 py-1 text-xs font-bold text-bg">
+            Sold out
+          </span>
+        ) : lowStock ? (
+          <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-surface/80 px-2.5 py-1 text-xs font-semibold text-ink backdrop-blur">
+            Low stock
+          </span>
         ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
-        <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">{typeName}</p>
-        <h3 className="font-display text-lg leading-tight">
+      {/* Outside the tile: the tile gets a transform on hover, which would trap the heart under the stretched link. */}
+      {wishlist ? <div className="absolute top-1.5 right-1.5 z-10">{wishlist}</div> : null}
+
+      <div className="flex flex-1 flex-col gap-0.5 pt-3">
+        <p className="truncate text-sm font-bold">{typeName}</p>
+        <h3 className="truncate font-[family-name:var(--font-body)] text-sm font-normal tracking-normal text-ink-muted">
           <Link
             href={`/products/${slug}`}
             className="outline-none after:absolute after:inset-0 after:content-['']"
@@ -127,11 +145,28 @@ export function ProductCardView({
             {!soldOut && lowStock ? <span className="sr-only"> (low stock)</span> : null}
           </Link>
         </h3>
-        <Price
-          className="mt-auto pt-2"
-          pricePaise={product.priceFromPaise}
-          mrpPaise={product.mrpFromPaise}
-          from={hasPriceRange}
+        <p className="mt-auto flex flex-wrap items-baseline gap-x-2 gap-y-0.5 pt-1 text-sm">
+          {hasPriceRange ? <span className="text-ink-muted">From</span> : null}
+          <span className="font-bold tabular-nums text-price">{formatINR(product.priceFromPaise)}</span>
+          {product.mrpFromPaise > product.priceFromPaise ? (
+            <>
+              <s className="text-xs tabular-nums text-ink-muted">
+                <span className="sr-only">MRP </span>
+                {formatINR(product.mrpFromPaise)}
+              </s>
+              {off > 0 ? <span className="text-xs font-semibold text-sale">({off}% OFF)</span> : null}
+            </>
+          ) : null}
+        </p>
+      </div>
+
+      <div className="pt-3">
+        <QuickAdd
+          productId={product.id}
+          productName={name}
+          slug={slug}
+          variantId={product.quickAddVariantId}
+          soldOut={soldOut}
         />
       </div>
     </article>
@@ -141,19 +176,14 @@ export function ProductCardView({
 /** Loading placeholder with the same box as `ProductCard` (no layout shift). */
 export function ProductCardSkeleton({ className }: { className?: string }) {
   return (
-    <div
-      aria-hidden="true"
-      className={cn(
-        "flex h-full flex-col overflow-hidden rounded-card border-token bg-surface shadow-card",
-        className,
-      )}
-    >
-      <Skeleton shape="block" className="aspect-square w-full rounded-none" />
-      <div className="flex flex-col gap-2 p-3 sm:p-4">
-        <Skeleton shape="text" className="h-3 w-1/3" />
-        <Skeleton shape="text" className="h-5 w-4/5" />
-        <Skeleton shape="text" className="mt-2 h-5 w-1/2" />
+    <div aria-hidden="true" className={cn("flex h-full flex-col", className)}>
+      <Skeleton shape="block" className="aspect-[4/5] w-full rounded-card" />
+      <div className="flex flex-col gap-2 pt-3">
+        <Skeleton shape="text" className="h-4 w-1/3" />
+        <Skeleton shape="text" className="h-4 w-4/5" />
+        <Skeleton shape="text" className="h-4 w-1/2" />
       </div>
+      <Skeleton shape="block" className="mt-3 h-11 w-full rounded-full" />
     </div>
   );
 }
