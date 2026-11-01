@@ -2,9 +2,8 @@
 
 import { useState, type ComponentType } from "react";
 
-import { IconButton } from "@/components/ui/Button";
-
 import type { SearchSheetProps, SearchShortcut } from "./SearchSheetPanel";
+import { SearchTrigger } from "./SearchTrigger";
 
 export type { SearchShortcut };
 
@@ -20,7 +19,7 @@ function loadPanel(): Promise<ComponentType<SearchSheetProps>> {
 }
 
 /**
- * Header search entry. Until the first click it is just the icon button: the dialog, its focus trap and the
+ * Header search entry. Until the first click it is just the trigger button: the dialog, its focus trap and the
  * results list are a separate chunk that starts downloading on hover, focus or touch and mounts already open
  * on click (`SearchSheetPanel` renders the same button as its trigger, so focus return keeps working).
  */
@@ -30,10 +29,7 @@ export function SearchSheet({ shortcuts }: Pick<SearchSheetProps, "shortcuts">) 
 
   const warm = () => void loadPanel().catch(() => {});
   return (
-    <IconButton
-      icon="search"
-      label="Search"
-      aria-haspopup="dialog"
+    <SearchTrigger
       onPointerEnter={warm}
       onFocus={warm}
       onTouchStart={warm}

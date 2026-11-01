@@ -22,7 +22,7 @@ function loadMenu(): Promise<ComponentType<MenuProps>> {
 export type { MenuLink };
 
 /**
- * The mobile menu button. Until the first tap it is only the icon button: the drawer code (below `lg` only,
+ * The mobile menu button. Until the first tap it is only the icon button: the drawer code (below `md` only,
  * and only needed when it is used) is a separate chunk that starts downloading on hover, focus or touch. On
  * tap the real menu replaces this button and its own trigger is clicked once, so it opens exactly as before
  * and Radix returns focus to the trigger when it closes.

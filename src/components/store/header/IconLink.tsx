@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { buttonVariants } from "@/components/ui/buttonStyles";
 import { cn } from "@/lib/cn";
 
 interface IconLinkProps extends Omit<ComponentProps<typeof Link>, "children"> {
@@ -13,16 +12,19 @@ interface IconLinkProps extends Omit<ComponentProps<typeof Link>, "children"> {
   flyTarget?: "cart" | "wishlist";
 }
 
-/** An icon-only link that looks like a ghost `IconButton` (44px+ target). */
+/** A header icon link: a round 44px target with a soft hover wash, the icon at 28px like the demo. */
 export function IconLink({ icon, label, className, flyTarget, ...rest }: IconLinkProps) {
   return (
     <Link
       aria-label={label}
       data-fly-target={flyTarget}
-      className={cn(buttonVariants({ variant: "ghost", size: "md" }), "min-w-12 p-0", className)}
+      className={cn(
+        "inline-flex size-11 items-center justify-center rounded-full text-ink transition-colors ease-vibe hover:bg-surface-2",
+        className,
+      )}
       {...rest}
     >
-      <Icon name={icon} className="size-6" />
+      <Icon name={icon} className="size-7" />
     </Link>
   );
 }

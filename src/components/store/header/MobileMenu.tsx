@@ -23,7 +23,7 @@ interface MobileMenuProps {
 }
 
 const rowClasses =
-  "flex min-h-12 items-center justify-between gap-3 rounded-input px-3 text-lg font-semibold text-ink hover:bg-surface-2";
+  "flex min-h-12 items-center justify-between gap-3 rounded-2xl px-3 text-lg font-semibold text-ink transition-colors ease-vibe hover:bg-surface-2";
 
 function Group({ title, links, onNavigate }: { title: string; links: MenuLink[]; onNavigate: () => void }) {
   return (
@@ -39,16 +39,16 @@ function Group({ title, links, onNavigate }: { title: string; links: MenuLink[];
                 onClick={onNavigate}
                 className={cn(
                   rowClasses,
-                  link.vibe && "rounded-card border-token bg-bg font-display text-xl hover:bg-bg",
+                  link.vibe && "rounded-card bg-surface-2 font-display text-xl",
                   link.vibe && "my-1 min-h-14",
                 )}
               >
                 <span>{link.label}</span>
                 {link.vibe ? (
                   <span aria-hidden="true" className="flex gap-1">
-                    <span className="size-4 rounded-full border border-border bg-accent" />
-                    <span className="size-4 rounded-full border border-border bg-accent-2" />
-                    <span className="size-4 rounded-full border border-border bg-accent-3" />
+                    <span className="size-4 rounded-full bg-accent" />
+                    <span className="size-4 rounded-full bg-accent-2" />
+                    <span className="size-4 rounded-full bg-accent-3" />
                   </span>
                 ) : link.detail ? (
                   <span className="text-sm font-normal text-ink-muted">{link.detail}</span>
@@ -64,7 +64,7 @@ function Group({ title, links, onNavigate }: { title: string; links: MenuLink[];
   );
 }
 
-/** Right-hand drawer with the full navigation, for screens below `lg`. */
+/** Right-hand drawer with the full navigation (plus account and wishlist), for screens below `md`. */
 export function MobileMenu({ vibes, types, className }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
