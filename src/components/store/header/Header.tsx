@@ -89,7 +89,7 @@ export async function Header() {
         <div className="ml-auto flex items-center">
           <SearchSheet shortcuts={shortcuts} />
           <IconLink href="/account" icon="user" label="Account" className="hidden md:inline-flex" />
-          <IconLink href="/wishlist" icon="heart" label="Wishlist" className="hidden md:inline-flex" />
+          <IconLink href="/wishlist" icon="heart" label="Wishlist" flyTarget="wishlist" className="hidden md:inline-flex" />
           <CartButton />
           <MobileMenuLazy vibes={vibeLinks} types={typeLinks} className="lg:hidden" />
         </div>
