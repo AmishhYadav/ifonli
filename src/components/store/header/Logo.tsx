@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 export function Logo({ className }: { className?: string }) {
   return (
     <Link
-      href="/"
+      href="/home"
       aria-label="IfOnli, home"
       className={cn(
         "inline-flex min-h-11 items-center rounded-input font-display text-2xl leading-none text-ink",

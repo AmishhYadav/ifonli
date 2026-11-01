@@ -50,7 +50,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
 
   const title = policy?.title ?? fallbackTitle(slug);
   const crumbs: Crumb[] = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Policies", path: "/policies" },
     { name: title, path: `/policies/${slug}` },
   ];

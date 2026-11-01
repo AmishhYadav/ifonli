@@ -40,7 +40,7 @@ export default function VibePlaygroundPage() {
           </a>
         ))}
         <a href="/dev/vibe/other">Another page</a>
-        <Link href="/">Home (client navigation)</Link>
+        <Link href="/home">Home (client navigation)</Link>
       </nav>
 
       <section aria-labelledby="active" className="flex flex-col gap-4">

@@ -162,7 +162,7 @@ test.describe("skip link and header", () => {
 
   for (const vibe of VIBES) {
     test(`every header and page stop shows a focus indicator in ${vibe}`, async ({ page }) => {
-      await gotoVibe(page, "/", vibe);
+      await gotoVibe(page, "/home", vibe);
       await page.waitForLoadState("networkidle");
       await expectVisibleFocus(page, `home in ${vibe}`, 60);
     });
@@ -171,7 +171,7 @@ test.describe("skip link and header", () => {
   test("search sheet: opens from the header, focuses the field, Escape returns focus to the button", async ({
     page,
   }) => {
-    await gotoVibe(page, "/", "cute");
+    await gotoVibe(page, "/home", "cute");
     await page.waitForLoadState("networkidle");
     const trigger = page.getByRole("button", { name: /Search/ }).first();
     await trigger.focus();
@@ -198,7 +198,7 @@ test.describe("skip link and header", () => {
     baseURL,
   }) => {
     await seedCart(context, baseURL!, 1);
-    await gotoVibe(page, "/", "funky");
+    await gotoVibe(page, "/home", "funky");
     await page.waitForLoadState("networkidle");
     const trigger = page.locator('[data-testid="cart-button"]:visible');
     await trigger.focus();

@@ -17,7 +17,7 @@ export default function WishlistPage() {
     <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-4 sm:px-6">
       <Breadcrumbs
         crumbs={[
-          { name: "Home", path: "/" },
+          { name: "Home", path: "/home" },
           { name: "Wishlist", path: "/wishlist" },
         ]}
       />

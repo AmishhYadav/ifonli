@@ -101,7 +101,7 @@ export async function signOutAction(): Promise<void> {
   // The cart cookie must not outlive the session: the next person on this device starts empty. The
   // account's own cart stays on the server and comes back at the next sign-in.
   await clearCartToken();
-  redirect("/");
+  redirect("/home");
 }
 
 /**

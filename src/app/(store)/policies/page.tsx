@@ -28,7 +28,7 @@ const BLURBS: Record<PolicySlug, string> = {
 };
 
 const crumbs: Crumb[] = [
-  { name: "Home", path: "/" },
+  { name: "Home", path: "/home" },
   { name: "Policies", path: "/policies" },
 ];
 

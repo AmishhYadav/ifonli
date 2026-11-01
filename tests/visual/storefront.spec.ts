@@ -117,7 +117,7 @@ const waitForReview = async (page: Page) => {
 };
 
 const SHOTS: Shot[] = [
-  { name: "home", path: () => "/" },
+  { name: "home", path: () => "/home" },
   { name: "shop", path: () => "/shop" },
   { name: "vibe-collection", path: () => "/vibes/gothic" },
   { name: "type-collection", path: () => "/types/charms" },

@@ -6,6 +6,7 @@
       "startServerReadyTimeout": 60000,
       "url": [
         "http://localhost:3107/",
+        "http://localhost:3107/home",
         "http://localhost:3107/products/heart-charm",
         "http://localhost:3107/vibes/cute",
         "http://localhost:3107/cart"
@@ -19,7 +20,7 @@
     "assert": {
       "assertMatrix": [
         {
-          "matchingUrlPattern": "^http://localhost:3107/$",
+          "matchingUrlPattern": "^http://localhost:3107/(home)?$",
           "assertions": {
             "categories:performance": ["warn", { "minScore": 0.85 }],
             "categories:accessibility": ["error", { "minScore": 0.95 }],

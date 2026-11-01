@@ -55,7 +55,7 @@ export default async function TypePage({
   if (!type) notFound();
 
   const crumbs: Crumb[] = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Shop", path: "/shop" },
     { name: type.name, path: `/types/${type.slug}` },
   ];

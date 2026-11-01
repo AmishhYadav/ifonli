@@ -39,7 +39,7 @@ const seek = (page: Page, t: number) =>
   page.evaluate((time) => (window as unknown as HeroWindow).__ifonliHero!.seek(time), t);
 
 async function openHero(page: Page, vibe: (typeof VIBES)[number] = "cute") {
-  await page.goto(`/?vibe=${vibe}`);
+  await page.goto(`/home?vibe=${vibe}`);
   await page.waitForFunction(
     () => (window as unknown as HeroWindow).__ifonliHero?.ready === true,
     null,
@@ -82,7 +82,7 @@ test.describe("progressive enhancement", () => {
     page,
   }) => {
     const stageChunks = watchScripts(page);
-    const response = await page.goto("/?vibe=cute");
+    const response = await page.goto("/home?vibe=cute");
     // The poster (LCP) is in the HTML itself.
     const html = await response!.text();
     expect(html).toContain("data-hero");
@@ -120,7 +120,7 @@ test.describe("progressive enhancement", () => {
       });
       await page.setViewportSize({ width: 1440, height: 900 });
       if (reducedMotion === "reduce") {
-        await page.goto("/?vibe=cute");
+        await page.goto("/home?vibe=cute");
         await expect(page.getByTestId("hero-shop")).toBeVisible();
       } else {
         await openHero(page);
@@ -150,7 +150,7 @@ test.describe("progressive enhancement", () => {
 
     test("shows the poster only: no stage, no hook, no animation script", async ({ page }) => {
       const stageChunks = watchScripts(page);
-      await page.goto("/?vibe=bold");
+      await page.goto("/home?vibe=bold");
       await expect(page.getByTestId("hero-shop")).toBeVisible();
       await expect(page.locator("[data-hero] [data-poster-list]:visible").first()).toBeVisible();
       await page.waitForTimeout(3500); // well past the idle + visibility checks
@@ -163,7 +163,7 @@ test.describe("progressive enhancement", () => {
     });
 
     test("poster tile clicks still report hero_tile_click (animated: false)", async ({ page }) => {
-      await page.goto("/?vibe=bold");
+      await page.goto("/home?vibe=bold");
       const link = page.locator("[data-poster-list] a[data-hero-tile]:visible").first();
       const slug = await link.getAttribute("data-hero-tile");
       await link.click();
@@ -183,7 +183,7 @@ test.describe("progressive enhancement", () => {
       });
     });
     const stageChunks = watchScripts(page);
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     await expect(page.getByTestId("hero-shop")).toBeVisible();
     await page.waitForTimeout(3500);
     await expect(page.locator("[data-hero-stage-inner]")).toHaveCount(0);
@@ -197,7 +197,7 @@ test.describe("progressive enhancement", () => {
       });
     });
     const stageChunks = watchScripts(page);
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     await page.waitForTimeout(3500);
     await expect(page.locator("[data-hero-stage-inner]")).toHaveCount(0);
     expect(await stageChunks()).toBe(0);
@@ -574,7 +574,7 @@ test.describe("accessibility", () => {
   test("axe finds no violations in the poster-only hero (reduced motion)", async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: "reduce" });
     const page = await context.newPage();
-    await page.goto("/?vibe=gothic");
+    await page.goto("/home?vibe=gothic");
     await expect(page.getByTestId("hero-shop")).toBeVisible();
     const results = await new AxeBuilder({ page }).include("[data-hero]").analyze();
     expect(results.violations.map((v) => v.id)).toEqual([]);

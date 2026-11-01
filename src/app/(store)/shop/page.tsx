@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 const CRUMBS: Crumb[] = [
-  { name: "Home", path: "/" },
+  { name: "Home", path: "/home" },
   { name: "Shop", path: "/shop" },
 ];
 

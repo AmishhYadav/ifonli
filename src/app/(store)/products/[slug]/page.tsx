@@ -110,7 +110,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const images = buildPdpImages(product);
 
   const crumbs: Crumb[] = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Shop", path: "/shop" },
     { name: product.type.name, path: `/types/${product.type.slug}` },
     { name: product.name, path: `/products/${product.slug}` },
