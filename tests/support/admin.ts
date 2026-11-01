@@ -78,14 +78,13 @@ export async function createAdminSession(
 }
 
 /**
- * Removes the given QA admin accounts (and their sessions, 2FA rows and audit entries). Only the
- * caller's own accounts: other specs may still be signed in with theirs.
+ * Removes the given QA admin accounts (and their sessions and 2FA rows). Only the caller's own
+ * accounts: other specs may still be signed in with theirs. Their audit entries stay:
+ * `admin_audit_log` is append-only (a trigger rejects DELETE), and deleting the user only clears
+ * `actor_id` on those rows (`ON DELETE SET NULL`, the one UPDATE the trigger allows).
  */
 export async function cleanupQaAdmins(emails: readonly string[]): Promise<void> {
   const own = emails.filter((email) => /^qa-admin-.*@ifonli\.local$/.test(email));
   if (own.length === 0) return;
-  await sql`
-    delete from admin_audit_log
-    where actor_id in (select id from "user" where email in ${sql(own)})`;
   await sql`delete from "user" where email in ${sql(own)}`;
 }

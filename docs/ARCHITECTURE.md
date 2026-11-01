@@ -22,7 +22,7 @@ flowchart LR
 
 Principles
 - **Server first.** Server Components by default, Server Actions for mutations, Route Handlers only where a URL contract is needed (webhooks, cron, payment verify, invoices, health, CSP/error intake).
-- **The database is the source of truth.** No RLS reliance: all access is server-side with the pooled URL; the service role key never leaves the server.
+- **The database is the source of truth.** No reliance on RLS for the app itself: all access is server-side with the pooled URL as the table owner; the service role key never leaves the server. RLS is nevertheless enabled on every table with no policies, and `anon` / `authenticated` have no privileges, so the Supabase Data API exposes nothing (DECISIONS D-DB-1).
 - **Money is integer paise** everywhere (`bigint`), formatted by `src/lib/money.ts`. Prices are tax-inclusive; GST is split on the invoice only.
 - **Never trust the client.** Prices, stock, coupons and shipping are recomputed on the server at add-to-cart, quote and place-order.
 
@@ -59,7 +59,7 @@ Principles
 | Tag | Covers | Invalidated by |
 |---|---|---|
 | `catalog` | Listings, home sets | Product, variant, vibe and type edits |
-| `product:{id}`, `product-slug:{slug}` | One product page | That product's edits |
+| `product:{id}`, `product-slug:{slug}` | One product page, and the old-slug redirect lookup | That product's edits (both its old and new slug on a rename) |
 | `collection:vibe:{slug}`, `collection:type:{slug}` | Collection pages | Membership or ordering changes |
 | `stock:{productId}` | Stock flags on cards | Orders, reservations, adjustments |
 | `content` | Policies, FAQs, site content | Content publish |

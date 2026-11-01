@@ -9,6 +9,7 @@ import {
   productImages,
   productOptionValues,
   productOptions,
+  productSlugRedirects,
   productTypes,
   productVibes,
   products,
@@ -520,6 +521,27 @@ async function assertSkusFree(db: DbClient, input: ProductInput, productId?: str
   if (conflicts.length) throw new SkuTakenError(conflicts.map((c) => c.sku));
 }
 
+/**
+ * A live product slug always wins over a redirect: call this inside the transaction that gives a
+ * product `slug` (create, rename, duplicate) so a stale `old_slug -> other product` row cannot
+ * shadow it. (The PDP only consults redirects for slugs that are not products, so this is about
+ * keeping the table honest, and a renamed-back product getting its own URL back.)
+ */
+async function releaseRedirectSlug(db: DbClient, slug: string): Promise<void> {
+  await db.delete(productSlugRedirects).where(eq(productSlugRedirects.oldSlug, slug));
+}
+
+/**
+ * Remembers that `oldSlug` used to be this product's URL. The row points at the product, not at the
+ * new slug, so renaming again (a -> b -> c) leaves `a` and `b` both resolving to `c` with no extra work.
+ */
+async function recordRedirectSlug(db: DbClient, productId: string, oldSlug: string): Promise<void> {
+  await db
+    .insert(productSlugRedirects)
+    .values({ oldSlug, productId })
+    .onConflictDoUpdate({ target: productSlugRedirects.oldSlug, set: { productId } });
+}
+
 /** Maps Postgres unique violations from a write to friendly typed errors. */
 function rethrowUnique(error: unknown, input: ProductInput): never {
   let e: unknown = error;
@@ -764,6 +786,7 @@ export async function createProduct(
         .values(productColumns(input))
         .returning({ id: products.id });
       const id = row!.id;
+      await releaseRedirectSlug(tx, input.slug);
       const synced = await syncOptions(tx, id, input);
       if (input.vibes.length) {
         await tx.insert(productVibes).values(
@@ -854,6 +877,10 @@ export async function updateProduct(
       };
       const productDiff = diffFields(beforeCols, cols);
       await tx.update(products).set(cols).where(eq(products.id, productId));
+      if (before.slug !== input.slug) {
+        await releaseRedirectSlug(tx, input.slug);
+        await recordRedirectSlug(tx, productId, before.slug);
+      }
 
       const oldVibeRows = await tx
         .select()
@@ -1026,6 +1053,7 @@ export async function duplicateProduct(
       })
       .returning({ id: products.id });
     const newId = copy!.id;
+    await releaseRedirectSlug(tx, slug);
 
     const srcVibes = await tx
       .select()

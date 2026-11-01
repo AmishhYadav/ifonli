@@ -8,6 +8,7 @@ import {
   productImages,
   productOptionValues,
   productOptions,
+  productSlugRedirects,
   productTypes,
   productVibes,
   products,
@@ -65,6 +66,32 @@ const manufacturerSchema = z.object({
   name: z.string().trim().min(1),
   address: z.string().trim().min(1),
 });
+
+/**
+ * Where an old product URL now lives: the CURRENT slug of the product that used to be served at
+ * `oldSlug` (renamed by an admin), or null when there is no redirect or its product is no longer
+ * public (a redirect to a page that 404s helps nobody). The caller only asks after
+ * `getProductBySlug(oldSlug)` found nothing, so a live product always takes precedence.
+ */
+export async function getProductSlugRedirect(
+  db: DbClient,
+  oldSlug: string,
+): Promise<{ slug: string; productId: string } | null> {
+  const [row] = await db
+    .select({ slug: products.slug, productId: products.id })
+    .from(productSlugRedirects)
+    .innerJoin(products, eq(productSlugRedirects.productId, products.id))
+    .innerJoin(productTypes, eq(products.typeId, productTypes.id))
+    .where(
+      and(
+        eq(productSlugRedirects.oldSlug, oldSlug),
+        eq(products.status, "active"),
+        eq(productTypes.active, true),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
 
 /** Full PDP model for an active, purchasable product, or null. No stock data (see below). */
 export async function getProductBySlug(db: DbClient, slug: string): Promise<ProductDetail | null> {
