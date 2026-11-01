@@ -214,6 +214,38 @@ export async function removeObjects(bucket: string, paths: string[]): Promise<vo
   if (res.status !== 200) fail("Deleting objects", res.status, res.json);
 }
 
+export interface ListedObject {
+  /** Name relative to the listed prefix (one path segment). */
+  name: string;
+  /** A "folder": Storage has no real directories, a prefix with objects under it is reported as one. */
+  isFolder: boolean;
+  /** Upload time; null for folders. */
+  createdAt: Date | null;
+}
+
+/**
+ * One page of the objects directly under `prefix` (not recursive), sorted by name. Used by the
+ * orphan sweep, which walks `support/{orderId}/` one folder at a time.
+ */
+export async function listObjects(
+  bucket: string,
+  prefix: string,
+  opts: { limit: number; offset?: number },
+): Promise<ListedObject[]> {
+  assertBucket(bucket);
+  if (prefix !== "") encodeObjectPath(prefix.replace(/\/$/, ""));
+  const res = await call(`/object/list/${bucket}`, {
+    method: "POST",
+    body: { prefix, limit: opts.limit, offset: opts.offset ?? 0, sortBy: { column: "name", order: "asc" } },
+  });
+  if (res.status !== 200 || !Array.isArray(res.json)) fail("Listing objects", res.status, res.json);
+  return (res.json as { name: string; id: string | null; created_at: string | null }[]).map((o) => ({
+    name: o.name,
+    isFolder: o.id === null,
+    createdAt: o.created_at ? new Date(o.created_at) : null,
+  }));
+}
+
 /** Base URL (no trailing slash) for public objects, from the public Supabase URL. */
 export function publicBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;

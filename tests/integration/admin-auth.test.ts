@@ -35,14 +35,15 @@ describe("D-AUTH-1: credential sign-in is for admins only", () => {
       role: "owner",
       password: PASSWORD,
     });
-    const wrong = getAuth().api.signInEmail({
-      body: { email: "boss@example.com", password: "nope-nope-nope-1" },
-    });
-    const unknown = getAuth().api.signInEmail({
-      body: { email: "ghost@example.com", password: PASSWORD },
-    });
-    await expect(wrong).rejects.toMatchObject({ statusCode: 401 });
-    await expect(unknown).rejects.toMatchObject({ statusCode: 401 });
+    // One at a time: a rejected promise nobody is awaiting yet is an unhandled rejection under load.
+    const wrong = await getAuth()
+      .api.signInEmail({ body: { email: "boss@example.com", password: "nope-nope-nope-1" } })
+      .then(() => null, (e: unknown) => e);
+    const unknown = await getAuth()
+      .api.signInEmail({ body: { email: "ghost@example.com", password: PASSWORD } })
+      .then(() => null, (e: unknown) => e);
+    expect(wrong).toMatchObject({ statusCode: 401, message: "Invalid email or password" });
+    expect(unknown).toMatchObject({ statusCode: 401, message: "Invalid email or password" });
   });
 
   it("refuses credential sign-in for a customer even with a valid password hash", async () => {

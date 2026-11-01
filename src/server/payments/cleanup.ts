@@ -6,6 +6,12 @@ import { notificationOutbox, session, verification, webhookEvents } from "@/serv
 import { deleteExpiredCarts } from "@/server/services/cart";
 import type { DbClient } from "@/server/services/queries/shared";
 import { pruneRateLimits } from "@/server/services/rate-limit";
+import {
+  purgeClosedContactMessages,
+  purgeClosedSupportCases,
+  sweepOrphanSupportPhotos,
+  type PhotoSweepStorage,
+} from "@/server/services/retention";
 
 /** Processed webhook events are kept this long for support lookups, then deleted. */
 export const WEBHOOK_RETENTION_DAYS = 90;
@@ -20,9 +26,24 @@ export interface CleanupResult {
   sentNotificationsDeleted: number;
   expiredSessionsDeleted: number;
   expiredVerificationsDeleted: number;
+  /** Closed contact messages past their retention period (see `services/retention.ts`). */
+  contactMessagesDeleted: number;
+  /** Closed support cases whose description and photos were erased. */
+  supportCasesErased: number;
+  /** Support photos in Storage that no case references. */
+  orphanPhotosDeleted: number;
 }
 
-export async function cleanupHousekeeping(db: DbClient, now: Date = new Date()): Promise<CleanupResult> {
+/**
+ * The daily cleanup. Personal-data retention (contact messages, support cases, orphan photos) lives in
+ * `services/retention.ts`; orders and invoices are never purged here (tax records, ~8 years).
+ * `deps` lets tests replace Storage.
+ */
+export async function cleanupHousekeeping(
+  db: DbClient,
+  now: Date = new Date(),
+  deps: { photoStorage?: PhotoSweepStorage; removePhotos?: (paths: string[]) => Promise<void> } = {},
+): Promise<CleanupResult> {
   const cartsDeleted = await deleteExpiredCarts(db, now);
   const webhooks = await db
     .delete(webhookEvents)
@@ -49,6 +70,9 @@ export async function cleanupHousekeeping(db: DbClient, now: Date = new Date()):
     .delete(verification)
     .where(lt(verification.expiresAt, now))
     .returning({ id: verification.id });
+  const contactMessagesDeleted = await purgeClosedContactMessages(db, now);
+  const supportCasesErased = await purgeClosedSupportCases(db, now, { removePhotos: deps.removePhotos });
+  const orphanPhotosDeleted = await sweepOrphanSupportPhotos(db, now, deps.photoStorage);
   return {
     cartsDeleted,
     webhookEventsDeleted: webhooks.length,
@@ -56,5 +80,8 @@ export async function cleanupHousekeeping(db: DbClient, now: Date = new Date()):
     sentNotificationsDeleted: notifications.length,
     expiredSessionsDeleted: sessions.length,
     expiredVerificationsDeleted: verifications.length,
+    contactMessagesDeleted,
+    supportCasesErased,
+    orphanPhotosDeleted,
   };
 }

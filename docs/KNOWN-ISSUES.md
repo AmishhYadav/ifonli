@@ -30,7 +30,6 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 | # | Severity | Issue |
 | --- | --- | --- |
 | P-1 | Low | **Animated hero tiles are small tap targets while moving** (about 33 px at 390 px wide). They are decorative, pausable (the Pause control and hover/focus pause), and the same products are reachable from the poster tiles and the featured grid, so the 44 px target rule is not enforced for them. Still, a tile that is tapped mid-motion can be missed. |
-| P-4 | Low | **Intermittent unhandled rejection** (`APIError: Invalid email or password`) at the end of `tests/integration/admin-auth.test.ts` when the whole integration suite runs under load (573 tests pass; the file passes alone). The test that rejects a wrong password leaves a promise unawaited. No product impact. |
 | P-5 | Low | **Dev console warning** "Encountered a script tag while rendering React component" appears in development (the inline vibe script). It does not appear to affect behaviour; check it is absent from the production console before launch. |
 | P-6 | Low | **Shipping is manual.** Couriers and AWB numbers are typed in by staff; there is no live rate, label or tracking feed (Phase 9: Shiprocket). Tracking links are built from the AWB for common couriers. |
 | P-7 | Low | **Product images from Supabase Storage** are allowed in `next.config.ts` only for the local Storage host. Add the production Supabase host before launch (owned by the security and CI work). |
@@ -42,7 +41,6 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 
 | # | Severity | Issue |
 | --- | --- | --- |
-| S-1 | Low | **Support photos of a deleted account are removed after the database commit.** If storage is down at that moment the objects stay (random names, no longer linked to anyone) and a log line says how many; there is no sweep for orphans yet. |
 | S-2 | Low | **A stranger can still burn a code, not the account.** Better Auth locks each sign-in code after 5 wrong tries, so someone who knows an address and keeps guessing can force the real customer to ask for a new code (the customer's own wrong-code budget and send budget are separate, and only wrong codes count). |
 | S-3 | Low | **Staff password guessing is limited per email and IP, not by a stored lockout.** 8 attempts per 10 minutes per email can briefly lock a known staff address out of the sign-in form. Two-factor has Better Auth's own per-account lockout (10 failures, 15 minutes). |
 | S-4 | Low | **The "must change password" marker lives in the `verification` table** (no migration allowed in this pass). A dedicated column would be cleaner; the behaviour is covered by tests. |
