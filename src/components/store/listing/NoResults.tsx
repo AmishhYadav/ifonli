@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { VibeChip } from "@/components/ui/Chip";
 import { VIBES } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
+import { cn } from "@/lib/cn";
 import { getCollections, getFeaturedForAllVibes } from "@/server/cache/catalog";
 
 import { ProductCard } from "../ProductCard";
@@ -21,14 +22,23 @@ const SUGGESTION_COUNT = 4;
 export async function NoResults({
   variant,
   q,
+  embedded = false,
 }: {
   variant: "none" | "prompt";
   q?: string;
+  /** Inside the listing grid (beside the filters): no page container of its own, so it lines up with the grid. */
+  embedded?: boolean;
 }) {
   const [{ types }, featured] = await Promise.all([getCollections(), getFeaturedForAllVibes(8)]);
 
   return (
-    <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-4 py-6 sm:px-6" data-testid="search-empty">
+    <div
+      className={cn(
+        "flex flex-col gap-10",
+        embedded ? "" : "mx-auto max-w-[1440px] px-4 py-6 sm:px-6",
+      )}
+      data-testid="search-empty"
+    >
       <EmptyState
         icon="search"
         headingLevel="h2"
@@ -56,7 +66,7 @@ export async function NoResults({
       </EmptyState>
 
       <section aria-label="Browse by vibe">
-        <ul className="flex flex-wrap justify-center gap-3">
+        <ul className="flex flex-wrap gap-3">
           {VIBES.map((v) => (
             <li key={v}>
               <VibeChip vibe={v} href={`/vibes/${v}`} />
