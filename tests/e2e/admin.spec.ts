@@ -1,8 +1,7 @@
-import { execFileSync } from "node:child_process";
-
 import { expect, test, type Page } from "@playwright/test";
 import sharp from "sharp";
 
+import { createAdminAccount } from "./helpers/admin-account";
 import { totp } from "./helpers/totp";
 
 /**
@@ -79,22 +78,7 @@ test.describe("full flow", () => {
   let secret = "";
 
   test.beforeAll(() => {
-    execFileSync(
-      "pnpm",
-      [
-        "exec",
-        "tsx",
-        "--conditions=react-server",
-        "scripts/create-admin.ts",
-        "--email",
-        email,
-        "--role",
-        "owner",
-        "--password",
-        password,
-      ],
-      { stdio: "pipe" },
-    );
+    createAdminAccount(email, password, "owner");
   });
 
   test("first login forces two-factor enrolment", async ({ page, isMobile }) => {

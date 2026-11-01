@@ -4,6 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { config } from "dotenv";
 import postgres from "postgres";
+import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
 /**
  * Checkout, payment, order page and tracking e2e. Needs the dev server (the payment mock only exists
@@ -73,6 +74,9 @@ async function deleteTestOrders() {
 }
 
 test.beforeAll(async () => {
+  // Shared fixtures: wait for any other spec that rewrites them (tests/support/fixture-lock.ts).
+  test.setTimeout(900_000);
+  await acquireFixtureLock();
   const keys = Object.keys(TEST_SETTINGS);
   const settingRows = await sql<
     Snapshot["settings"]
@@ -104,20 +108,24 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await deleteTestOrders();
-  const had = new Set(snapshot.settings.map((s) => s.key));
-  for (const key of Object.keys(TEST_SETTINGS)) {
-    if (!had.has(key)) await sql`delete from settings where key = ${key}`;
+  try {
+    await deleteTestOrders();
+    const had = new Set(snapshot.settings.map((s) => s.key));
+    for (const key of Object.keys(TEST_SETTINGS)) {
+      if (!had.has(key)) await sql`delete from settings where key = ${key}`;
+    }
+    for (const s of snapshot.settings) {
+      await sql`update settings set value = ${sql.json(s.value as never)}, is_placeholder = ${s.is_placeholder} where key = ${s.key}`;
+    }
+    for (const p of snapshot.pincodes) {
+      await sql`update pincodes set cod_allowed = ${p.cod_allowed}, serviceable = ${p.serviceable} where pincode = ${p.pincode}`;
+    }
+    await sql`update variants set stock_on_hand = ${snapshot.stock} where id = ${snapshot.variantId}`;
+    await sql`delete from carts where token like 'e2e-%'`;
+    await sql.end();
+  } finally {
+    await releaseFixtureLock();
   }
-  for (const s of snapshot.settings) {
-    await sql`update settings set value = ${sql.json(s.value as never)}, is_placeholder = ${s.is_placeholder} where key = ${s.key}`;
-  }
-  for (const p of snapshot.pincodes) {
-    await sql`update pincodes set cod_allowed = ${p.cod_allowed}, serviceable = ${p.serviceable} where pincode = ${p.pincode}`;
-  }
-  await sql`update variants set stock_on_hand = ${snapshot.stock} where id = ${snapshot.variantId}`;
-  await sql`delete from carts where token like 'e2e-%'`;
-  await sql.end();
 });
 
 // The suite mutates shared rows and the payment mock lives in the dev server: one desktop project, in order.

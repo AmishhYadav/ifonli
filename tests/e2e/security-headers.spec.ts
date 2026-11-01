@@ -1,8 +1,8 @@
-import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
+import { createAdminAccount } from "./helpers/admin-account";
 import { totp } from "./helpers/totp";
 
 /**
@@ -390,22 +390,7 @@ test.describe("security: signed-in admin pages", () => {
     const stamp = Date.now();
     const email = `e2e-csp-admin-${stamp}@ifonli.local`;
     const password = `E2e-Csp-${stamp}!`;
-    execFileSync(
-      "pnpm",
-      [
-        "exec",
-        "tsx",
-        "--conditions=react-server",
-        "scripts/create-admin.ts",
-        "--email",
-        email,
-        "--role",
-        "owner",
-        "--password",
-        password,
-      ],
-      { stdio: "pipe" },
-    );
+    createAdminAccount(email, password, "owner");
 
     const violations = await trackViolations(page);
     await page.goto("/admin/login");

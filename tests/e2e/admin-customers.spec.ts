@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -8,6 +7,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import postgres from "postgres";
 
+import { createAdminAccount } from "./helpers/admin-account";
 import { totp } from "./helpers/totp";
 
 /**
@@ -76,22 +76,7 @@ test.describe("full flow", () => {
   };
 
   test.beforeAll(async () => {
-    execFileSync(
-      "pnpm",
-      [
-        "exec",
-        "tsx",
-        "--conditions=react-server",
-        "scripts/create-admin.ts",
-        "--email",
-        email,
-        "--role",
-        "owner",
-        "--password",
-        password,
-      ],
-      { stdio: "pipe" },
-    );
+    createAdminAccount(email, password, "owner");
     await withDb(async (sql) => {
       const [variant] = await sql<
         { id: string; product_id: string; sku: string; title: string; name: string; mrp: number }[]

@@ -49,6 +49,10 @@ export async function createAdminSession(
     ],
     { stdio: "pipe", env: { ...process.env, NODE_ENV: "development" } },
   );
+  // Every spec signs in from the same address: keep the per-IP admin limits from tripping locally.
+  execFileSync("pnpm", ["exec", "tsx", "tests/e2e/helpers/clear-admin-rate-limits.ts"], {
+    stdio: "pipe",
+  });
 
   const context = await browser.newContext({ baseURL });
   const page = await context.newPage();
@@ -73,10 +77,15 @@ export async function createAdminSession(
   return { email, password, secret, storageState };
 }
 
-/** Removes the admin accounts the QA specs created (and their sessions, 2FA rows and audit entries). */
-export async function cleanupQaAdmins(): Promise<void> {
+/**
+ * Removes the given QA admin accounts (and their sessions, 2FA rows and audit entries). Only the
+ * caller's own accounts: other specs may still be signed in with theirs.
+ */
+export async function cleanupQaAdmins(emails: readonly string[]): Promise<void> {
+  const own = emails.filter((email) => /^qa-admin-.*@ifonli\.local$/.test(email));
+  if (own.length === 0) return;
   await sql`
     delete from admin_audit_log
-    where actor_id in (select id from "user" where email like 'qa-admin-%@ifonli.local')`;
-  await sql`delete from "user" where email like 'qa-admin-%@ifonli.local'`;
+    where actor_id in (select id from "user" where email in ${sql(own)})`;
+  await sql`delete from "user" where email in ${sql(own)}`;
 }

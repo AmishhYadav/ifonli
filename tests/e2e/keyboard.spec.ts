@@ -11,6 +11,7 @@ import {
 } from "../support/commerce";
 import { sql } from "../support/db";
 import { VIBES, gotoVibe } from "../support/vibes";
+import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
 /**
  * Keyboard pass: skip link, header (hand button, menus, search, cart drawer), product page, checkout, the
@@ -35,6 +36,9 @@ let restore: () => Promise<void> = async () => {};
 let productSlug = "";
 
 test.beforeAll(async () => {
+  // Shared fixtures: wait for any other spec that rewrites them (tests/support/fixture-lock.ts).
+  test.setTimeout(900_000);
+  await acquireFixtureLock();
   await cleanupQa();
   restore = await applyCommerce();
   const [p] = await sql<{ slug: string }[]>`
@@ -43,8 +47,12 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await cleanupQa();
-  await restore();
+  try {
+    await cleanupQa();
+    await restore();
+  } finally {
+    await releaseFixtureLock();
+  }
 });
 
 interface Stop {

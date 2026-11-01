@@ -220,6 +220,8 @@ test.describe("header", () => {
   test("keyboard: skip link, hand button, then the Vibes menu opens, moves and closes", async ({ page, isMobile }) => {
     test.skip(isMobile, "desktop navigation");
     await page.goto("/");
+    // Enter on the menu button before React attaches does nothing: wait for hydration.
+    await page.waitForLoadState("networkidle");
     await page.keyboard.press("Tab");
     await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
     await page.keyboard.press("Tab");

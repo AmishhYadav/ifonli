@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -7,6 +6,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import postgres from "postgres";
 
+import { createAdminAccount } from "./helpers/admin-account";
 import { totp } from "./helpers/totp";
 
 /**
@@ -64,22 +64,7 @@ test.describe("full flow", () => {
   let messageId = "";
 
   test.beforeAll(async () => {
-    execFileSync(
-      "pnpm",
-      [
-        "exec",
-        "tsx",
-        "--conditions=react-server",
-        "scripts/create-admin.ts",
-        "--email",
-        email,
-        "--role",
-        "owner",
-        "--password",
-        password,
-      ],
-      { stdio: "pipe" },
-    );
+    createAdminAccount(email, password, "owner");
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL must point at the dev database");
     const sql = postgres(url, { max: 1 });
