@@ -43,6 +43,9 @@ jobs:
         run: pnpm typecheck
       - name: Unit tests
         run: pnpm test
+      - name: Migration history consistency
+        # Catches a hand-edited or conflicting drizzle/meta journal without needing a database.
+        run: pnpm exec drizzle-kit check
       - name: Contrast check
         run: pnpm contrast
 
@@ -158,10 +161,11 @@ jobs:
 
   # ---------------------------------------------------------------------------------------------
   # Production build: build against the migrated + seeded DB, then verify what ships:
-  # security headers / CSP in a real browser, and Lighthouse budgets (non-blocking for now).
+  # security headers / CSP in a real browser, the production-only vibe timing and font tests, and
+  # Lighthouse budgets (non-blocking for now).
   # ---------------------------------------------------------------------------------------------
   prod:
-    name: Build, security e2e, Lighthouse
+    name: Build, security e2e, vibe timing, Lighthouse
     runs-on: ubuntu-latest
     timeout-minutes: 40
     services:
@@ -183,7 +187,15 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3107
       NEXT_PUBLIC_SITE_URL: http://localhost:3107
       ORDER_TOKEN_SECRET: ci-order-token-secret-00000000000000000000
-      CRON_SECRET: ci-cron-secret
+      # A production server refuses to boot without these (src/lib/env.ts, assertProductionEnv):
+      # secrets of 32+ characters and the e-mail and payment settings. Dummy values: nothing in this
+      # job sends mail or takes payment.
+      CRON_SECRET: ci-cron-secret-not-for-production-0000000
+      RESEND_API_KEY: re_ci_dummy_key
+      EMAIL_FROM: IfOnli CI <ci@ifonli.local>
+      RAZORPAY_KEY_ID: rzp_test_ci_dummy
+      RAZORPAY_KEY_SECRET: ci-razorpay-key-secret
+      RAZORPAY_WEBHOOK_SECRET: ci-razorpay-webhook-secret
       SEED_OWNER_EMAIL: owner@ifonli.local
       # CSP_MODE is read at BUILD time (next.config headers); CI verifies the enforced policy.
       CSP_MODE: enforce
@@ -218,6 +230,25 @@ jobs:
         env:
           E2E_BASE_URL: http://localhost:3107
           E2E_ADMIN_FLOW: "1"
+      # vibe.spec (h) switch timing and (i) font requests are about what ships, so they are skipped under
+      # `next dev` (E2E_PROD unset) and run here. The spec drives the /dev/vibe playground and reads
+      # the vibe events, which exist only in a build made with NEXT_PUBLIC_ENABLE_DEV_PAGES=1, so this
+      # step makes a second build of that kind (own dist dir) and leaves the build above untouched.
+      - name: Build with dev pages (vibe timing and font tests)
+        run: NEXT_DIST_DIR=.next-perf NEXT_PUBLIC_ENABLE_DEV_PAGES=1 pnpm build
+      - name: Start dev-pages production server
+        run: |
+          NEXT_DIST_DIR=.next-perf nohup pnpm exec next start -p 3108 > perf-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null http://localhost:3108/api/health && break
+            sleep 2
+          done
+          curl -fsS http://localhost:3108/api/health
+      - name: Vibe switch timing and font requests (production build)
+        run: pnpm e2e --project=chromium-desktop vibe.spec.ts --grep "\\(h\\)|\\(i\\)"
+        env:
+          E2E_BASE_URL: http://localhost:3108
+          E2E_PROD: "1"
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
@@ -227,13 +258,16 @@ jobs:
             playwright-report/
             test-results/
             prod-server.log
+            perf-server.log
           retention-days: 7
       # Lighthouse starts its own server (lighthouserc.json); stop ours first.
       - name: Stop production server
         if: always()
         run: pkill -f "next start" || true
-      # Non-blocking at first (continue-on-error): shared runners are noisy and the budgets are
-      # still being tuned. Flip to blocking once a baseline of green runs exists.
+      # NOT GATING YET, on purpose (continue-on-error): on the shared CI runner the home page scores
+      # 0.57-0.77 for performance against the 0.85 budget, and the numbers swing from run to run. The
+      # reports are uploaded below so the trend can be read; remove continue-on-error (and tune the
+      # budgets to a runner-realistic baseline) once there is a stable run of green results.
       - name: Lighthouse CI (mobile budgets, plan 13)
         continue-on-error: true
         run: pnpm dlx @lhci/cli@0.15.1 autorun --config=lighthouserc.json
@@ -244,5 +278,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse
-          path: .lighthouseci/
+          # lighthouserc.json writes here (a visible folder: upload-artifact skips dot-folders by default).
+          path: lhci-results/
+          if-no-files-found: warn
           retention-days: 7

@@ -15,10 +15,10 @@ Set in Vercel (Project, Settings, Environment Variables). Use separate **Product
 
 | Variable | Required in prod | Secret | Used for / notes |
 |---|---|---|---|
-| `DATABASE_URL` | yes | yes | Supabase **pooled** (transaction pooler, port 6543) connection string. The app uses `prepare: false` for the pooler |
+| `DATABASE_URL` | yes | yes | Supabase **pooled** (transaction pooler, port 6543) connection string. The app uses `prepare: false`, a small pool (5 connections per instance) and requires TLS for any host that is not localhost |
 | `DIRECT_URL` | for migrations | yes | Supabase **direct** connection (port 5432). Used by `drizzle-kit migrate`; falls back to `DATABASE_URL` |
-| `NEXT_PUBLIC_SITE_URL` | yes | no | Public origin (`https://...`, no trailing slash). Canonical URLs, sitemap, OG, CSP `upgrade-insecure-requests` |
-| `BETTER_AUTH_SECRET` | yes | yes | Signs sessions and cookies. `openssl rand -hex 32`. The app refuses to start without it in production |
+| `NEXT_PUBLIC_SITE_URL` | yes | no | Public origin (`https://...`, no trailing slash; `http://localhost` is accepted only so a production build can be tried on one machine). Canonical URLs, sitemap, OG, links in e-mails, CSP `upgrade-insecure-requests` |
+| `BETTER_AUTH_SECRET` | yes | yes | Signs sessions and cookies, and encrypts the admins' authenticator secrets and backup codes (see section 4 before changing it). `openssl rand -hex 32`, at least 32 characters. A production server refuses to boot without it (see "Boot check" below) |
 | `BETTER_AUTH_URL` | yes | no | Same origin as the site |
 | `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` | yes | no | Storage API base. Also drives `next/image` `remotePatterns` and the CSP `img-src`/`media-src` (read at **build** time) |
 | `SUPABASE_SERVICE_ROLE_KEY` | yes | **yes** | Server-only Storage access (uploads, signed URLs). Never expose to the browser |
@@ -26,13 +26,21 @@ Set in Vercel (Project, Settings, Environment Variables). Use separate **Product
 | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | yes | no | Checkout.js key id (same as `RAZORPAY_KEY_ID`) |
 | `RAZORPAY_WEBHOOK_SECRET` | yes | yes | HMAC of `/api/webhooks/razorpay`. A **different** secret from the key secret |
 | `RESEND_API_KEY` / `EMAIL_FROM` | yes | key: yes | Transactional e-mail. `EMAIL_FROM` like `IfOnli <orders@your-domain>` on a Resend-verified domain |
-| `CRON_SECRET` | yes | yes | Vercel Cron sends it as `Authorization: Bearer ...`; with no secret every cron call is rejected |
+| `CRON_SECRET` | yes | yes | Vercel Cron sends it as `Authorization: Bearer ...`; with no secret every cron call is rejected. At least 32 characters |
 | `SENTRY_DSN` | recommended | semi | Enables error reporting. Empty = reporter is a no-op |
-| `NEXT_PUBLIC_GA4_ID` | optional | no | GA4 measurement id. Also adds the Google origins to the CSP (build time) |
+| `NEXT_PUBLIC_GA4_ID` | optional | no | GA4 measurement id (wins over the admin setting `ga4_measurement_id`). The CSP always allows the Google origins, so the admin setting works without it |
 | `CSP_MODE` | no | no | `report-only` (default) or `enforce`. **Build time**, see section 9 |
 | `VERCEL_GIT_COMMIT_SHA`, `VERCEL_ENV` | set by Vercel | no | Release tag and environment label on error reports; short SHA in `/api/health` |
 | `NEXT_DIST_DIR` | dev only | no | Separate build output dir for parallel local servers |
-| `SEED_OWNER_EMAIL` | seed only | no | Owner admin created by `pnpm db:seed` |
+| `SEED_OWNER_EMAIL` | seed only | no | Owner admin created by `pnpm db:seed`. Required (no default) when the database is not local |
+| `ADMIN_PASSWORD` | scripts only | **yes** | Password for `scripts/create-admin.ts` when `--password` is not given (keeps it out of shell history). Never set it in Vercel |
+| `NEXT_PUBLIC_ENABLE_DEV_PAGES` | **never in prod** | no | Test/review builds only: exposes `/styleguide`, `/dev/*`, the e-mail preview and unpublished policies, and switches the order gate off. The launch checklist flags it. Build time |
+
+**Boot check.** A production server (`NODE_ENV=production`, not `next build`) checks its environment in `instrumentation-node.ts` and exits at startup, with a message listing every problem by variable name (never the values), when any of these is missing or weak: `NEXT_PUBLIC_SITE_URL` (https), `BETTER_AUTH_SECRET` and `CRON_SECRET` (32+ characters), `DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_FROM`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. A deploy with a bad environment therefore fails its first request instead of sending e-mails with `localhost` links. Check the function logs of a failed deployment for the line `Invalid production environment`.
+
+**Function region.** `vercel.json` pins functions to `bom1` (Mumbai), next to the Supabase database (ap-south-1). Without it Vercel defaults to `iad1` and every query crosses the world. Keep the project's Function Region setting at Mumbai (bom1) too if it is set in the dashboard.
+
+**Plan.** The cron schedule includes jobs more often than daily (every 5 and 10 minutes, hourly), which Vercel allows only on the **Pro** plan; on Hobby the deploy is rejected.
 
 Local-only test helpers: `IFONLI_TEST_DB` (integration test database name), `E2E_BASE_URL`, `PW_CHROMIUM_PATH`, `E2E_ADMIN_FLOW`, `E2E_MOCK_CHECKOUT` (see the README).
 
@@ -58,16 +66,20 @@ Cache note: a rollback swaps the code; cached catalogue entries tagged in the da
 Migrations are Drizzle SQL files in `drizzle/` (committed). They are applied with the **direct** connection:
 
 ```bash
-DIRECT_URL='postgresql://postgres:...@db.<ref>.supabase.co:5432/postgres' pnpm db:migrate
+DIRECT_URL='postgresql://postgres.<ref>:<password>@aws-0-ap-south-1.pooler.supabase.com:5432/postgres' pnpm db:migrate
 ```
+
+Use the Supabase **session pooler** host (`...pooler.supabase.com`, port **5432**; the username is `postgres.<ref>`) for `DIRECT_URL`. The `db.<ref>.supabase.co` direct host is IPv6-only, so it fails from GitHub Actions, most laptops on IPv4 networks and anywhere else without IPv6. Copy the exact string from Supabase, Connect, Session pooler.
 
 Rules
 - Take a manual backup first (section 5: Supabase dashboard, Database, Backups, or `pg_dump`).
 - Migrations are forward-only. For anything destructive use **expand then contract**: release 1 adds the new column/table and writes both; release 2 stops reading the old one; release 3 drops it. That keeps rollback (section 2) safe.
 - `pg_trgm` and `unaccent` are created by migration `0000_extensions.sql`; Supabase allows both.
 - Never edit an applied migration. Fix forward with a new one (`pnpm db:generate`).
-- First-time production data: `pnpm db:seed` (vibes, product types, settings, owner) and `pnpm exec tsx --conditions=react-server scripts/seed-content.ts` (policies stay DRAFT/unpublished until the owner publishes). **Do not run `db:seed-products` in production** (placeholder catalogue; it refuses under `NODE_ENV=production` without `--force-placeholder`).
-- Create the owner admin: `pnpm exec tsx --conditions=react-server scripts/create-admin.ts --email you@domain --role owner --force` (TOTP is enrolled at first login).
+- Seed and admin scripts run under `tsx`, where `NODE_ENV` is not set, so they decide by the **host in `DATABASE_URL`**: anything other than localhost/127.0.0.1 is refused unless `--allow-remote` is passed. Export the production `DATABASE_URL` for the command (or put it in `.env.local`), and double-check the host the script prints if it refuses.
+- First-time production data: `SEED_OWNER_EMAIL=you@domain pnpm db:seed --allow-remote` (vibes, product types, settings, owner row; `SEED_OWNER_EMAIL` is required against a remote database) and `pnpm exec tsx --conditions=react-server scripts/seed-content.ts` (policies stay DRAFT/unpublished until the owner publishes; it only inserts what is missing and never touches a policy edited in admin or a published one, so it needs no `--allow-remote`; `--force` overwrites and does need it). **Do not run `db:seed-products` in production** (placeholder catalogue; it refuses a remote database or `NODE_ENV=production` unless both `--force-placeholder` and `--allow-remote` are given).
+- Create the owner admin: `ADMIN_PASSWORD='...' pnpm exec tsx --conditions=react-server scripts/create-admin.ts --email you@domain --role owner --allow-remote` (omit `ADMIN_PASSWORD` to get a generated password printed once; TOTP is enrolled at first login).
+- Staff added from the admin Users screen get a temporary password: they must replace it while setting up their authenticator, and it stops working after 7 days (an owner can reset it from the same screen).
 - Storage buckets: `pnpm storage:setup` once per project (creates `products`, `cutouts`, `content` public and `private`).
 
 ---
@@ -80,12 +92,21 @@ Always rotate in this order: create the new value, set it in Vercel, redeploy, v
 |---|---|---|
 | **Razorpay API key** (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`) | Razorpay Dashboard, Account & Settings, API Keys, Regenerate (live keys need the dashboard 2FA). Set all three in Vercel, redeploy. Old key stops working immediately on regeneration, so do it in a quiet period and place a test order afterwards | Checkout fails between regeneration and deploy. Open orders still verify through the webhook and the reconcile cron |
 | **Razorpay webhook secret** (`RAZORPAY_WEBHOOK_SECRET`) | Razorpay Dashboard, Webhooks, edit the endpoint, set a new secret. Update Vercel and redeploy immediately. Webhooks signed with the old secret are rejected with 401 and **Razorpay retries**; the reconcile cron (every 10 min) also repairs any gap | Short window of rejected webhooks, self-healing |
-| **Better Auth secret** (`BETTER_AUTH_SECRET`) | `openssl rand -hex 32`, set, redeploy | **Signs everyone out** (customers and admins; admins sign in again with password + TOTP). In-flight OTP codes become invalid |
+| **Better Auth secret** (`BETTER_AUTH_SECRET`) | `openssl rand -hex 32`, set, redeploy, then **re-enrol every admin's authenticator** (below) | **Signs everyone out** (customers and admins). In-flight OTP codes become invalid. **Locks every admin out of two-factor**: Better Auth encrypts each admin's TOTP secret and backup codes with this secret, so after a change they can no longer be read and every authenticator code is rejected |
 | **Cron secret** (`CRON_SECRET`) | New value in Vercel, redeploy. Vercel Cron sends the current value of the env var, so there is no gap beyond the deploy | A cron run during the deploy may 401 and runs again on the next tick |
 | **Resend** (`RESEND_API_KEY`) | Resend dashboard, API Keys, create a new key with "sending access", set in Vercel, redeploy, send a test (place a COD test order or use the contact form), then delete the old key | E-mails queue in the outbox and retry (notify-retry cron) if sending fails during the swap |
 | **Supabase service role key** | Supabase, Project Settings, API, roll the JWT secret / key; set `SUPABASE_SERVICE_ROLE_KEY`, redeploy | Image uploads and invoice downloads fail until redeployed |
 | **Database password** | Supabase, Database, Reset password. Update `DATABASE_URL` and `DIRECT_URL`, redeploy | Brief connection errors |
 | **Sentry DSN** | Sentry, Client Keys, rotate; update `SENTRY_DSN` | Errors not reported until redeployed |
+
+**Re-enrolling admins after a `BETTER_AUTH_SECRET` change.** Nobody can sign in to /admin, so this is done from a machine that has the production `DATABASE_URL` (and the new `BETTER_AUTH_SECRET` in the environment). For each staff account, starting with an owner:
+
+```bash
+pnpm exec tsx --conditions=react-server scripts/create-admin.ts \
+  --email person@domain --role <their current role> --reset-2fa --allow-remote
+```
+
+That drops the stored authenticator (`two_factor` row), turns two-factor off for the account and sets a new password (generated and printed once, or pass `ADMIN_PASSWORD`); give it to the person over a private channel. They sign in with the password, scan a new QR code and save new backup codes. Without the script, the same by hand: `delete from two_factor where user_id = '<id>'; update "user" set two_factor_enabled = false where id = '<id>'; delete from session where user_id = '<id>';`, then set a password with the script. Once an owner is back in, the other staff can be reset from the admin Users screen ("Reset two-factor"). If rotation is only a precaution, plan it for a quiet moment and do the owner first.
 
 After any rotation: `GET /api/health`, one storefront page, admin login, and (for payment secrets) a test order.
 
@@ -141,11 +162,12 @@ All endpoints require `Authorization: Bearer $CRON_SECRET`. Times are UTC (IST =
 |---|---|---|
 | `/api/cron/reconcile-payments` | every 10 min | Re-checks pending payments with Razorpay, finalises captures the webhook missed, reconciles refunds |
 | `/api/cron/release-reservations` | every 5 min | Checks overdue unpaid orders with Razorpay first (a late capture is finalised, not expired), then releases expired stock reservations and expires the rest |
-| `/api/cron/cleanup` | daily 21:30 (03:00 IST) | Deletes expired carts, webhook events older than 90 days, rate-limit windows older than 1 day |
-| `/api/cron/notify-retry` | every 5 min | Sends queued e-mails from the outbox and retries failures with backoff |
-| `/api/cron/low-stock-digest` | daily 03:30 (09:00 IST) | E-mails the admin a low-stock summary |
+| `/api/cron/cleanup` | daily 21:30 (03:00 IST) | Deletes expired carts, webhook events older than 90 days, rate-limit windows older than 1 day, delivered e-mails (`notification_outbox` status `sent`) older than 90 days, and expired Better Auth sessions and verification rows |
+| `/api/cron/notify-retry` | every 5 min | Sends queued e-mails from the outbox and retries failures with backoff. Stops sending after 240 s (`maxDuration` 300 s); rows not reached are picked up by the next run |
+| `/api/cron/low-stock-digest` | daily 03:30 (09:00 IST) | E-mails the admin a low-stock summary; queues at most one digest per India day, so re-running it the same day is harmless |
+| `/api/cron/analytics-rollup` | hourly at :15 | Rebuilds `product_engagement_daily` for the last 3 India days from raw events (idempotent), then deletes raw events past the retention setting. `?days=N` (1-90) backfills further |
 
-Failures are logged and reported to Sentry with `source: cron`. Vercel Cron on the Hobby plan is limited; the plan requires Pro (see plan section 4).
+Failures are logged and reported to Sentry with `source: cron`. These schedules need the Vercel **Pro** plan (Hobby only allows daily crons), and the functions must run in **bom1** (see section 1, "Function region").
 
 ---
 
@@ -157,10 +179,10 @@ One Postgres table (`rate_limits`: key, window start, count) behind `consumeRate
 
 | Surface | Kind | Key(s) | Limit |
 |---|---|---|---|
-| Customer OTP request / verify (`/api/auth/email-otp/*`, `/sign-in/email-otp`) | Better Auth handler | `ba:` IP + path (store: Postgres) | 3 per 60 s per IP and path (plugin default); global 60 per 60 s per IP |
-| Customer OTP, per address | Auth hook | `otp-email:<sha256(email)>` | 5 codes per 10 min per email; each code allows 5 verification attempts |
-| Credential sign-in `/api/auth/sign-in/email` | Better Auth handler | `ba:` | 8 per 5 min per IP |
-| TOTP verify / backup code (handler) | Better Auth handler | `ba:` | 10 per 5 min per IP |
+| Better Auth over HTTP (`/api/auth/*`) | Better Auth handler | `ba:` IP + path (store: Postgres) | Only `get-session`, `sign-out`, `ok` and `error` exist over HTTP; every other path (OTP, sign-in, two-factor, `admin/*`) answers 404 whoever asks, so staff emails cannot be probed. Global limit 60 per 60 s per IP |
+| Customer OTP, sending codes | Auth hook (also for the Server Actions) | `otp-send:<sha256(email)>`, `otp-send-ip:<sha256(ip)>` | 5 codes per 10 min per email; 20 per 10 min per IP |
+| Customer OTP, wrong codes | Auth hook | `otp-fail:<sha256(email)>:<sha256(ip)>`, `otp-fail-ip:<sha256(ip)>` | Only failed attempts count: 8 per 10 min per email and IP; 30 per 10 min per IP. Sending codes never uses this budget, and a stranger cannot lock the real customer out. Each code also locks after 5 wrong tries (Better Auth) |
+| Admin TOTP, per account | Better Auth | `two_factor.failed_verification_count` | 10 consecutive failures lock the account's two-factor for 15 minutes |
 | Admin sign-in Server Action | Server Action | `admin-login:<ip>`, `admin-login-email:<email>` | 30 per 10 min per IP; 8 per 10 min per email |
 | Admin TOTP step / enrolment | Server Action | `admin-2fa:<ip>`, `admin-enroll:<ip>` | 10 per 10 min; 8 per 10 min |
 | Coupon apply | Server Action | `coupon:ip`, `coupon:cart` | 30 per 10 min per IP; 10 per 10 min per cart |
@@ -170,12 +192,12 @@ One Postgres table (`rate_limits`: key, window start, count) behind `consumeRate
 | Place order (checkout) | Server Action | `checkout:ip`, `checkout:cart` | 20 per 10 min per IP; 10 per 10 min per cart |
 | Retry payment | Server Action | `payretry:ip`, `payretry:ref` | 20 per 10 min per IP; 10 per 10 min per order |
 | Payment verify `POST /api/payments/razorpay/verify` | Route Handler | `payverify:ip`, `payverify:ref` | 40 per 10 min per IP; 20 per 10 min per order |
-| Guest order tracking | Server Action | `track:ip`, `track:ref` | 20 per 10 min per IP; 8 per 10 min per order ref |
+| Guest order tracking | Server Action | `track:ip`, `track:ref-ip` | 20 per 10 min per IP; 8 per 10 min per order ref **and IP** (so someone who knows a reference cannot use up the real customer's tries) |
 | Contact form | Server Action | `contact:ip`, `contact:email` | 5 per 15 min per IP; 3 per hour per email (plus a honeypot field) |
 | Customer invoice download `GET /api/orders/{ref}/invoice` | Route Handler | `invoice:ip` | 30 per 10 min per IP (also needs the order token) |
 | Header quick search | Server Action | `search:ip` | 90 per minute per IP (over limit returns no results) |
 | Wishlist cards | Server Action | `wishlist:ip` | 60 per minute per IP |
-| Customer OTP login (storefront Server Actions) | Server Action | `otp-send:ip`, `otp-send:email`, `otp-verify:ip`, `otp-verify:email` | Send: 10 per 15 min per IP, 5 per 15 min per email. Verify: 30 per 15 min per IP, 10 per 15 min per email |
+| Customer OTP login (storefront Server Actions) | Server Action | `otp-send:ip`, `otp-send:email`, `otp-verify:ip` | Send: 10 per 15 min per IP, 5 per 15 min per email. Verify: 30 per 15 min per IP. The per-address budget for wrong codes is in the auth guards (row above), not here |
 | Customer order cancel | Server Action | `cancel:ip`, `cancel:ref` | 20 per 10 min per IP; 6 per 10 min per order |
 | Report a problem (support case) | Server Action | `support:ip`, `support:order` | 10 per hour per IP; 6 per day per order |
 | Support photo upload URLs | Server Action | `support-upload:ip` | 20 per hour per IP (files checked for type and size before the case stores them) |
@@ -212,7 +234,7 @@ Go-live procedure
 4. Set `CSP_MODE=enforce` and redeploy. Re-run the live test payment. To back out, set it back and redeploy (or roll back).
 5. HSTS is `max-age=31536000; includeSubDomains` in production. Add `preload` and submit to hstspreload.org only when every subdomain is HTTPS-only.
 
-`pnpm e2e --project=chromium-desktop --grep "security:"` against `pnpm start` checks headers, endpoints and zero violations on the storefront, cart, checkout, guest tracking, help, admin login and (with `E2E_ADMIN_FLOW=1`) signed-in admin pages. Third-party origins allowed: Razorpay (always), Google Analytics/Tag Manager (only when `NEXT_PUBLIC_GA4_ID` is set), the Supabase storage host (from env).
+`pnpm e2e --project=chromium-desktop --grep "security:"` against `pnpm start` checks headers, endpoints and zero violations on the storefront, cart, checkout, guest tracking, help, admin login and (with `E2E_ADMIN_FLOW=1`) signed-in admin pages. Third-party origins allowed: Razorpay (always), Google Analytics/Tag Manager (always, so a GA4 id from the admin setting can load; gtag itself loads only with an id and consent), the Supabase storage host (from env).
 
 ---
 

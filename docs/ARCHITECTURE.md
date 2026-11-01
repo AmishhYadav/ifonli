@@ -35,7 +35,7 @@ Principles
 | `src/app/admin/(auth)`, `src/app/admin/(app)` | Admin: login and 2FA enrolment (public), then the gated, never-themed back office |
 | `src/app/api/*` | `auth/[...all]` (Better Auth), `webhooks/razorpay`, `payments/razorpay/verify`, `orders/[ref]/invoice`, `admin/orders/[id]/invoice`, `cron/*`, `health`, `csp-report`, `monitoring`, `dev/*` (404 in production) |
 | `src/proxy.ts` | Coarse `/admin/**` gate (cookie present or redirect to login) plus `noindex` and `no-store` headers. Not used for CSP (see section 8) |
-| `src/instrumentation.ts` | `onRequestError` to the error reporter |
+| `src/instrumentation.ts` | `onRequestError` to the error reporter; `register()` loads `instrumentation-node.ts` (production environment check at boot, crash and rejection reporting) in the Node runtime only |
 | `src/features/*` | Client-facing feature code: `vibe` (theme engine, hand button, head script), `cart`, `checkout`, `hero`, `search`, `wishlist` |
 | `src/components/*` | UI primitives (`ui`), storefront, checkout, admin and content components |
 | `src/server/domain` | Pure business rules: pricing, tax, coupons, shipping, order state machine, tokens, signature checks. Fully unit-tested, no I/O |
@@ -71,7 +71,7 @@ Admin Server Actions call `updateTag` (read-your-writes); Route Handlers (webhoo
 
 ## 4. Auth and RBAC
 
-- **Better Auth** (Drizzle adapter, cookie prefix `ifonli`). Customers: optional passwordless **e-mail OTP** (guest checkout stays the default). Admins (`owner`, `admin`, `fulfilment`): **e-mail + password + TOTP**, mandatory 2FA; guards in `src/server/auth/auth.ts` refuse OTP sign-in for admin roles and password sign-in for customers (D-AUTH-1).
+- **Better Auth** (Drizzle adapter, cookie prefix `ifonli`). Customers: optional passwordless **e-mail OTP** (guest checkout stays the default). Admins (`owner`, `admin`, `fulfilment`): **e-mail + password + TOTP**, mandatory 2FA; guards in `src/server/auth/auth.ts` refuse OTP sign-in for admin roles and password sign-in for customers (D-AUTH-1). Better Auth is reached only through Server Actions; over HTTP `/api/auth/*` serves just `get-session` and `sign-out` (D-SEC-6).
 - **Layers on `/admin`**: (1) `proxy.ts` redirects when no session cookie exists; (2) `requireAdmin()` in every admin layout, page and Server Action checks a valid session, an admin role, an enrolled TOTP and the specific permission; (3) the permission matrix lives in `src/server/auth/permissions.ts` (resource to actions per role, unit-tested); (4) mutations write `admin_audit_log`.
 - **Rate limits** for sign-in are Postgres-backed (DECISIONS D-SEC-5).
 - **Guest order access**: the order page and invoice need `?t=` (random 32-byte token, only its SHA-256 stored, constant-time compare) or a matching e-mail/phone on `/track`. Order and track pages send `Referrer-Policy: no-referrer`.
@@ -140,4 +140,4 @@ Uploads go through the server (`sharp` re-encodes and strips EXIF); `next/image`
 
 ## 9. Delivery
 
-CI (`.github/workflows/ci.yml`): static checks; integration tests on a `postgres:16` service; functional e2e against `next dev` (the dev payment mock only exists outside production); production build on a migrated and seeded database, then the security/CSP e2e against `next start`, then Lighthouse CI (non-blocking). Vercel deploys `main`; Cron jobs are in `vercel.json`. See RUNBOOK sections 2, 3 and 7.
+CI (`.github/workflows/ci.yml`): static checks; integration tests on a `postgres:16` service; functional e2e against `next dev` (the dev payment mock only exists outside production); production build on a migrated and seeded database, then the security/CSP e2e against `next start`, then a second build with dev pages for the vibe timing/font tests, then Lighthouse CI (non-blocking). Vercel deploys `main` (functions in `bom1`, next to the database); Cron jobs are in `vercel.json`. See RUNBOOK sections 2, 3 and 7.

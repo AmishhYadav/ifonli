@@ -311,6 +311,14 @@ describe("low-stock digest", () => {
     expect(skus.length).toBe(res.variants);
     for (const s of skus) expect(mail.text).toContain(s);
 
+    // a second run the same India day queues nothing more
+    expect(await queueLowStockDigest(db())).toMatchObject({ recipients: 0, alreadyQueued: true });
+    expect(await rows("low_stock_digest")).toHaveLength(1);
+    // ...but the next India day gets its own digest
+    const tomorrow = new Date(Date.now() + 24 * 3_600_000);
+    expect(await queueLowStockDigest(db(), { now: tomorrow })).toMatchObject({ recipients: 1 });
+    expect(await rows("low_stock_digest")).toHaveLength(2);
+
     // restock everything above its threshold: nothing to report, nothing queued
     await db().update(variants).set({ stockOnHand: 1000 });
     await db().delete(notificationOutbox);

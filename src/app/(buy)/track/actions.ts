@@ -3,6 +3,7 @@
 import { unstable_rethrow } from "next/navigation";
 
 import { getRequestIp, keyDigest } from "@/features/cart/request";
+import { captureException } from "@/lib/monitoring/sentry";
 import { getDb } from "@/server/db";
 import { consumeRateLimit } from "@/server/services/rate-limit";
 import { lookupOrderForTracking, parseTrackingContact } from "@/server/services/tracking";
@@ -16,7 +17,9 @@ const text = (value: FormDataEntryValue | null) => (typeof value === "string" ? 
 
 /**
  * Guest order lookup (plan 7.11): order reference plus the email or mobile used at checkout. Rate limited
- * by IP and by reference; every mismatch gets the same answer so refs and emails cannot be enumerated.
+ * by IP and by (reference, IP); every mismatch gets the same answer so refs and emails cannot be
+ * enumerated. The reference budget is per caller on purpose: a budget shared by everyone would let
+ * anyone who knows a reference use it up and lock the real customer out of their own tracking page.
  */
 export async function trackOrder(
   _prev: TrackFormState,
@@ -36,9 +39,10 @@ export async function trackOrder(
 
   try {
     const db = getDb();
+    const ip = await getRequestIp();
     const decisions = await Promise.all([
-      consumeRateLimit(db, `track:ip:${await getRequestIp()}`, { limit: 20, windowSeconds: 600 }),
-      consumeRateLimit(db, `track:ref:${keyDigest(ref.toUpperCase())}`, {
+      consumeRateLimit(db, `track:ip:${ip}`, { limit: 20, windowSeconds: 600 }),
+      consumeRateLimit(db, `track:ref-ip:${keyDigest(ref.toUpperCase())}:${keyDigest(ip)}`, {
         limit: 8,
         windowSeconds: 600,
       }),
@@ -85,11 +89,21 @@ export async function trackOrder(
     };
   } catch (e) {
     unstable_rethrow(e);
-    console.error("trackOrder failed", e);
+    // Database errors carry the query parameters (the email or phone typed in), so log only the
+    // error class and SQLSTATE; the monitoring reporter scrubs what it sends.
+    console.error("trackOrder failed", safeErrorSummary(e));
+    await captureException(e, { source: "action", route: "/track" });
     return {
       status: "error",
       values,
       message: "Something went wrong on our side. Please try again.",
     };
   }
+}
+
+/** "PostgresError 57014"-style summary with no message text (which may echo bound parameters). */
+function safeErrorSummary(e: unknown): string {
+  if (!(e instanceof Error)) return "unknown";
+  const code = (e as { code?: unknown }).code ?? (e.cause as { code?: unknown } | undefined)?.code;
+  return typeof code === "string" ? `${e.name} ${code}` : e.name;
 }

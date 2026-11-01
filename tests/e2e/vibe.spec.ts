@@ -27,6 +27,16 @@ interface TestWindow {
 }
 
 const PLAYGROUND = "/dev/vibe";
+
+/**
+ * (h) and (i) assert production performance: switch timing and one request per font file. Under
+ * `next dev` they are unreliable (a slow shared runner blows the 400 ms budget; dev re-injects CSS
+ * and serves files with max-age=0, so the body font is fetched twice). They run against a production
+ * build only, where the workflow sets E2E_PROD=1 (the CI "prod" job). Locally:
+ *   NEXT_PUBLIC_ENABLE_DEV_PAGES=1 pnpm build && E2E_PROD=1 E2E_BASE_URL=http://localhost:3100 ...
+ */
+const PROD_ONLY_REASON = "production-performance assertion: runs against a production build (E2E_PROD=1)";
+const isProdRun = process.env.E2E_PROD === "1";
 const BUTTON = "button[data-vibe-hand]";
 
 test.beforeEach(async ({ page }) => {
@@ -301,6 +311,7 @@ test.describe("reduced motion", () => {
 });
 
 test("(h) every switch completes in < 400 ms (chromium desktop)", async ({ page }, testInfo) => {
+  test.skip(!isProdRun, PROD_ONLY_REASON);
   test.skip(
     testInfo.project.name !== "chromium-desktop",
     "timing budget is asserted on chromium desktop",
@@ -323,6 +334,7 @@ test("(i) first load requests only the body font and the active display font", a
   page,
   browserName,
 }) => {
+  test.skip(!isProdRun, PROD_ONLY_REASON);
   const requested: string[] = [];
   page.on("request", (r) => {
     const path = new URL(r.url()).pathname;

@@ -25,6 +25,11 @@ export function createResendChannel(opts: { apiKey: string; from: string }): Ema
           },
           { idempotencyKey: msg.idempotencyKey },
         );
+        // The same row id was already sent (Resend remembers keys for 24 h) and the retry's content
+        // differs, e.g. because a template changed in between. The first send did go out.
+        if (error?.name === "invalid_idempotent_request") {
+          return { ok: true, providerId: `resend:replay:${msg.idempotencyKey}`, note: "resend:invalid_idempotent_request, treated as already sent" };
+        }
         if (error) return { ok: false, error: `resend:${error.name}`, retryable: isRetryable(error.name, error.statusCode) };
         return data?.id ? { ok: true, providerId: data.id } : { ok: false, error: "resend:no_id", retryable: true };
       } catch (e) {

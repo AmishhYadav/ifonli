@@ -6,7 +6,11 @@ import { hashPassword } from "better-auth/crypto";
 import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { MIN_ADMIN_PASSWORD_LENGTH, upsertAdminUser } from "@/server/auth/admin-user";
+import {
+  MIN_ADMIN_PASSWORD_LENGTH,
+  markPasswordChangeRequired,
+  upsertAdminUser,
+} from "@/server/auth/admin-user";
 import { ADMIN_ROLES, assertCan } from "@/server/auth/permissions";
 import { account, session, twoFactor, user } from "@/server/db/schema";
 import { writeAudit } from "@/server/services/audit";
@@ -23,7 +27,10 @@ import { AdminInputError, type AdminActor } from "./products";
  *  - nobody changes, bans, signs out or 2FA-resets their own account here;
  *  - the last active owner can never be demoted or banned;
  *  - only existing staff accounts are managed; customers are never promoted by this module;
- *  - passwords are never written to the audit log; a generated temporary password is returned once.
+ *  - passwords are never written to the audit log; a generated temporary password is returned once;
+ *  - a password the owner set (new account, password reset) or a reset of 2FA makes the person pick
+ *    their own password when they next enrol, and the temporary one expires after a week
+ *    (`markPasswordChangeRequired`), so the first person to use it cannot keep the account.
  */
 
 export type StaffRole = (typeof ADMIN_ROLES)[number];
@@ -146,6 +153,7 @@ export async function createStaffUser(
       name: input.name,
       role: input.role,
       password,
+      requirePasswordChange: true,
     });
     await writeAudit(tx, {
       actorId: actor.id,
@@ -261,6 +269,8 @@ export async function resetStaffTwoFactor(
     await tx.delete(twoFactor).where(eq(twoFactor.userId, userId));
     await tx.update(user).set({ twoFactorEnabled: false }).where(eq(user.id, userId));
     await tx.delete(session).where(eq(session.userId, userId));
+    // Re-enrolment is the moment to pick a fresh password too (the old one may be what leaked).
+    await markPasswordChangeRequired(tx, userId);
     await writeAudit(tx, {
       actorId: actor.id,
       action: "user.reset_2fa",
@@ -301,6 +311,9 @@ export async function resetStaffPassword(
       });
     }
     await tx.delete(session).where(eq(session.userId, userId));
+    // An enrolled person still needs their authenticator, so a temporary password alone is no risk and
+    // they have no screen to change it on; only someone still to enrol is asked for a new password.
+    if (target.twoFactorEnabled !== true) await markPasswordChangeRequired(tx, userId);
     await writeAudit(tx, {
       actorId: actor.id,
       action: "user.reset_password",

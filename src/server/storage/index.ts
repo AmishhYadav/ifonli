@@ -202,6 +202,18 @@ export async function createSignedReadUrl(
   return `${baseUrl}${rel.startsWith("/") ? "" : "/"}${rel}`;
 }
 
+/**
+ * Deletes objects from a bucket (one call, up to a few hundred paths). Missing objects are not an
+ * error. Used when personal data has to be erased (DPDP account deletion).
+ */
+export async function removeObjects(bucket: string, paths: string[]): Promise<void> {
+  assertBucket(bucket);
+  if (paths.length === 0) return;
+  for (const p of paths) encodeObjectPath(p);
+  const res = await call(`/object/${bucket}`, { method: "DELETE", body: { prefixes: paths } });
+  if (res.status !== 200) fail("Deleting objects", res.status, res.json);
+}
+
 /** Base URL (no trailing slash) for public objects, from the public Supabase URL. */
 export function publicBaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;

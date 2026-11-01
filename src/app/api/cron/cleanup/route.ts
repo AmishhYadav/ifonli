@@ -3,7 +3,7 @@ import { getDb } from "@/server/db";
 import { cleanupHousekeeping } from "@/server/payments/cleanup";
 import { cronUnauthorized, isCronAuthorized } from "@/server/payments/cron-auth";
 
-/** Daily housekeeping: expired carts, old processed webhook events, stale rate-limit windows. */
+/** Daily housekeeping: expired carts, old processed webhook events, stale rate-limit windows, delivered e-mails older than 90 days, expired sessions and sign-in codes. */
 export async function GET(req: Request): Promise<Response> {
   if (!isCronAuthorized(req)) return cronUnauthorized();
   try {

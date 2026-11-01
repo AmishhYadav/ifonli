@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and, asc, eq, inArray, lt, sql } from "drizzle-orm";
+import { ZodError } from "zod";
 
 import { invoices, notificationOutbox } from "@/server/db/schema";
 import type { DbClient } from "@/server/services/queries/shared";
@@ -36,7 +37,30 @@ export function sanitizeError(message: string): string {
     .slice(0, 300);
 }
 
+/** Stop sending after this long: the cron route runs for at most 300 s, and the rest waits for the next run. */
+export const PROCESS_BUDGET_MS = 240_000;
+
+/** The template could not be turned into an e-mail: a bug or bad data, the same input will fail the same way. */
+export class RenderError extends Error {
+  constructor(template: string, cause: unknown) {
+    super(`${template} could not be rendered: ${cause instanceof Error ? cause.message : "unknown"}`, { cause });
+    this.name = "RenderError";
+  }
+}
+
+/**
+ * Whether a problem while preparing an e-mail is worth another try. Only a bad payload (Zod) and a
+ * template that does not render are permanent. Anything else (database or network blips while loading
+ * the order, the invoice or the provider) is assumed temporary: the row is retried with backoff and
+ * only given up on after `MAX_ATTEMPTS`.
+ */
+export function isRetryableDeliveryError(e: unknown): boolean {
+  return !(e instanceof ZodError || e instanceof RenderError);
+}
+
 export interface ProcessOutboxOptions {
+  /** Milliseconds of wall-clock time to spend sending (default `PROCESS_BUDGET_MS`); rows not reached are left for the next run. */
+  budgetMs?: number;
   limit?: number;
   now?: Date;
   maxAttempts?: number;
@@ -56,6 +80,8 @@ export interface ProcessOutboxResult {
   retrying: number;
   /** Permanently failed (an admin alert row was written). */
   failed: number;
+  /** Claimed but not reached before the time budget ran out; put back untouched. Only present when > 0. */
+  deferred?: number;
 }
 
 type OutboxRow = typeof notificationOutbox.$inferSelect;
@@ -95,18 +121,33 @@ export async function processOutbox(db: DbClient, opts: ProcessOutboxOptions = {
   });
 
   const out: ProcessOutboxResult = { claimed: rows.length, sent: 0, retrying: 0, failed: 0 };
-  for (const row of rows) {
+  const started = Date.now();
+  const budgetMs = opts.budgetMs ?? PROCESS_BUDGET_MS;
+  for (const [index, row] of rows.entries()) {
+    if (Date.now() - started >= budgetMs) {
+      // Out of time: hand the rest back as if never claimed (the claim counted an attempt).
+      const rest = rows.slice(index).map((r) => r.id);
+      await db
+        .update(notificationOutbox)
+        .set({ attempts: sql`${notificationOutbox.attempts} - 1`, nextAttemptAt: clock() })
+        .where(and(inArray(notificationOutbox.id, rest), eq(notificationOutbox.status, "pending")));
+      out.deferred = rest.length;
+      break;
+    }
     let result: SendResult;
     try {
       result = await deliver(db, row, channel, opts);
     } catch (e) {
-      // Render / lookup problems are bugs or bad data: retrying the identical input cannot help.
-      result = { ok: false, error: `${row.template}:${e instanceof Error ? e.name : "error"} ${e instanceof Error ? e.message : ""}`, retryable: false };
+      result = {
+        ok: false,
+        error: `${row.template}:${e instanceof Error ? e.name : "error"} ${e instanceof Error ? e.message : ""}`,
+        retryable: isRetryableDeliveryError(e),
+      };
     }
     if (result.ok) {
       await db
         .update(notificationOutbox)
-        .set({ status: "sent", sentAt: clock(), providerId: result.providerId, lastError: null })
+        .set({ status: "sent", sentAt: clock(), providerId: result.providerId, lastError: result.note ? sanitizeError(result.note) : null })
         .where(and(eq(notificationOutbox.id, row.id), eq(notificationOutbox.status, "pending")));
       out.sent += 1;
       continue;
@@ -146,7 +187,12 @@ async function deliver(db: DbClient, row: OutboxRow, channel: EmailChannel, opts
   const attachments = def.attachInvoice && orderId && opts.attachInvoice !== false ? await invoiceAttachments(db, orderId) : [];
   ctx.invoiceAttached = attachments.length > 0;
 
-  const rendered = await renderTemplate(row.template, payload, ctx);
+  let rendered: Awaited<ReturnType<typeof renderTemplate>>;
+  try {
+    rendered = await renderTemplate(row.template, payload, ctx);
+  } catch (e) {
+    throw new RenderError(row.template, e);
+  }
   try {
     return await channel.send({
       to: row.to,

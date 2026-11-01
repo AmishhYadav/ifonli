@@ -4,7 +4,7 @@ import { hashPassword } from "better-auth/crypto";
 import { and, eq } from "drizzle-orm";
 
 import type { DbClient } from "@/server/services/queries/shared";
-import { account, twoFactor, user } from "@/server/db/schema";
+import { account, twoFactor, user, verification } from "@/server/db/schema";
 
 import { ADMIN_ROLES } from "./permissions";
 
@@ -17,6 +17,63 @@ export interface UpsertAdminInput {
   name?: string;
   /** Delete the TOTP secret and force re-enrolment at next login (lost authenticator). */
   resetTwoFactor?: boolean;
+  /**
+   * The password is a temporary one the person did not choose: they must set their own during
+   * first enrolment, and the temporary one stops working after `TEMP_PASSWORD_TTL_DAYS`.
+   */
+  requirePasswordChange?: boolean;
+}
+
+/** How long a temporary staff password can be used to sign in before an owner must issue a new one. */
+export const TEMP_PASSWORD_TTL_DAYS = 7;
+const PASSWORD_CHANGE_PREFIX = "must-change-password:";
+/** Far enough away that Better Auth's own expiry sweep (and our daily cleanup) never removes the marker. */
+const MARKER_LIFETIME_MS = 10 * 365 * 24 * 3600 * 1000;
+
+export type PasswordChangeState =
+  | { state: "none" }
+  | { state: "required"; deadline: Date }
+  | { state: "expired" };
+
+/**
+ * "Must change password" without a schema change: a row in Better Auth's generic `verification`
+ * table, identifier `must-change-password:<userId>`, whose `value` is the deadline (ISO date).
+ * The row's own `expires_at` is set far in the future on purpose so the expiry sweeps keep it.
+ * Only ever set for accounts that have not enrolled TOTP yet, so it cannot lock an active admin out.
+ */
+export async function markPasswordChangeRequired(
+  db: DbClient,
+  userId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  const identifier = `${PASSWORD_CHANGE_PREFIX}${userId}`;
+  await db.delete(verification).where(eq(verification.identifier, identifier));
+  await db.insert(verification).values({
+    id: crypto.randomUUID(),
+    identifier,
+    value: new Date(now.getTime() + TEMP_PASSWORD_TTL_DAYS * 24 * 3600 * 1000).toISOString(),
+    expiresAt: new Date(now.getTime() + MARKER_LIFETIME_MS),
+  });
+}
+
+export async function clearPasswordChangeRequired(db: DbClient, userId: string): Promise<void> {
+  await db.delete(verification).where(eq(verification.identifier, `${PASSWORD_CHANGE_PREFIX}${userId}`));
+}
+
+export async function getPasswordChangeState(
+  db: DbClient,
+  userId: string,
+  now: Date = new Date(),
+): Promise<PasswordChangeState> {
+  const [row] = await db
+    .select({ value: verification.value })
+    .from(verification)
+    .where(eq(verification.identifier, `${PASSWORD_CHANGE_PREFIX}${userId}`));
+  if (!row) return { state: "none" };
+  const deadline = new Date(row.value);
+  // A marker we cannot read is treated as expired: the safe side for a temporary credential.
+  if (Number.isNaN(deadline.getTime()) || deadline <= now) return { state: "expired" };
+  return { state: "required", deadline };
 }
 
 export interface UpsertAdminResult {
@@ -86,5 +143,7 @@ export async function upsertAdminUser(
   }
 
   if (input.resetTwoFactor) await db.delete(twoFactor).where(eq(twoFactor.userId, userId));
+  if (input.requirePasswordChange) await markPasswordChangeRequired(db, userId);
+  else await clearPasswordChangeRequired(db, userId);
   return { userId, created };
 }

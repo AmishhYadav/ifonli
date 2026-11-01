@@ -5,7 +5,7 @@
  * variant is first created, so reseeding never clobbers adjustments), images/slots refresh in place.
  *
  *   pnpm db:seed-products                 (needs `pnpm db:seed` first: vibes + product types)
- *   pnpm db:seed-products -- --force-placeholder   (required when NODE_ENV=production)
+ *   pnpm db:seed-products --force-placeholder --allow-remote   (required for any database that is not local)
  *
  * Everything here is PLACEHOLDER: names/copy/prices/stock/origin must be replaced by the owner.
  * Seeded variants are recognisable by the `PH-` SKU prefix and images by `is_placeholder = true`.
@@ -15,14 +15,19 @@ import path from "node:path";
 
 import { config } from "dotenv";
 
+import { isLocalDatabase } from "./db-guard";
+
 config({ path: ".env.local" });
 config();
 
+// Placeholder products must never reach a real catalogue by accident. `NODE_ENV` is unset under
+// tsx, so the guard looks at the database host: anything but this machine needs BOTH flags.
 const FORCE = process.argv.includes("--force-placeholder");
-if (process.env.NODE_ENV === "production" && !FORCE) {
+const REMOTE_OK = process.argv.includes("--allow-remote");
+if ((process.env.NODE_ENV === "production" || !isLocalDatabase()) && !(FORCE && (isLocalDatabase() || REMOTE_OK))) {
   console.error(
-    "seed-products: refusing to seed placeholder products with NODE_ENV=production. " +
-      "Pass --force-placeholder if you really mean it.",
+    "seed-products: refusing to seed placeholder products into a database that is not local " +
+      "(or with NODE_ENV=production). If you really mean it, pass --force-placeholder --allow-remote.",
   );
   process.exit(1);
 }

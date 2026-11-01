@@ -1,6 +1,5 @@
 "use server";
 
-import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { z } from "zod";
@@ -9,6 +8,7 @@ import { safeNextPath } from "@/features/account/redirect";
 import { setAccountHint } from "@/features/account/session-hint";
 import { clearCartToken, getRequestIp, keyDigest, readCartToken, writeCartToken } from "@/features/cart/request";
 import { emailSchema } from "@/features/checkout/schema";
+import { authErrorStatus, isAuthApiError } from "@/server/auth/api-error";
 import { getAuth } from "@/server/auth/auth";
 import { getDb } from "@/server/db";
 import { ensureProfile } from "@/server/services/account";
@@ -22,10 +22,14 @@ const SEND_LIMITS = {
   ip: { limit: 10, windowSeconds: 900 },
   email: { limit: 5, windowSeconds: 900 },
 } as const;
-/** Attempts to enter a code (Better Auth also locks a code after 5 wrong tries). */
+/**
+ * Attempts to enter a code, per IP. The per-address budget is not here: it counts only WRONG codes
+ * and lives in the auth guards (`server/auth/auth.ts`, per email and IP), so a stranger who knows
+ * an address cannot use up the owner's tries, and a correct code never costs one. (Better Auth
+ * also locks a code after 5 wrong tries.)
+ */
 const VERIFY_LIMITS = {
   ip: { limit: 30, windowSeconds: 900 },
-  email: { limit: 10, windowSeconds: 900 },
 } as const;
 
 const otpSchema = z
@@ -94,13 +98,9 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
       if (!otp.success) {
         return { step: "code", email: address, next, error: otp.error.issues[0]?.message, errorField: "otp" };
       }
-      const decisions = await Promise.all([
-        consumeRateLimit(db, `otp-verify:ip:${ip}`, VERIFY_LIMITS.ip),
-        consumeRateLimit(db, `otp-verify:email:${keyDigest(address)}`, VERIFY_LIMITS.email),
-      ]);
-      const blocked = decisions.find((d) => !d.allowed);
-      if (blocked) {
-        return { step: "code", email: address, next, error: tooMany(blocked.retryAfterSeconds) };
+      const ipDecision = await consumeRateLimit(db, `otp-verify:ip:${ip}`, VERIFY_LIMITS.ip);
+      if (!ipDecision.allowed) {
+        return { step: "code", email: address, next, error: tooMany(ipDecision.retryAfterSeconds) };
       }
       try {
         const res = await getAuth().api.signInEmailOTP({
@@ -112,7 +112,11 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
         await mergeGuestCartOnLogin(db, res.user.id);
       } catch (e) {
         unstable_rethrow(e);
-        if (e instanceof APIError) {
+        if (isAuthApiError(e)) {
+          // The guard's wrong-code budget for this address and IP is used up.
+          if (authErrorStatus(e) === 429) {
+            return { step: "code", email: address, next, error: "Too many wrong codes. Please wait a few minutes and try again." };
+          }
           return {
             step: "code",
             email: address,
@@ -143,7 +147,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     } catch (e) {
       unstable_rethrow(e);
       // An admin address is refused by the guard: same screen, no code, nothing revealed.
-      if (!(e instanceof APIError && e.statusCode === 403)) {
+      if (!(isAuthApiError(e) && authErrorStatus(e) === 403)) {
         console.error("login code could not be sent", e instanceof Error ? e.message : "unknown");
         return {
           step: "email",

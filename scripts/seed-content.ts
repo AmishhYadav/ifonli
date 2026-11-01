@@ -1,14 +1,18 @@
 /**
  * Idempotent content seed: policies (content/policies/*.md -> `policies` + `policy_versions`) and FAQs
  * (content/faq.json -> `faqs`). Policies stay unpublished while their status starts with DRAFT.
- * Re-running refreshes still-unpublished policies from the files and leaves published policies and
- * existing FAQs alone; pass --force to overwrite those too.
+ * Re-running refreshes still-unpublished policies from the files (unless they were edited in admin
+ * since) and leaves published policies and existing FAQs alone. Pass --force to overwrite those too
+ * (a policy that is published stays published); --force on a database that is not local also needs
+ * --allow-remote.
  *
- *   pnpm exec tsx --conditions=react-server scripts/seed-content.ts [--force]
+ *   pnpm exec tsx --conditions=react-server scripts/seed-content.ts [--force [--allow-remote]]
  */
 import path from "node:path";
 
 import { config } from "dotenv";
+
+import { requireLocalOrAllowRemote } from "./db-guard";
 
 config({ path: ".env.local" });
 config();
@@ -17,6 +21,7 @@ async function main() {
   const { getDb } = await import("../src/server/db");
   const { loadContentFiles, seedFaqs, seedPolicies } = await import("../src/server/content/seed");
   const force = process.argv.includes("--force");
+  if (force) requireLocalOrAllowRemote("seed-content --force", "overwrite policies and FAQs");
   const db = getDb();
 
   const content = await loadContentFiles(path.resolve(process.cwd(), "content"));

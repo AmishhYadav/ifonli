@@ -127,17 +127,28 @@ export async function seedPolicies(
         counts.inserted++;
       } else {
         policyId = existing.id;
-        const refresh = opts.force === true || !existing.published;
+        // A draft is only refreshed from its file while it still matches the history row the seed
+        // wrote for it. If someone edited the draft in admin since, it no longer matches and is left
+        // alone (only --force overwrites it).
+        const [snapshot] = await tx
+          .select({ title: policyVersions.title, bodyMd: policyVersions.bodyMd })
+          .from(policyVersions)
+          .where(and(eq(policyVersions.policyId, existing.id), eq(policyVersions.version, existing.version)))
+          .limit(1);
+        const untouched = snapshot?.title === existing.title && snapshot?.bodyMd === existing.bodyMd;
+        const refresh = opts.force === true || (!existing.published && untouched);
+        // A seed never takes a policy offline: a published row stays published even when the file says DRAFT.
+        const next = { ...fields, published: existing.published || fields.published };
         const same =
-          existing.title === fields.title &&
-          existing.bodyMd === fields.bodyMd &&
-          existing.version === fields.version &&
-          existing.published === fields.published &&
+          existing.title === next.title &&
+          existing.bodyMd === next.bodyMd &&
+          existing.version === next.version &&
+          existing.published === next.published &&
           (existing.effectiveAt?.getTime() ?? null) === (effectiveAt?.getTime() ?? null);
         if (!refresh || same) {
           counts.unchanged++;
         } else {
-          await tx.update(policies).set(fields).where(eq(policies.id, policyId));
+          await tx.update(policies).set(next).where(eq(policies.id, policyId));
           counts.updated++;
         }
         if (!refresh) return;

@@ -3,9 +3,12 @@
  * Safe to run repeatedly: existing rows are never overwritten, so owner edits survive a reseed.
  * Products are NOT seeded here (Phase 3).
  *
- *   pnpm db:seed          (SEED_OWNER_EMAIL, default owner@ifonli.local)
+ *   pnpm db:seed          (SEED_OWNER_EMAIL, default owner@ifonli.local on a local database)
+ *   pnpm db:seed --allow-remote   (against any other database; SEED_OWNER_EMAIL is then required)
  */
 import { config } from "dotenv";
+
+import { isLocalDatabase, requireLocalOrAllowRemote } from "./db-guard";
 
 config({ path: ".env.local" });
 config();
@@ -41,6 +44,10 @@ const PRODUCT_TYPES = [
 ] as const;
 
 async function main() {
+  requireLocalOrAllowRemote("seed", "create the base data and an owner account");
+  if (!isLocalDatabase() && !process.env.SEED_OWNER_EMAIL?.trim()) {
+    throw new Error("SEED_OWNER_EMAIL is required when seeding a database that is not local (no default owner is created there)");
+  }
   const { getDb } = await import("../src/server/db");
   const { productTypes, user, vibes } = await import("../src/server/db/schema");
   const { seedMissingSettings } = await import("../src/server/services/settings");

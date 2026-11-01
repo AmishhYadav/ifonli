@@ -11,6 +11,7 @@ import { formatDateRange } from "@/components/orders/format";
 import { OrderLines } from "@/components/orders/OrderLines";
 import { Button, Checkbox, Field, Icon, Input, Radio, RadioGroup, Select, Spinner } from "@/components/ui";
 import type { SavedAddress } from "@/features/account/schema";
+import { trackPaymentInfo, trackShippingInfo } from "@/features/analytics/checkout-events";
 import { getCheckoutQuote, lookupPincode, placeOrder } from "@/features/checkout/actions";
 import {
   PINCODE_PATTERN,
@@ -375,6 +376,9 @@ export function CheckoutForm({
       setFocusTick((t) => t + 1);
       return;
     }
+    // Funnel steps: valid address and a chosen payment method (checkout is one page, so both fire here).
+    trackShippingInfo();
+    trackPaymentInfo(values.paymentMethod);
     setSubmitting(true);
     const result = await placeOrder({
       ...values,

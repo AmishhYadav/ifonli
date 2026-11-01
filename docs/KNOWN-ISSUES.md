@@ -38,6 +38,16 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 | P-10 | Low | **Default variant can be sold out.** The product page opens on the first variant; when that one is out of stock but others are available (seeded Heart charm: Pink sold out, Red and Lilac in stock) the page opens on a disabled "Sold out" button until the shopper picks another colour. Consider opening on the first purchasable variant. |
 | P-9 | Low | The animated hero's colour and motion per vibe, the display fonts and the five looks are proposals awaiting owner and brand review (see HERO.md and OWNER-INPUTS.md). |
 
+## Security and operations (deep review)
+
+| # | Severity | Issue |
+| --- | --- | --- |
+| S-1 | Low | **Support photos of a deleted account are removed after the database commit.** If storage is down at that moment the objects stay (random names, no longer linked to anyone) and a log line says how many; there is no sweep for orphans yet. |
+| S-2 | Low | **A stranger can still burn a code, not the account.** Better Auth locks each sign-in code after 5 wrong tries, so someone who knows an address and keeps guessing can force the real customer to ask for a new code (the customer's own wrong-code budget and send budget are separate, and only wrong codes count). |
+| S-3 | Low | **Staff password guessing is limited per email and IP, not by a stored lockout.** 8 attempts per 10 minutes per email can briefly lock a known staff address out of the sign-in form. Two-factor has Better Auth's own per-account lockout (10 failures, 15 minutes). |
+| S-4 | Low | **The "must change password" marker lives in the `verification` table** (no migration allowed in this pass). A dedicated column would be cleaner; the behaviour is covered by tests. |
+| S-5 | Low | **Lighthouse is still not a gate** (home scores 0.57-0.77 on the CI runner against a 0.85 budget). Reports are uploaded as the `lighthouse` artifact (`lhci-results/`). |
+
 ## Fixed during this pass
 
 See the commit log; in short: focus is now returned to the opener when a state-driven dialog or drawer closes (address dialog, cart drawer); the skip link target is focusable; breadcrumb, policy contents, draft-banner, checkout and footer links reach 44 px; the 404 numeral and the admin "faint" text meet contrast; the styleguide no longer mounts a second toast region; the audit-log disclosure has an accessible name that contains its visible text; flattering or dare-style wording was removed from the Overthinking and Bold vibe strings.
