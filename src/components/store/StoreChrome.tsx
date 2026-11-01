@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 
 import "@/styles/store.css";
+import "@/styles/motion.css";
 
 import { WishlistAccountSync } from "@/features/wishlist/WishlistAccountSync";
 import { AnalyticsMount } from "@/features/analytics/AnalyticsMount";

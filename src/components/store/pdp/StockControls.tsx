@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type MouseEvent } from "react";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,7 @@ import { addItem, getCartState, setCartOpen } from "@/components/store/cart/cart
 import { useVibe } from "@/features/vibe/useVibe";
 import { track } from "@/lib/analytics/client";
 import { addedQuantity } from "@/lib/analytics/cart-events";
+import { flyToTarget } from "@/features/motion/fly";
 import { COPY } from "@/features/vibe/copy";
 import type { LiveVariantAvailability } from "@/server/services/queries/types";
 
@@ -42,9 +43,13 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
 
   const variantLabel = variant && variant.title && variant.title !== "Default" ? variant.title : null;
 
-  const onAdd = () => {
+  const onAdd = (event: MouseEvent<HTMLButtonElement>) => {
     if (!variant || !canBuy) return;
     setMessage(null);
+    // Optimistic, like the rest of the add: the product photo flies to the bag now; the request and toast follow.
+    const photo = document.querySelector<HTMLImageElement>("[data-fly-source] img");
+    if (photo) void flyToTarget(photo, "cart", { src: photo.currentSrc || photo.src });
+    else void flyToTarget(event.currentTarget, "cart", { emoji: "\u{1F6CD}\uFE0F" });
     startTransition(async () => {
       // The line's quantity before the call (null when this page has not loaded the cart yet), so the event
       // can report what the cart really took: stock and per-line caps may lower the requested quantity.

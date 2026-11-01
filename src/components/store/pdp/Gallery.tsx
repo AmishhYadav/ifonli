@@ -135,6 +135,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
               role="group"
               aria-roledescription="slide"
               aria-label={`Photo ${i + 1} of ${count}`}
+              data-fly-source={i === Math.min(index, count - 1) ? "" : undefined}
               className="relative aspect-square w-full flex-none snap-center"
             >
               <button

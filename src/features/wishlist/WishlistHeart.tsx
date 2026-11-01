@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/ui/Icon";
+import { flyToTarget } from "@/features/motion/fly";
 import { track } from "@/lib/analytics/client";
 import { cn } from "@/lib/cn";
 
@@ -30,8 +31,16 @@ export function WishlistHeart({ productId, productName, appearance = "card", cla
       aria-pressed={saved}
       aria-label={productName ? `${label}: ${productName}` : label}
       data-testid="wishlist-heart"
-      onClick={() => {
-        if (toggleWishlist(productId)) track("wishlist_add", { productId });
+      onClick={(event) => {
+        if (!toggleWishlist(productId)) return;
+        track("wishlist_add", { productId });
+        // Adding (not removing): the nearest product photo (card or gallery) flies to the header heart.
+        const scope = event.currentTarget.closest("[data-product-id], [data-testid='product-card']");
+        const photo =
+          scope?.querySelector<HTMLImageElement>("img") ??
+          document.querySelector<HTMLImageElement>("[data-fly-source] img");
+        if (photo) void flyToTarget(photo, "wishlist", { src: photo.currentSrc || photo.src });
+        else void flyToTarget(event.currentTarget, "wishlist", { emoji: "\u2764\uFE0F" });
       }}
       className={cn(
         "inline-flex size-11 items-center justify-center rounded-button text-ink transition-[transform,background-color] ease-vibe",
