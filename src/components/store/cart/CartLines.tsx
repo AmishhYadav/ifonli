@@ -52,7 +52,7 @@ export function CartLines({ cart, onQuantity, onRemove, layout }: CartLinesProps
     <ul
       ref={listRef}
       tabIndex={-1}
-      aria-label="Items in your cart"
+      aria-label="Items in your bag"
       data-testid="cart-lines"
       className={cn(
         "flex flex-col divide-y divide-hairline outline-none",
@@ -105,7 +105,7 @@ export function CartLines({ cart, onQuantity, onRemove, layout }: CartLinesProps
                 <IconButton
                   icon="trash"
                   size="sm"
-                  label={`Remove ${line.productName}${showVariant ? `, ${line.variantTitle}` : ""} from cart`}
+                  label={`Remove ${line.productName}${showVariant ? `, ${line.variantTitle}` : ""} from bag`}
                   onClick={() => onRemove(line.variantId, () => listRef.current?.focus())}
                 />
               </div>

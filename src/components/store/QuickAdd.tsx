@@ -94,7 +94,7 @@ function AddButton({
         title: COPY[vibe]["toast.addedToCart"],
         description: notice?.message ?? productName,
         tone: "success",
-        action: { label: "View cart", onClick: () => setCartOpen(true) },
+        action: { label: "View bag", onClick: () => setCartOpen(true) },
       });
     });
   };

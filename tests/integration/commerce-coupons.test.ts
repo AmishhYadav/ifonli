@@ -129,7 +129,7 @@ describe("validateCoupon", () => {
     expect(await validateCoupon(db(), "GOTH", await lines({ cat: 1 }))).toEqual({
       ok: false,
       code: "no_eligible_items",
-      message: "This code doesn't apply to the items in your cart.",
+      message: "This code doesn't apply to the items in your bag.",
     });
     expect(await validateCoupon(db(), "NOSKULL", await lines({ skull: 1 }))).toMatchObject({
       ok: false,

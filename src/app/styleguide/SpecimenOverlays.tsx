@@ -48,7 +48,7 @@ export function SpecimenOverlays() {
       <Drawer>
         <DrawerTrigger asChild>
           <Button variant="secondary" size="sm" iconStart="bag">
-            Open cart drawer
+            Open bag drawer
           </Button>
         </DrawerTrigger>
         <DrawerContent
@@ -106,15 +106,15 @@ export function SpecimenOverlays() {
         iconStart="check"
         onClick={() =>
           toast({
-            title: "Added to cart",
+            title: "Added to bag",
             description: "Heart charm, qty 1",
             tone: "success",
-            action: { label: "View cart", href: "#top" },
+            action: { label: "View bag", href: "#top" },
             duration: 2500,
           })
         }
       >
-        Added-to-cart toast
+        Added-to-bag toast
       </Button>
       <Button
         variant="ghost"

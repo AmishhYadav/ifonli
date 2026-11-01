@@ -100,7 +100,7 @@ export function PaymentStatusPanel({
             <p className="text-base">{phase.message}</p>
             <div>
               <Button asChild>
-                <Link href="/cart">Review your cart</Link>
+                <Link href="/cart">Review your bag</Link>
               </Button>
             </div>
           </div>

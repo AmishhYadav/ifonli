@@ -208,7 +208,7 @@ describe("getCheckoutQuote: COD eligibility (plan 7.9)", () => {
 describe("getCheckoutQuote: cart handling", () => {
   it("blocks an empty cart", async () => {
     const q = await quote([], { pincode: "400001" });
-    expect(q.blockers).toContain("Your cart is empty.");
+    expect(q.blockers).toContain("Your bag is empty.");
     expect(q.canPlaceOrder).toBe(false);
   });
 

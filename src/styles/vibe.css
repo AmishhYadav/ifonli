@@ -132,3 +132,27 @@ html[data-vibe-switching] ::after {
     animation: none !important;
   }
 }
+
+/*
+ * Buy pages reset the display type to the plain body font (`[data-vibe-scope="buy"]`, tokens/buy.css) so forms,
+ * prices and small text stay readable in every theme. Page headings (h1, section h2) opt back in with
+ * `buy-display`: the theme's own display font, kept here under another name because the scope overrides
+ * `--font-display` itself. Resolved on <html>, where the active vibe's tokens live. `buy-display-fx` adds
+ * the theme's heading filter for large headings only (>= 32px, like `display-fx`).
+ */
+:root {
+  --theme-display-font: var(--font-display);
+  --theme-display-weight: var(--display-weight);
+  --theme-display-tracking: var(--display-tracking);
+  --theme-display-stretch: var(--display-stretch);
+  --theme-display-filter: var(--display-filter);
+}
+.buy-display {
+  font-family: var(--theme-display-font);
+  font-weight: var(--theme-display-weight);
+  letter-spacing: var(--theme-display-tracking);
+  font-stretch: var(--theme-display-stretch);
+}
+.buy-display-fx {
+  filter: var(--theme-display-filter);
+}

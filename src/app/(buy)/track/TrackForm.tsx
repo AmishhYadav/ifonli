@@ -175,7 +175,7 @@ export function TrackForm() {
         {state.status === "found" && order ? (
           <div className="flex flex-col gap-5">
             <header className="flex flex-col gap-2">
-              <h2 className="font-display text-2xl leading-tight">
+              <h2 className="buy-display text-2xl leading-tight">
                 Order <span data-testid="track-ref">{order.ref}</span>
               </h2>
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1">

@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { getCurrentCartView } from "@/features/cart/queries";
 
 export const metadata: Metadata = {
-  title: "Your cart",
+  title: "Your bag",
   robots: { index: false, follow: false },
   alternates: { canonical: "/cart" },
 };
@@ -48,7 +48,7 @@ async function CartContent() {
 export default function CartPage() {
   return (
     <>
-      <h1 className="mb-6 text-3xl font-bold sm:text-4xl">Your cart</h1>
+      <h1 className="buy-display buy-display-fx mb-6 text-4xl leading-tight">Your bag</h1>
       <Suspense fallback={<CartSkeleton />}>
         <CartContent />
       </Suspense>

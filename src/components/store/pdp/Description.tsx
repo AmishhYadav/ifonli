@@ -5,7 +5,7 @@ export function Description({ markdown }: { markdown: string | null }) {
   if (!markdown?.trim()) return null;
   return (
     <section aria-labelledby="about-heading">
-      <h2 id="about-heading" className="font-display text-xl display-fx">
+      <h2 id="about-heading" className="font-body text-base font-bold tracking-wide uppercase">
         About this product
       </h2>
       <div

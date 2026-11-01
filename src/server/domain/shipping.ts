@@ -39,7 +39,7 @@ export function codEligibility(input: CodEligibilityInput): CodEligibility {
     return {
       eligible: false,
       code: "excluded_items",
-      reason: "Some items in your cart can only be paid for online.",
+      reason: "Some items in your bag can only be paid for online.",
     };
   }
   if (input.codMaxOrderValuePaise !== null && input.orderTotalPaise > input.codMaxOrderValuePaise) {

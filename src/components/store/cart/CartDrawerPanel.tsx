@@ -45,7 +45,7 @@ export function CartDrawerPanel({ emptyTitle, emptyBody, returnPolicyText }: Car
   return (
     <Drawer open={open} onOpenChange={setCartOpen}>
       <DrawerContent
-        title="Your cart"
+        title="Your bag"
         data-testid="cart-drawer"
         aria-describedby={undefined}
         onCloseAutoFocus={(event) => {
@@ -149,7 +149,7 @@ function DrawerFooter({
         data-testid="drawer-view-cart"
         className={buttonVariants({ variant: "secondary", fullWidth: true })}
       >
-        View cart
+        View bag
       </Link>
     </>
   );

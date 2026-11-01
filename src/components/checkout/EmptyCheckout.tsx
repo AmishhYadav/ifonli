@@ -10,14 +10,14 @@ export function EmptyCheckout() {
       <EmptyState
         icon="bag"
         headingLevel="h2"
-        title="Your cart is empty"
+        title="Your bag is empty"
         action={
           <Button asChild>
             <Link href="/shop">Continue shopping</Link>
           </Button>
         }
       >
-        Add something to your cart and it will show up here.
+        Add something to your bag and it will show up here.
       </EmptyState>
     </div>
   );

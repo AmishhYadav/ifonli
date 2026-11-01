@@ -211,7 +211,7 @@ export async function getCheckoutQuote(
   });
 
   const blockers: string[] = [];
-  if (state.lines.length === 0) blockers.push("Your cart is empty.");
+  if (state.lines.length === 0) blockers.push("Your bag is empty.");
   if (state.view.coupon && !state.view.coupon.applied && state.view.coupon.message) {
     blockers.push(state.view.coupon.message);
   }

@@ -54,7 +54,7 @@ export function CartTrigger({ initialCount, className }: { initialCount: number 
       onPointerEnter={() => void preloadCartDrawer()}
       onFocus={() => void preloadCartDrawer()}
       onTouchStart={() => void preloadCartDrawer()}
-      aria-label={shown > 0 ? `Cart, ${shown} ${shown === 1 ? "item" : "items"}` : "Cart"}
+      aria-label={shown > 0 ? `Bag, ${shown} ${shown === 1 ? "item" : "items"}` : "Bag"}
       aria-haspopup="dialog"
       data-testid="cart-button"
       data-fly-target="cart"

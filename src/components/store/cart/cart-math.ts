@@ -90,7 +90,7 @@ export function shippingNote(pricing: CartViewPricing): string | null {
 
 /** Sentence for the polite live region after a change. */
 export function summaryAnnouncement(cart: CartView): string {
-  if (cart.lines.length === 0) return "Your cart is empty.";
+  if (cart.lines.length === 0) return "Your bag is empty.";
   const n = cart.itemCount;
-  return `Cart updated: ${n} ${n === 1 ? "item" : "items"}, total ${formatINR(cart.pricing.totalPaise)}.`;
+  return `Bag updated: ${n} ${n === 1 ? "item" : "items"}, total ${formatINR(cart.pricing.totalPaise)}.`;
 }

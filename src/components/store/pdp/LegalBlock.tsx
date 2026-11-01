@@ -25,7 +25,7 @@ export function LegalBlock({ product, store }: { product: ProductDetail; store: 
   );
   return (
     <section aria-labelledby="legal-heading" data-testid="legal-block">
-      <h2 id="legal-heading" className="font-display text-xl display-fx">
+      <h2 id="legal-heading" className="font-body text-base font-bold tracking-wide uppercase">
         Product details
       </h2>
       <dl className="mt-2 divide-y divide-hairline border-t border-hairline">
