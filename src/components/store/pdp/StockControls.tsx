@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, type MouseEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type MouseEvent } from "react";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -17,9 +17,10 @@ import type { LiveVariantAvailability } from "@/server/services/queries/types";
 
 import { usePurchase } from "./PurchaseProvider";
 import { clampQty, stockStatus } from "./product-model";
+import { useStickyBarOffset } from "./useStickyBarOffset";
 
 /**
- * Live stock line, quantity stepper and the Add to cart button for the chosen variant. Rendered from the
+ * Live stock line, quantity stepper and the Add to bag button for the chosen variant. Rendered from the
  * uncached stock hole, so every number here is current. On mobile the action row sticks to the bottom of
  * the screen while the product details are in view (it is a direct child of the info column).
  */
@@ -30,6 +31,8 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
   const [qty, setQty] = useState(1);
   const [message, setMessage] = useState<{ tone: "error" | "info"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  const barRef = useRef<HTMLDivElement>(null);
+  useStickyBarOffset(barRef);
 
   useEffect(() => {
     setStock(new Map(availability.map((a) => [a.variantId, a])));
@@ -69,7 +72,7 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
         title: COPY[vibe]["toast.addedToCart"],
         description: notice?.message ?? `${model.name}${variantLabel ? ` (${variantLabel})` : ""}`,
         tone: "success",
-        action: { label: "View cart", onClick: () => setCartOpen(true) },
+        action: { label: "View bag", onClick: () => setCartOpen(true) },
       });
     });
   };
@@ -110,6 +113,7 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
           "max-md:bg-bg max-md:px-4 max-md:pt-3 max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         }
         data-testid="add-to-cart-bar"
+        ref={barRef}
       >
         {canBuy ? (
           <QuantityStepper
@@ -132,7 +136,7 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
           onClick={onAdd}
           data-testid="add-to-cart"
         >
-          {canBuy ? "Add to cart" : "Sold out"}
+          {canBuy ? "Add to bag" : "Sold out"}
         </Button>
       </div>
 
@@ -156,14 +160,19 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
 
 /** What the stock hole shows while the live numbers load (the page's static shell). */
 export function StockFallback() {
+  const barRef = useRef<HTMLDivElement>(null);
+  useStickyBarOffset(barRef);
   return (
     <>
       <p aria-busy="true" className="min-h-7 text-base text-ink-muted" data-testid="stock-loading">
         Checking stock...
       </p>
-      <div className="flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-hairline max-md:bg-bg max-md:px-4 max-md:py-3">
+      <div
+        ref={barRef}
+        className="flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-hairline max-md:bg-bg max-md:px-4 max-md:py-3"
+      >
         <Button size="lg" className="min-w-0 flex-1" disabled>
-          Add to cart
+          Add to bag
         </Button>
       </div>
     </>
