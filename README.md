@@ -70,6 +70,7 @@ Notes:
 | `pnpm db:import-reference` | Import states and the pincode directory |
 | `pnpm db:seed-products` | Seed the placeholder catalogue |
 | `pnpm db:seed-content` | Seed draft policies and the FAQ (`--force` overwrites published ones) |
+| `pnpm db:store-values` | Apply the college-project store values (settings, policies, vibe copy, real catalogue and images) from `content/store-values/` to the local database |
 | `pnpm admin:create` | Create or update a staff account (`--email x --role owner\|admin\|fulfilment`) |
 | `pnpm storage:setup` | Create the storage buckets |
 
