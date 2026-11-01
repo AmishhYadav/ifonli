@@ -35,7 +35,7 @@ export function NotFoundView() {
         ))}
       </ul>
       <Button asChild variant="secondary">
-        <Link href="/">Back to the home page</Link>
+        <Link href="/home">Back to the home page</Link>
       </Button>
     </div>
   );

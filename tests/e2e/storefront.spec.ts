@@ -29,7 +29,7 @@ async function prices(page: Page): Promise<number[]> {
 
 test.describe("home", () => {
   test("renders the poster hero with a visible Shop button and featured products", async ({ page }) => {
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByTestId("hero-shop")).toBeVisible();
     await expect(page.getByTestId("hero-shop")).toHaveAttribute("href", "/shop");
@@ -47,7 +47,7 @@ test.describe("home", () => {
   });
 
   test("the hand button swaps hero copy and featured products with no content requests", async ({ page }) => {
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     const featured = 'section[aria-label="Featured products"]';
     await expect(page.locator(`${featured} [data-testid="product-card"]:visible`)).toHaveCount(8);
     const before = await visibleNames(page, featured);
@@ -205,7 +205,7 @@ test.describe("search", () => {
   });
 
   test("the header sheet shows quick results and Enter goes to /search", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/home");
     await page.getByRole("button", { name: "Search" }).click();
     const input = page.getByRole("searchbox", { name: "Search products" });
     await expect(input).toBeFocused();
@@ -219,7 +219,7 @@ test.describe("search", () => {
 test.describe("header", () => {
   test("keyboard: skip link, hand button, then the Vibes menu opens, moves and closes", async ({ page, isMobile }) => {
     test.skip(isMobile, "desktop navigation");
-    await page.goto("/");
+    await page.goto("/home");
     // Enter on the menu button before React attaches does nothing: wait for hydration.
     await page.waitForLoadState("networkidle");
     await page.keyboard.press("Tab");
@@ -244,7 +244,7 @@ test.describe("header", () => {
   });
 
   test("the hand button is top-left and keyboard-operable", async ({ page }) => {
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     const hand = page.locator("button[data-vibe-hand]").first();
     const box = await hand.boundingBox();
     expect(box?.x ?? 99).toBeLessThan(40);
@@ -257,7 +257,7 @@ test.describe("header", () => {
 
   test("mobile: the menu opens in a drawer with vibe links", async ({ page, isMobile }) => {
     test.skip(!isMobile, "mobile navigation");
-    await page.goto("/");
+    await page.goto("/home");
     await page.getByRole("button", { name: "Open menu" }).click();
     const drawer = page.getByRole("dialog", { name: "Menu" });
     await expect(drawer.getByRole("link", { name: /Gothic/ })).toBeVisible();
@@ -268,7 +268,7 @@ test.describe("header", () => {
 
 test.describe("accessibility (axe: no serious or critical violations)", () => {
   for (const vibe of ORDER) {
-    for (const path of ["/", "/shop", "/vibes/gothic", "/search?q=skull"]) {
+    for (const path of ["/home", "/shop", "/vibes/gothic", "/search?q=skull"]) {
       test(`${path} in ${vibe}`, async ({ page }) => {
         await page.goto(`${path}${path.includes("?") ? "&" : "?"}vibe=${vibe}`);
         expect(await htmlVibe(page)).toBe(vibe);

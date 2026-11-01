@@ -1,0 +1,925 @@
+/*
+ * Landing page (/). Every colour, font and shape comes from the vibe tokens (src/styles/tokens), so the
+ * page re-skins with the visitor's vibe and each mood panel with its own (`data-vibe` scope).
+ *
+ * Layout model: the DEFAULT is a plain, fully visible stack of chapters (no JS, reduced motion, print).
+ * `.landing[data-motion]` (set before first paint by an inline script, and by LandingMotion) switches on the
+ * scroll choreography layout: sticky stages for the moods and the portal. GSAP only ever animates
+ * transform, opacity and the portal's clip-path.
+ */
+
+:where(.landing, .l-top) {
+  --l-pad: clamp(1.25rem, 5vw, 4.5rem);
+  --l-max: 78rem;
+  --l-ease: cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.landing {
+  position: relative;
+  overflow-x: clip;
+  color: var(--ink);
+  --wm: clamp(5rem, 26vw, 24rem);
+}
+
+/* Wordmark size per display font: the wide faces need less vw to stay inside the screen. */
+html[data-vibe="bold"] .landing {
+  --wm: clamp(4.25rem, 18vw, 19rem);
+}
+html[data-vibe="overthinking"] .landing {
+  --wm: clamp(5rem, 25vw, 22rem);
+}
+html[data-vibe="gothic"] .landing {
+  --wm: clamp(5.25rem, 27vw, 24rem);
+}
+html[data-vibe="funky"] .landing {
+  --wm: clamp(4.5rem, 21vw, 19rem);
+}
+
+@media (max-width: 767px) {
+  .landing {
+    --wm: clamp(4.5rem, 34vw, 11rem);
+  }
+  html[data-vibe="bold"] .landing {
+    --wm: clamp(4rem, 24vw, 8rem);
+  }
+  html[data-vibe="overthinking"] .landing {
+    --wm: clamp(4.5rem, 32vw, 10rem);
+  }
+  html[data-vibe="gothic"] .landing {
+    --wm: clamp(4.5rem, 35vw, 11rem);
+  }
+  html[data-vibe="funky"] .landing {
+    --wm: clamp(4rem, 28vw, 9rem);
+  }
+}
+
+.l-content {
+  position: relative;
+  z-index: 1;
+}
+
+.l-wrap {
+  width: min(100% - 2 * var(--l-pad), var(--l-max));
+  margin-inline: auto;
+}
+
+.l-h2 {
+  margin: 0;
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.l-lead {
+  margin: 1rem 0 0;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  color: var(--ink-muted);
+}
+
+/* ---------------------------------------------------------------- top bar */
+
+.l-top {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) var(--l-pad) 0;
+  pointer-events: none;
+}
+
+.l-pill {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-button);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: var(--shadow-button);
+}
+
+.l-top__logo {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-size: 1.5rem;
+}
+
+.l-top__logo span {
+  color: var(--link);
+}
+
+.l-top__skip:hover,
+.l-top__logo:hover {
+  background: var(--surface-2);
+}
+
+/* ---------------------------------------------------------------- background */
+
+.l-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100lvh;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+  contain: layout paint style;
+}
+
+.l-bg__fills {
+  position: absolute;
+  inset: 0;
+}
+
+.l-bg .l-bg__fill {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+}
+
+.l-bg .l-bg__fill[data-state="site"] {
+  background-color: var(--bg);
+}
+
+/*
+ * Mood and portal colours are curtains: parked below the screen, slid up over the layer beneath by the motion
+ * code (transform only). The rounded leading edge sits above the screen once a curtain has landed.
+ */
+.l-bg .l-bg__fill:not([data-state="site"]) {
+  inset: -8rem 0 0 0;
+  overflow: clip;
+  border-radius: clamp(2rem, 6vw, 5.5rem) clamp(2rem, 6vw, 5.5rem) 0 0;
+  transform: translate3d(0, 101%, 0);
+  visibility: hidden;
+}
+
+.l-bg .l-bg__fill[data-state="accent"] {
+  background-color: var(--accent);
+}
+
+/* Texture: the vibe's mask painted in its ink, shifted slowly by scroll (--l-tex, 0..1 set by the motion code). */
+.l-bg .l-bg__fill::before,
+.l-bg .l-bg__fill[data-vibe]:not(:root)::before {
+  content: "";
+  position: absolute;
+  inset: -12lvh 0;
+  z-index: -1;
+  background-color: var(--texture-ink);
+  opacity: var(--texture-opacity);
+  -webkit-mask-image: var(--texture-url);
+  mask-image: var(--texture-url);
+  -webkit-mask-size: var(--texture-size);
+  mask-size: var(--texture-size);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  transform: translate3d(0, calc(var(--l-tex, 0) * -9lvh), 0);
+}
+
+/*
+ * A curtain's texture rides with the curtain. Shifting a promoted layer inside the rounded clip costs frames,
+ * so only the visitor's own (unclipped) layer drifts slowly with the page.
+ */
+.l-bg .l-bg__fill:not([data-state="site"])::before,
+.l-bg .l-bg__fill[data-vibe]:not(:root)::before {
+  inset: 0;
+  transform: none;
+}
+
+.l-bg .l-bg__fill[data-state="accent"]::before {
+  display: none;
+}
+
+.l-blob {
+  --bs: 62vmax;
+  position: absolute;
+  left: var(--bx);
+  top: var(--by);
+  width: var(--bs);
+  height: var(--bs);
+  margin: calc(var(--bs) / -2) 0 0 calc(var(--bs) / -2);
+  animation: l-float var(--bd) ease-in-out infinite alternate;
+}
+
+.l-blob--a {
+  --bx: 10%;
+  --by: 14%;
+  --bd: 19s;
+}
+.l-blob--b {
+  --bs: 74vmax;
+  --bx: 92%;
+  --by: 88%;
+  --bd: 23s;
+}
+.l-blob--c {
+  --bs: 52vmax;
+  --bx: 64%;
+  --by: 46%;
+  --bd: 17s;
+}
+
+.l-blob .l-blob__fill {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-color: transparent;
+}
+.l-blob .l-blob__fill::before,
+.l-blob .l-blob__fill[data-vibe]:not(:root)::before {
+  display: none;
+}
+.l-blob .l-blob__fill[data-state="site"] {
+  opacity: 1;
+}
+
+.l-blob--a .l-blob__fill {
+  background-image: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 34%, transparent), transparent);
+}
+.l-blob--b .l-blob__fill {
+  background-image: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 46%, transparent), transparent);
+}
+.l-blob--c .l-blob__fill {
+  background-image: radial-gradient(closest-side, color-mix(in srgb, var(--accent-3) 36%, transparent), transparent);
+}
+/* On the portal colour the blobs light it up instead. */
+.l-blob .l-blob__fill[data-state="accent"] {
+  background-image: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2) 50%, transparent), transparent);
+}
+.l-blob--c .l-blob__fill[data-state="accent"] {
+  background-image: radial-gradient(closest-side, color-mix(in srgb, var(--accent-3) 55%, transparent), transparent);
+}
+
+@keyframes l-float {
+  from {
+    translate: 0 0;
+    scale: 1;
+  }
+  to {
+    translate: 4vw -5svh;
+    scale: 1.1;
+  }
+}
+
+/* ---------------------------------------------------------------- 1. opening */
+
+.l-open {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: 6.5rem var(--l-pad) 6rem;
+}
+
+.l-open__cuts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.l-cut {
+  position: absolute;
+  left: var(--mx);
+  top: var(--my);
+  width: var(--ms);
+  aspect-ratio: 1;
+}
+
+@media (min-width: 768px) {
+  .l-cut {
+    left: var(--x);
+    top: var(--y);
+    width: var(--s);
+  }
+}
+
+@media (max-width: 767px) {
+  .l-cut--wide {
+    display: none;
+  }
+}
+
+.l-cut__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  rotate: var(--r);
+  filter: none;
+  animation:
+    l-pop 0.9s var(--l-ease) var(--d) both,
+    l-drift var(--dur) ease-in-out calc(var(--d) + 900ms) infinite alternate;
+}
+
+.landing[data-hero-paused] .l-cut__img {
+  animation-play-state: paused;
+}
+
+@keyframes l-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes l-drift {
+  from {
+    translate: 0 0;
+    rotate: calc(var(--r) - 3deg);
+  }
+  to {
+    translate: 0.4rem -0.9rem;
+    rotate: calc(var(--r) + 3deg);
+  }
+}
+
+.l-open__center {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.l-open__lift {
+  display: grid;
+  justify-items: center;
+  gap: clamp(0.75rem, 2svh, 1.5rem);
+}
+
+.l-wordmark {
+  display: flex;
+  margin: 0;
+  font-size: var(--wm);
+  line-height: 0.9;
+  padding-bottom: 0.06em;
+  white-space: nowrap;
+}
+
+.l-ch {
+  display: inline-block;
+  animation: l-ch-in 1s var(--l-ease) calc(80ms + var(--i) * 70ms) both;
+}
+
+.l-ch--accent {
+  color: var(--link);
+}
+
+@keyframes l-ch-in {
+  from {
+    opacity: 0;
+    translate: 0 0.3em;
+    rotate: -9deg;
+    scale: 0.88;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+.l-open__tag {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-size: clamp(1.5rem, 3.6vw, 2.75rem);
+  line-height: 1.1;
+  animation: l-rise 0.9s var(--l-ease) 0.7s both;
+}
+
+.l-open__sub {
+  margin: 0;
+  max-width: 30rem;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: var(--ink-muted);
+  text-wrap: balance;
+  animation: l-rise 0.9s var(--l-ease) 0.85s both;
+}
+
+@keyframes l-rise {
+  from {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.l-cue {
+  position: absolute;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  translate: -50% 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  animation: l-fade 1s ease 1.8s both;
+}
+
+.l-cue__line {
+  width: 2px;
+  height: 2.5rem;
+  background: linear-gradient(var(--ink-muted), transparent);
+  transform-origin: top;
+  animation: l-cue 1.9s ease-in-out infinite;
+}
+
+@keyframes l-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes l-cue {
+  0% {
+    transform: scaleY(0);
+    opacity: 1;
+  }
+  60% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- 2. what we make */
+
+.l-makes {
+  padding: clamp(4.5rem, 14svh, 9rem) 0 clamp(5rem, 12svh, 8rem);
+}
+
+.l-makes__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 3vw, 2.5rem);
+  margin: clamp(2.5rem, 7vw, 5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.l-make:nth-child(even) {
+  margin-top: clamp(2rem, 7vw, 5.5rem);
+}
+
+.l-make__art {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+}
+
+.l-make__img {
+  width: 74%;
+  height: auto;
+  rotate: var(--r);
+}
+
+.l-make__name {
+  margin: 0.75rem 0 0.25rem;
+  font-size: clamp(1.5rem, 2.6vw, 2.25rem);
+  line-height: 1.05;
+}
+
+.l-make__line {
+  margin: 0;
+  max-width: 17rem;
+  font-size: clamp(1rem, 1.4vw, 1.1875rem);
+  color: var(--ink-muted);
+}
+
+@media (max-width: 767px) {
+  .l-makes__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.25rem 1rem;
+  }
+  .l-make:nth-child(even) {
+    margin-top: 2.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------- 3. five moods */
+
+.l-moods__title {
+  margin: 0;
+  padding: clamp(4rem, 10svh, 6rem) var(--l-pad) 1.5rem;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1;
+  text-align: center;
+}
+
+.l-mood {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 85svh;
+  padding: 4rem 0;
+  color: var(--ink);
+}
+
+.l-mood__in {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: center;
+  gap: clamp(1rem, 4vw, 4rem);
+  width: min(100% - 2 * var(--l-pad), var(--l-max));
+  margin-inline: auto;
+}
+
+.l-mood__count {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.l-pips {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+.l-pips i {
+  display: block;
+  width: 1.5rem;
+  height: 0.375rem;
+  border-radius: var(--radius-button);
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+.l-pips i.is-on {
+  background: var(--accent);
+}
+
+.l-mood__name {
+  margin: 0;
+  font-size: var(--n, clamp(4rem, 13vw, 12rem));
+  line-height: 0.92;
+  padding-bottom: 0.05em;
+  color: var(--ink);
+}
+
+.l-mood[data-vibe="cute"] {
+  --n: clamp(4rem, 16vw, 15rem);
+}
+.l-mood[data-vibe="bold"] {
+  --n: clamp(3.5rem, 13vw, 12.5rem);
+}
+.l-mood[data-vibe="overthinking"] {
+  --n: clamp(2.75rem, 9.6vw, 9rem);
+}
+.l-mood[data-vibe="gothic"] {
+  --n: clamp(4rem, 16vw, 15rem);
+}
+.l-mood[data-vibe="funky"] {
+  --n: clamp(3.5rem, 14vw, 13.5rem);
+}
+
+.l-mood__tag {
+  margin: 1rem 0 0;
+  max-width: 22ch;
+  font-size: clamp(1.25rem, 2.3vw, 2rem);
+  line-height: 1.2;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.l-mood__cuts {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+  aspect-ratio: 1;
+  justify-self: center;
+}
+
+.l-mc {
+  position: absolute;
+  aspect-ratio: 1;
+}
+
+.l-mc__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  rotate: var(--r);
+}
+
+@media (max-width: 767px) {
+  .l-mood {
+    min-height: 0;
+    padding: 3.5rem 0;
+  }
+  .l-mood__in {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  .l-mood[data-vibe="cute"] {
+    --n: clamp(4rem, 24vw, 7rem);
+  }
+  .l-mood[data-vibe="bold"] {
+    --n: clamp(3.5rem, 21vw, 6.5rem);
+  }
+  .l-mood[data-vibe="overthinking"] {
+    --n: clamp(2.5rem, 14.5vw, 5rem);
+  }
+  .l-mood[data-vibe="gothic"] {
+    --n: clamp(4rem, 24vw, 7rem);
+  }
+  .l-mood[data-vibe="funky"] {
+    --n: clamp(3.5rem, 21vw, 6.5rem);
+  }
+  .l-mood__cuts {
+    max-width: 18rem;
+  }
+}
+
+/* ---------------------------------------------------------------- 4. why IfOnli */
+
+.l-why {
+  padding: clamp(5rem, 14svh, 9rem) 0 clamp(7rem, 24svh, 13rem);
+}
+
+.l-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(2.75rem, 7vw, 6rem) clamp(2rem, 8vw, 8rem);
+  margin: clamp(2.5rem, 7vw, 5rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.l-fact:nth-child(even) {
+  margin-top: clamp(1.5rem, 5vw, 4rem);
+}
+
+.l-fact__fig {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  font-size: clamp(4.5rem, 12vw, 10rem);
+  line-height: 0.9;
+  padding-bottom: 0.05em;
+  color: var(--link);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Digits must read unambiguously in every vibe (Kalam's 5 reads as an S): numeric figures use the body face there. */
+html[data-vibe="overthinking"] .l-fact__fig--num {
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.l-fact__text {
+  margin: 0.75rem 0 0;
+  padding-top: 0.75rem;
+  max-width: 24ch;
+  border-top: var(--border-w) solid var(--border);
+  font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+  line-height: 1.3;
+}
+
+@media (max-width: 767px) {
+  .l-facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.75rem;
+  }
+  .l-fact:nth-child(even) {
+    margin-top: 0;
+  }
+  .l-fact__fig {
+    font-size: clamp(4.25rem, 22vw, 6.5rem);
+  }
+}
+
+/* ---------------------------------------------------------------- 5. portal */
+
+.l-portal {
+  padding: 2rem var(--l-pad) 6rem;
+}
+
+.l-portal__card {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 34rem;
+  padding: 3rem 1.5rem;
+  overflow: clip;
+  isolation: isolate;
+  border: var(--border-w) solid var(--border);
+  border-radius: var(--radius-card);
+  background-color: var(--bg);
+}
+
+/* The same texture the store paints on its own background. */
+.l-portal__card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--texture-ink);
+  opacity: var(--texture-opacity);
+  -webkit-mask-image: var(--texture-url);
+  mask-image: var(--texture-url);
+  -webkit-mask-size: var(--texture-size);
+  mask-size: var(--texture-size);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+}
+
+.l-portal__art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.l-pc {
+  position: absolute;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+}
+
+.l-pc__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  rotate: var(--r);
+}
+
+.l-portal__in {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  max-width: 26rem;
+  text-align: center;
+}
+
+.l-portal__title {
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.l-portal__text {
+  margin: 0;
+  font-size: clamp(1.0625rem, 1.7vw, 1.3125rem);
+  color: var(--ink);
+}
+
+.l-portal__hint {
+  display: none;
+}
+
+.l-portal__status {
+  min-height: 1.5em;
+  margin: 0;
+  font-weight: 700;
+  color: var(--link);
+}
+
+/* ---------------------------------------------------------------- motion layout */
+
+.landing[data-motion] .l-moods__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.landing[data-motion] .l-moods__track {
+  height: calc(100svh * var(--l-mood-run, 5.2));
+}
+
+.landing[data-motion] .l-moods__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+}
+
+/* The fixed background paints each mood, so a panel is only text and art. */
+.landing[data-motion] .l-mood {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  padding: 0;
+  background-color: transparent;
+  pointer-events: none;
+}
+.landing[data-motion] .l-mood::before {
+  display: none;
+}
+.landing[data-motion] .l-mood + .l-mood {
+  opacity: 0;
+}
+
+.landing[data-motion] .l-mood__in {
+  position: relative;
+  width: min(100% - 2 * var(--l-pad), var(--l-max));
+  height: 100%;
+  padding: 6rem 0 5rem;
+}
+
+/* Display fonts load as the section approaches (LandingMotion sets data-fonts-ready); body face until then. */
+.landing[data-motion]:not([data-fonts-ready]) .l-mood__name {
+  font-family: var(--font-body);
+  font-weight: 800;
+}
+
+.landing[data-motion] .l-why {
+  padding-bottom: 14svh;
+}
+
+.landing[data-motion] .l-portal {
+  padding: 0;
+}
+
+.landing[data-motion] .l-portal__track {
+  height: calc(100svh * var(--l-portal-run, 2.3));
+}
+
+.landing[data-motion] .l-portal__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+}
+
+.landing[data-motion] .l-portal__card {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  /* Initial window; the motion code opens it to the whole viewport. */
+  clip-path: inset(16svh 28vw 16svh 28vw round 40px);
+}
+
+.landing[data-motion] .l-portal__hint {
+  display: inline;
+}
+
+@media (max-width: 767px) {
+  .landing[data-motion] {
+    --l-mood-run: 4.6;
+    --l-portal-run: 2.1;
+  }
+  .landing[data-motion] .l-mood__in {
+    align-content: center;
+    padding: 5.5rem 0 3rem;
+  }
+  .landing[data-motion] .l-portal__card {
+    clip-path: inset(17svh 7vw 17svh 7vw round 28px);
+  }
+}
+
+/* ---------------------------------------------------------------- accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+  .l-cut__img,
+  .l-ch,
+  .l-open__tag,
+  .l-open__sub,
+  .l-cue,
+  .l-cue__line,
+  .l-blob {
+    animation: none;
+  }
+}
+
+.l-pill:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}

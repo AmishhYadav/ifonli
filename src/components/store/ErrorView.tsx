@@ -30,7 +30,7 @@ export function ErrorView({ error, reset }: { error: Error & { digest?: string }
           Try again
         </Button>
         <Button asChild variant="secondary">
-          <Link href="/">Home</Link>
+          <Link href="/home">Home</Link>
         </Button>
       </div>
       <form action="/search" method="get" role="search" className="flex w-full max-w-md items-end gap-2">

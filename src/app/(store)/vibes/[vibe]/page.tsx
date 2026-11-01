@@ -60,7 +60,7 @@ export default async function VibePage({
   if (!vibe) notFound();
 
   const crumbs: Crumb[] = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Shop", path: "/shop" },
     { name: vibe.name, path: `/vibes/${vibe.slug}` },
   ];

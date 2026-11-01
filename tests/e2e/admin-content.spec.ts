@@ -272,7 +272,7 @@ test.describe("admin content flows", () => {
     );
 
     // The home page shows both straight away.
-    await page.goto("/");
+    await page.goto("/home");
     await expect(page.getByTestId("announcement-bar")).toContainText(note);
     await expect(page.getByRole("link", { name: new RegExp(title) })).toHaveAttribute(
       "href",
@@ -285,7 +285,7 @@ test.describe("admin content flows", () => {
     const offerRow = page.getByTestId("banner-row").filter({ hasText: title });
     await offerRow.getByRole("switch").click();
     await expect(offerRow).toContainText("Hidden");
-    await page.goto("/");
+    await page.goto("/home");
     await expect(page.getByText(title)).toHaveCount(0);
 
     // Clean up: delete both.
@@ -297,7 +297,7 @@ test.describe("admin content flows", () => {
     await page.getByRole("button", { name: `Delete ${note}` }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
     await expect(page.getByTestId("banner-row").filter({ hasText: note })).toHaveCount(0);
-    await page.goto("/");
+    await page.goto("/home");
     await expect(page.getByTestId("announcement-bar")).toHaveCount(0);
   });
 

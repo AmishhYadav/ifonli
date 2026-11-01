@@ -90,7 +90,7 @@ test.describe("storefront events", () => {
       if (/googletagmanager|google-analytics/.test(r.url())) gtm.push(r.url());
     });
 
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     await settle(page);
 
     // A card that stays on screen for a second is an impression (once), whichever card that is.
@@ -102,7 +102,7 @@ test.describe("storefront events", () => {
     await flushBeacons(page);
     await expect.poll(seen(rec, () => rec.events.filter((e) => e.event === "product_impression").length)).toBeGreaterThan(0);
     expect(rec.events.filter((e) => e.event === "product_impression" && e.productId === productId)).toHaveLength(1);
-    expect(rec.events.find((e) => e.event === "page_view")).toMatchObject({ path: "/", vibe: "cute" });
+    expect(rec.events.find((e) => e.event === "page_view")).toMatchObject({ path: "/home", vibe: "cute" });
 
     // Opening the product records the click, the page view and the product view.
     await card.getByRole("link").first().click();
@@ -113,7 +113,7 @@ test.describe("storefront events", () => {
     await expect.poll(seen(rec, () => rec.events.some((e) => e.event === "pdp_view" && e.productId === productId))).toBe(true);
     expect(rec.events.some((e) => e.event === "product_click" && e.productId === productId)).toBe(true);
     expect(rec.events.filter((e) => e.event === "page_view").map((e) => e.path)).toEqual(
-      expect.arrayContaining(["/", expect.stringMatching(/^\/products\//)]),
+      expect.arrayContaining(["/home", expect.stringMatching(/^\/products\//)]),
     );
 
     // Scrolling to the bottom reaches every depth milestone, each reported once.
@@ -180,7 +180,7 @@ test.describe("consent and optional GA4", () => {
 
   test("without a GA4 id there is no banner and no cookie settings link", async ({ page }) => {
     test.skip(Boolean(ga4Id), "this server has GA4 configured");
-    await page.goto("/");
+    await page.goto("/home");
     await settle(page);
     await expect(page.getByTestId("consent-banner")).toHaveCount(0);
     await expect(page.getByTestId("cookie-settings")).toHaveCount(0);
@@ -201,7 +201,7 @@ test.describe("consent and optional GA4", () => {
       return route.fulfill({ status: 200, contentType: "application/javascript", body: "" });
     });
 
-    await page.goto("/");
+    await page.goto("/home");
     await settle(page);
     const banner = page.getByTestId("consent-banner");
     await expect(banner).toBeVisible();

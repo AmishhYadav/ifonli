@@ -143,7 +143,7 @@ test("(b) vibe persists across reload and navigation", async ({ page, context })
   await expect.poll(() => new URL(page.url()).searchParams.get("vibe")).toBe("overthinking");
 
   // And the home page.
-  await page.goto("/");
+  await page.goto("/home");
   expect(await htmlVibe(page)).toBe("overthinking");
 });
 
@@ -172,7 +172,7 @@ test("(c) /?vibe=gothic renders gothic before first paint, then persists", async
     }).observe({ type: "paint", buffered: true });
   });
 
-  await page.goto("/?vibe=gothic", { waitUntil: "load" });
+  await page.goto("/home?vibe=gothic", { waitUntil: "load" });
   await page.waitForTimeout(500); // let hydration finish and any bad reset show up
   const log = await page.evaluate(
     () =>
