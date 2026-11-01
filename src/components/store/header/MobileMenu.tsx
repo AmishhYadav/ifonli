@@ -64,7 +64,7 @@ function renderLink(link: MenuLink, onNavigate: () => void) {
 function Group({ title, links, onNavigate }: { title: string; links: MenuLink[]; onNavigate: () => void }) {
   return (
     <section aria-label={title} className="flex flex-col gap-1">
-      <h2 className="px-3 pb-1 text-xs font-bold tracking-widest text-ink-muted uppercase">{title}</h2>
+      <h2 className="px-3 pb-1 font-label text-xs tracking-widest text-ink-muted">{title}</h2>
       <ul className="flex flex-col">
         {links.map((link) => (
           <li key={link.href}>

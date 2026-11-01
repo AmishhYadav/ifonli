@@ -21,14 +21,14 @@ export function SortSelect({ value, hrefs }: SortSelectProps) {
   const id = useId();
   const options = Object.keys(hrefs) as SearchSortValue[];
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 max-sm:order-last max-sm:w-full">
       <label htmlFor={id} className="text-sm font-semibold whitespace-nowrap">
         Sort by
       </label>
       <Select
         id={id}
         value={value}
-        wrapperClassName="min-w-44"
+        wrapperClassName="min-w-44 max-sm:flex-1"
         onChange={(event) => {
           const href = hrefs[event.target.value as SearchSortValue];
           if (href) startTransition(() => router.replace(href, { scroll: false }));

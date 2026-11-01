@@ -36,7 +36,7 @@ export function PrivacyPanel() {
       </CardTitle>
       <CardBody className="gap-5">
         <div className="flex flex-col gap-2">
-          <h3 className="text-base font-semibold">Download my data</h3>
+          <h3 className="font-body text-base font-semibold">Download my data</h3>
           <p className="text-base text-ink-muted">
             A file with your profile, addresses, orders, wishlist and the reports you&apos;ve sent us.
           </p>
@@ -50,7 +50,7 @@ export function PrivacyPanel() {
         </div>
 
         <div className="flex flex-col gap-2 border-t border-hairline pt-5">
-          <h3 className="text-base font-semibold">Delete my account</h3>
+          <h3 className="font-body text-base font-semibold">Delete my account</h3>
           <p className="text-base text-ink-muted">
             This removes your sign-in, saved addresses, wishlist and profile. We keep your past orders and
             invoices because the law requires us to keep tax records.

@@ -187,15 +187,32 @@
   }
 
   /*
-   * Text controls (Input, Textarea, Select): the 1px --border outline stays (>= 3:1) and focus softens it: the
-   * border turns accent and a 3px accent halo appears. The transparent outline keeps a visible indicator in
-   * forced-colors mode.
+   * Text controls (Input, Textarea, Select): soft, filled fields. No outline: the --field fill carries the shape,
+   * a hairline inset ring (ink at low alpha, so it works on every surface) sits at rest, deepens on hover, and
+   * becomes the --focus-ring colour (plus a soft halo) on focus. An invalid field turns --danger. The transparent
+   * outline keeps a visible indicator in forced-colors mode. Checkbox and Radio are tiny, so they keep a 3:1 --border.
    */
+  .ui-control {
+    background-color: var(--field);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);
+  }
+  .ui-control:hover:not(:disabled, :focus-visible) {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent);
+  }
   .ui-control:focus-visible {
     outline: 2px solid transparent;
     outline-offset: 0;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+    box-shadow:
+      inset 0 0 0 2px var(--focus-ring),
+      0 0 0 4px color-mix(in srgb, var(--focus-ring) 25%, transparent);
+  }
+  .ui-control[aria-invalid="true"] {
+    box-shadow: inset 0 0 0 2px var(--danger);
+  }
+  .ui-control[aria-invalid="true"]:focus-visible {
+    box-shadow:
+      inset 0 0 0 2px var(--danger),
+      0 0 0 4px color-mix(in srgb, var(--danger) 25%, transparent);
   }
 
   /* Native select: hide the platform arrow (an icon is drawn over it). */

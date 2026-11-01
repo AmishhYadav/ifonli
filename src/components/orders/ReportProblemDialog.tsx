@@ -258,7 +258,7 @@ export function ReportProblemDialog({
                   disabled={busy || files.length >= SUPPORT_PHOTO_MAX}
                   aria-describedby={`${fileId}-hint`}
                   onChange={(e) => pickFiles(e.target.files)}
-                  className="min-h-11 w-full rounded-input border-token bg-surface px-3 py-2 text-base text-ink file:mr-3 file:min-h-9 file:rounded-button file:border-0 file:bg-surface-2 file:px-3 file:font-semibold file:text-ink"
+                  className="ui-control min-h-11 w-full rounded-input border-0 bg-field px-3 py-2 text-base text-ink file:mr-3 file:min-h-9 file:rounded-button file:border-0 file:bg-surface-2 file:px-3 file:font-semibold file:text-ink"
                 />
                 {files.length > 0 ? (
                   <ul className="flex flex-col gap-1" data-testid="report-files">

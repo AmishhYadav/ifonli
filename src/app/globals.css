@@ -16,6 +16,7 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-field: var(--field);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-accent: var(--accent);
@@ -83,6 +84,13 @@
 }
 @utility font-body {
   font-family: var(--font-body);
+}
+/* Small labels (under ~18px): the body font, bold, spaced caps. Display fonts (Creepster, Rubik Glitch) fall apart that small. */
+@utility font-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 /* Display font + its weight, tracking and stretch travel together. */
 @utility font-display {

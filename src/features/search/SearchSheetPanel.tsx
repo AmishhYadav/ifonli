@@ -190,7 +190,7 @@ export function SearchSheetPanel({ shortcuts, defaultOpen = false }: SearchSheet
 
           {!hasQuery ? (
             <section aria-labelledby="header-search-browse">
-              <h2 id="header-search-browse" className="mb-2 text-xs font-bold tracking-widest text-ink-muted uppercase">
+              <h2 id="header-search-browse" className="mb-2 font-label text-xs tracking-widest text-ink-muted">
                 Browse
               </h2>
               <ul className="flex flex-wrap gap-2">

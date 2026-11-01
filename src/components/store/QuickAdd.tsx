@@ -28,7 +28,8 @@ const buttonClass = cn(
   "bg-[color-mix(in_srgb,var(--accent)_14%,var(--surface))] text-[color-mix(in_srgb,var(--ink)_25%,var(--link))]",
   "transition-colors ease-vibe hover:bg-accent hover:text-on-accent",
   "focus-visible:bg-accent focus-visible:text-on-accent focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring",
-  "disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-ink-muted disabled:hover:bg-surface-2 disabled:hover:text-ink-muted",
+  // Disabled (Sold out): a flat neutral wash with muted text, never the vibe's bright surface-2 (mint in Chaos Cabinet).
+  "disabled:cursor-not-allowed disabled:bg-[color-mix(in_srgb,var(--ink)_8%,var(--surface))] disabled:text-ink-muted disabled:hover:bg-[color-mix(in_srgb,var(--ink)_8%,var(--surface))] disabled:hover:text-ink-muted",
 );
 
 /**

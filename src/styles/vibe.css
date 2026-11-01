@@ -106,6 +106,15 @@
   animation-timing-function: ease;
 }
 
+/* During a vibe switch (store.ts sets the attribute) nothing eases between themes: the view transition already
+   cross-fades the page, and per-element transitions can stall on skipped (off-screen, content-visibility) subtrees. */
+html[data-vibe-switching],
+html[data-vibe-switching] *,
+html[data-vibe-switching] ::before,
+html[data-vibe-switching] ::after {
+  transition: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

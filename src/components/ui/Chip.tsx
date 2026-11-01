@@ -56,7 +56,7 @@ export type VibeChipProps = VibeChipBaseProps &
  */
 export function VibeChip({ vibe, children, selected, className, href, onClick }: VibeChipProps) {
   const classes = cn(
-    "inline-flex min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-base text-on-accent font-display",
+    "inline-flex min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-base font-semibold text-on-accent",
     "transition-[box-shadow,transform] ease-vibe",
     selected ? "shadow-button" : "hover:-translate-y-0.5",
     className,

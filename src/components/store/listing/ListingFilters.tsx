@@ -49,7 +49,7 @@ interface ListingFiltersProps {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <fieldset className="flex min-w-0 flex-col gap-1 border-0 p-0">
-      <legend className="mb-1 font-display text-lg">{title}</legend>
+      <legend className="mb-1 font-label text-sm">{title}</legend>
       {children}
     </fieldset>
   );
