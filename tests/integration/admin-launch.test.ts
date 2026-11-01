@@ -67,7 +67,6 @@ async function fillAllSettings() {
     default_country_of_origin: "India",
     default_gst_rate_bp: 300,
     shipping_tax_rule: "dominant_line_rate",
-    serviceability_mode: "all_india",
     flat_fee: 4900,
     free_threshold: 99900,
     processing_days: 2,

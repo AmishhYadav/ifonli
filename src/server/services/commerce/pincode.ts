@@ -36,11 +36,13 @@ export type Serviceability =
   | { serviceable: false; code: "invalid_pincode" | "unknown_pincode" | "not_serviceable"; message: string };
 
 /**
- * Can we deliver to this pincode? The directory's `serviceable` flag is the managed list for every
- * `serviceability_mode`: `all_india` = every pincode left serviceable, `allowlist` = only the ones
- * an admin marked serviceable, `denylist` = all except the ones marked unserviceable. There is no
- * separate list table, so the three modes read the same flag. A pincode that is not in the
- * directory is never serviceable (we could not work out the GST state or zone for it).
+ * Can we deliver to this pincode? The directory's `serviceable` flag is the only list: a pincode
+ * marked unserviceable is refused, anything else in the directory is served. The old
+ * `serviceability_mode` setting (`all_india` / `allowlist` / `denylist`) never changed this (there is
+ * no separate list table, so all three would read the same flag) and is now locked and marked unused;
+ * to serve only some areas an admin marks the rest unserviceable, in bulk by state or zone
+ * (Admin > Pincodes). A pincode that is not in the directory is never serviceable (we could not
+ * work out the GST state or zone for it).
  */
 export function checkServiceability(input: string, info: PincodeInfo | null): Serviceability {
   if (!PINCODE_RE.test(input)) {

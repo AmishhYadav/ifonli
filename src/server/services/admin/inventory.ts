@@ -3,6 +3,7 @@ import "server-only";
 import { and, asc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
+import { csvCell } from "@/lib/csv";
 import { assertCan } from "@/server/auth/permissions";
 import { products, variants } from "@/server/db/schema";
 import { writeAudit } from "@/server/services/audit";
@@ -92,13 +93,6 @@ export async function listInventory(
     });
   }
   return out;
-}
-
-/** Spreadsheets run text starting with = + - @ as formulas; prefix such cells with an apostrophe. */
-function csvCell(value: string | number): string {
-  let s = String(value);
-  if (/^[=+\-@\t\r]/.test(s) && typeof value === "string") s = `'${s}`;
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 export function inventoryCsv(rows: readonly InventoryRow[]): string {

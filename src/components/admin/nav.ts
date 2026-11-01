@@ -14,6 +14,7 @@ export type NavIconKey =
   | "support"
   | "reports"
   | "insights"
+  | "pincodes"
   | "settings"
   | "users"
   | "audit";
@@ -74,7 +75,7 @@ export const NAV: NavGroupDef[] = [
         icon: "inventory",
         permission: "inventory:view",
         built: true,
-        blurb: "On-hand, reserved and available stock, adjustments with a reason, and CSV export.",
+        blurb: "On-hand, reserved and available stock, adjustments with a reason, and CSV export and import.",
       },
     ],
   },
@@ -168,6 +169,14 @@ export const NAV: NavGroupDef[] = [
   {
     label: "Admin",
     items: [
+      {
+        slug: "pincodes",
+        label: "Pincodes",
+        icon: "pincodes",
+        permission: "setting:view",
+        built: true,
+        blurb: "Where we deliver and where cash on delivery is offered, by pincode, state or zone.",
+      },
       {
         slug: "settings",
         label: "Settings",

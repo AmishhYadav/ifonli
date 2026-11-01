@@ -66,7 +66,12 @@ describe("settings registry", () => {
   });
 
   it("settings nothing reads are locked and marked unused; hero_enabled stays editable", () => {
-    for (const key of ["guest_checkout_enabled", "login_methods", "custom_cursor_enabled"] as const) {
+    for (const key of [
+      "guest_checkout_enabled",
+      "login_methods",
+      "custom_cursor_enabled",
+      "serviceability_mode",
+    ] as const) {
       expect(SETTINGS[key]).toMatchObject({ locked: true, unused: true });
       expect(SETTINGS[key].description).toMatch(/^Not used in this version/);
     }

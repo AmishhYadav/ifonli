@@ -303,6 +303,7 @@ test.describe("admin at 390px", () => {
       "/admin/support",
       "/admin/content",
       "/admin/settings",
+      "/admin/pincodes",
       "/admin/reports",
     ]) {
       await page.goto(path);
