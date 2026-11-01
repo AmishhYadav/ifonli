@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { POLICY_SLUGS } from "@/server/content/policies";
 import { getDb } from "@/server/db";
@@ -336,6 +336,17 @@ describe("checkEnvironment", () => {
     expect(ids({ NEXT_PUBLIC_SITE_URL: "http://localhost:3000" })).toEqual(["env:site-url"]);
     expect(ids({ NEXT_PUBLIC_SITE_URL: "http://ifonli.in" })).toEqual(["env:site-url"]);
     expect(ids({ NODE_ENV: "development" })).toEqual(["env:node-env"]);
+  });
+
+  it("reads the real environment for the review flag, but an explicit env as given", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_DEV_PAGES", "1");
+    try {
+      expect(checkEnvironment(process.env).map((i) => i.id)).toContain("env:dev-pages");
+      expect(checkEnvironment({ ...LIVE_ENV })).toEqual([]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("no item ever echoes a secret value", () => {

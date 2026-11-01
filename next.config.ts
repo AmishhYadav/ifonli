@@ -49,6 +49,8 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
   },
   partialPrefetching: true,
+  // `next dev` logs every Server Function call with its arguments, which would print passwords and sign-in codes.
+  logging: { serverFunctions: false },
   async headers() {
     const base = buildSecurityHeaders({
       production,

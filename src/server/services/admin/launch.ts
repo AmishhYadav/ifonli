@@ -65,6 +65,17 @@ type Env = Record<string, string | undefined>;
 
 const present = (v: string | undefined) => (v ?? "").trim().length > 0;
 
+/**
+ * True for a build made with `NEXT_PUBLIC_ENABLE_DEV_PAGES=1`. Next inlines that value at build time only
+ * for the literal `process.env.NEXT_PUBLIC_ENABLE_DEV_PAGES`, never through a variable, so the real
+ * environment must be read this way or a review build started without the flag looks like a normal one.
+ * An explicit `env` (tests) is read as given.
+ */
+export function devPagesEnabled(env: Env): boolean {
+  if (env === process.env) return process.env.NEXT_PUBLIC_ENABLE_DEV_PAGES === "1";
+  return env.NEXT_PUBLIC_ENABLE_DEV_PAGES === "1";
+}
+
 /** Environment checks (pure). Everything here is configured in the hosting dashboard, not in the admin. */
 export function checkEnvironment(env: Env): LaunchItem[] {
   const items: LaunchItem[] = [];
@@ -154,7 +165,7 @@ export function checkEnvironment(env: Env): LaunchItem[] {
         "Set CSP_MODE=enforce once the report-only period shows no violations. The default only reports.",
       );
     }
-    if (env.NEXT_PUBLIC_ENABLE_DEV_PAGES === "1") {
+    if (devPagesEnabled(env)) {
       add(
         "dev-pages",
         "blocker",

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getLaunchReadiness } from "@/server/services/admin/launch";
+import { devPagesEnabled, getLaunchReadiness } from "@/server/services/admin/launch";
 
 import type { DbClient } from "../queries/shared";
 
@@ -25,7 +25,7 @@ export const STORE_CLOSED_MESSAGE =
 
 /** True on a real production deploy (not `next dev`, tests, or a review build with dev pages on). */
 export function launchGateEnforced(env: Env = process.env as Env): boolean {
-  return env.NODE_ENV === "production" && env.NEXT_PUBLIC_ENABLE_DEV_PAGES !== "1";
+  return env.NODE_ENV === "production" && !devPagesEnabled(env);
 }
 
 /**
