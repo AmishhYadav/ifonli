@@ -1,14 +1,9 @@
 import Link from "next/link";
 
 import { accountLoginUrl } from "@/features/account/redirect";
-import {
-  Badge,
-  Card,
-  CardBody,
-  CardTitle,
-  Icon,
-  type BadgeTone,
-} from "@/components/ui";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Card, CardBody, CardTitle } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
 import { formatINR } from "@/lib/money";
 import { resolveImageUrl } from "@/server/services/media";
 import type { CustomerOrderView } from "@/server/services/orders";

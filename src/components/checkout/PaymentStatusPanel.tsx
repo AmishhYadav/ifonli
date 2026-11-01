@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 
-import { Button, Icon, Spinner } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { Spinner } from "@/components/ui/Spinner";
 
 import type { PaymentPhase } from "./usePayment";
 

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Button, Icon } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 
 import { DeletedCleanup } from "./DeletedCleanup";
 

@@ -3,17 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTrigger,
-  Field,
-  Icon,
-  Select,
-  useToast,
-} from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
+import { Field, Select } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
+import { useToast } from "@/components/ui/Toast";
 import { cancelOrderAction } from "@/features/orders/actions";
 import { CANCEL_REASONS } from "@/features/orders/cancel-reasons";
 

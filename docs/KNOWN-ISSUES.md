@@ -41,7 +41,7 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 | --- | --- | --- |
 | S-2 | Low | **A stranger can still burn a code, not the account.** Better Auth locks each sign-in code after 5 wrong tries, so someone who knows an address and keeps guessing can force the real customer to ask for a new code (the customer's own wrong-code budget and send budget are separate, and only wrong codes count). |
 | S-3 | Low | **Staff password guessing is limited per email and IP, not by a stored lockout.** 8 attempts per 10 minutes per email can briefly lock a known staff address out of the sign-in form. Two-factor has Better Auth's own per-account lockout (10 failures, 15 minutes). |
-| S-5 | Low | **Lighthouse is still not a gate** (home scores 0.57-0.77 on the CI runner against a 0.85 budget). Reports are uploaded as the `lighthouse` artifact (`lhci-results/`). |
+| S-5 | Low | **Lighthouse is still not a gate** (home scored 0.57-0.77 on the CI runner against a 0.85 budget; after the perf pass a local mobile Lighthouse run on the production build gives home 0.89-0.92, product page 0.92-0.96, shop 0.91-0.97, cart 0.89-0.93. Remaining gap to the 2.5 s LCP budget is mostly the 120 KB framework floor plus the 1 MB home document). Reports are uploaded as the `lighthouse` artifact (`lhci-results/`). |
 
 ## Fixed during this pass
 

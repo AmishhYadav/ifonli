@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import { CONSENT_OPEN_EVENT, type ConsentChoice } from "@/lib/analytics/events";
 
 import { consentStore, shouldLoadGa4, shouldShowBanner } from "./consent";

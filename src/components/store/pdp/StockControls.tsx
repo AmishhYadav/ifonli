@@ -2,7 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 
-import { Badge, Button, Icon, QuantityStepper, useToast } from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { QuantityStepper } from "@/components/ui/QuantityStepper";
+import { useToast } from "@/components/ui/Toast";
 import { addItem, getCartState, setCartOpen } from "@/components/store/cart/cart-store";
 import { useVibe } from "@/features/vibe/useVibe";
 import { track } from "@/lib/analytics/client";

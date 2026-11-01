@@ -34,6 +34,16 @@ const nextConfig: NextConfig = {
   // Do not advertise the framework.
   poweredByHeader: false,
   images: {
+    // AVIF first, WebP as the fallback (the Accept header picks). Product art is small cut-outs and photos, so AVIF is a
+    // clear saving; both are cached separately by the image optimizer.
+    formats: ["image/avif", "image/webp"],
+    // The widest slot on the site is the 1440 px page container (the PDP gallery asks for 680 px, cards for 25 vw),
+    // so the 2048/3840 steps of the default list are never useful; fewer, closer steps also mean fewer cache variants.
+    deviceSizes: [360, 414, 640, 768, 1024, 1280, 1536, 1920],
+    imageSizes: [32, 48, 64, 96, 128, 192, 256, 384],
+    qualities: [75],
+    // Product images get a new storage path when replaced (uuid file names), so a day is safe and saves re-optimising.
+    minimumCacheTTL: 86400,
     remotePatterns: [
       // Local Supabase Storage (public buckets).
       {

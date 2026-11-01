@@ -9,7 +9,8 @@ import { getVibeSettings } from "@/server/cache/settings";
 import { CartButton } from "./CartButton";
 import { IconLink } from "./IconLink";
 import { Logo } from "./Logo";
-import { MobileMenu, type MenuLink } from "./MobileMenu";
+import type { MenuLink } from "./MobileMenu";
+import { MobileMenuLazy } from "./MobileMenuLazy";
 import { NavMenu } from "./NavMenu";
 import { VibeSwatchLink } from "./VibeSwatchLink";
 
@@ -42,7 +43,7 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-border bg-bg/95">
       <div className="mx-auto flex min-h-16 max-w-[1440px] items-center gap-2 px-4 sm:gap-3 sm:px-6">
         <HandButton cycle={cycle} className="header-hand" />
         <Logo className="ml-1" />
@@ -90,7 +91,7 @@ export async function Header() {
           <IconLink href="/account" icon="user" label="Account" className="hidden md:inline-flex" />
           <IconLink href="/wishlist" icon="heart" label="Wishlist" className="hidden md:inline-flex" />
           <CartButton />
-          <MobileMenu vibes={vibeLinks} types={typeLinks} className="lg:hidden" />
+          <MobileMenuLazy vibes={vibeLinks} types={typeLinks} className="lg:hidden" />
         </div>
       </div>
     </header>

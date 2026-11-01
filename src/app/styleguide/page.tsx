@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { ProductCard, ProductCardSkeleton, ProductGrid, ProductGridItem } from "@/components/store";
-import { IconButton } from "@/components/ui";
+import { IconButton } from "@/components/ui/Button";
 import { VIBES, VIBE_NAMES } from "@/features/vibe/config";
 import { HandButton } from "@/features/vibe/HandButton";
 import { VibeScope } from "@/features/vibe/VibeScope";

@@ -2,18 +2,11 @@
 
 import { useId, useRef, useState } from "react";
 
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTrigger,
-  Field,
-  Icon,
-  Radio,
-  RadioGroup,
-  Textarea,
-} from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
+import { Field, Textarea } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
+import { Radio, RadioGroup } from "@/components/ui/Radio";
 import { prepareSupportPhotosAction, reportProblemAction } from "@/features/orders/actions";
 import {
   SUPPORT_DESCRIPTION_MAX,

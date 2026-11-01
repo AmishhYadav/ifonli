@@ -4,16 +4,11 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { formatDateRange, formatDateTime } from "@/components/orders/format";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
-import {
-  Badge,
-  Button,
-  Card,
-  CardTitle,
-  Field,
-  Icon,
-  Input,
-  type BadgeTone,
-} from "@/components/ui";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardTitle } from "@/components/ui/Card";
+import { Field, Input } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
 import { formatINR } from "@/lib/money";
 
 import { trackOrder } from "./actions";

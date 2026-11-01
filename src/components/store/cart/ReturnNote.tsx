@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
 import { RETURNS_POLICY_PATH } from "./policy-path";

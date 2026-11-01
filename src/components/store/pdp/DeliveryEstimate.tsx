@@ -2,7 +2,9 @@
 
 import { useId, useState, useTransition } from "react";
 
-import { Button, Icon, Input } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { Input } from "@/components/ui/Field";
 import { formatINR } from "@/lib/money";
 
 import { checkDelivery, type DeliveryCheck } from "./delivery-action";

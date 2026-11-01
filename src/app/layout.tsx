@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { ClientErrorReporter } from "@/components/monitoring/ClientErrorReporter";
-import { ToastProvider } from "@/components/ui";
+import { ToastProvider } from "@/components/ui/Toast";
 import { BODY_FONT_FILE, DEFAULT_VIBE, DEFAULT_VIBE_CYCLE } from "@/features/vibe/config";
 import { VibeFilters } from "@/features/vibe/VibeFilters";
 import { VibeHeadScript } from "@/features/vibe/VibeHeadScript";

@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { Button, Input, VibeChip } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { VibeChip } from "@/components/ui/Chip";
+import { Input } from "@/components/ui/Field";
 import { VIBES } from "@/features/vibe/config";
 
 import { VibeCopy } from "./VibeCopy";

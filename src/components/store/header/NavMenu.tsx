@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
 interface NavMenuProps {

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   BOUNDARIES,
+  HERO_TIME_SCALE,
+  MIN_DISSOLVE,
   LOOP_DURATION,
   MIN_SWITCH_SPACING,
   PROFILE_FADE,
@@ -26,6 +28,14 @@ describe("hero schedule (plan section 9)", () => {
     ]);
     expect(SCENES.map((s) => s.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(LOOP_DURATION).toBe(12);
+  });
+
+  it("plays slower than the schedule, never faster, so loop-time flash limits only get safer", () => {
+    expect(HERO_TIME_SCALE).toBeGreaterThan(0.5); // a "little" slower, not a slideshow
+    expect(HERO_TIME_SCALE).toBeLessThanOrEqual(1);
+    // Wall-clock length of the shortest dissolve and of one loop.
+    expect(PROFILE_FADE / HERO_TIME_SCALE).toBeGreaterThanOrEqual(MIN_DISSOLVE);
+    expect(LOOP_DURATION / HERO_TIME_SCALE).toBeCloseTo(15, 6);
   });
 
   it("starts each scene where the previous one ends, without float drift", () => {

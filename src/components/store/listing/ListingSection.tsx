@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { connection } from "next/server";
 
-import { Button, EmptyState, Icon } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
 import { SearchTracker } from "@/features/analytics";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { getDb } from "@/server/db";

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import type { SupportType } from "@/features/orders/support-schema";
 import { formatINR } from "@/lib/money";
 

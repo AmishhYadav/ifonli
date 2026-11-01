@@ -1,5 +1,5 @@
 import { PlaceholderValue } from "@/components/store/footer/PlaceholderValue";
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import type { StoreValue } from "@/server/cache/settings";
 
 /** Shown instead of a policy body that is not publishable yet (production). */

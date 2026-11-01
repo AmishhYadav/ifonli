@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { OrderSummaryList } from "@/components/orders/OrderSummaryList";
 import { addressLines } from "@/components/orders/format";
-import { Button, Card, CardBody, CardTitle } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Card, CardBody, CardTitle } from "@/components/ui/Card";
 import { requireCustomer } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { getProfile, listAddresses } from "@/server/services/account";

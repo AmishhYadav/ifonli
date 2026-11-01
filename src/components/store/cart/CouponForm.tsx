@@ -2,7 +2,8 @@
 
 import { useId, useState, useTransition } from "react";
 
-import { Button, Field, Input } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Field";
 import type { CartViewCoupon } from "@/features/cart/types";
 
 import { applyCouponCode, removeCouponCode } from "./cart-store";

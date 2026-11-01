@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ComponentProps } from "react";
 
-import { Icon, buttonVariants, type IconName } from "@/components/ui";
+import { Icon, type IconName } from "@/components/ui/Icon";
+import { buttonVariants } from "@/components/ui/buttonStyles";
 import { cn } from "@/lib/cn";
 
 interface IconLinkProps extends Omit<ComponentProps<typeof Link>, "children"> {

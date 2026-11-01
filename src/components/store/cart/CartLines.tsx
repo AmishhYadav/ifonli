@@ -4,7 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 
-import { IconButton, Price, QuantityStepper } from "@/components/ui";
+import { IconButton } from "@/components/ui/Button";
+import { Price } from "@/components/ui/Price";
+import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import type { CartView, CartViewLine } from "@/features/cart/types";
 import { formatINR } from "@/lib/money";
 import { cn } from "@/lib/cn";

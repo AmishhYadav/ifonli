@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { track } from "@/lib/analytics/client";
 import { cn } from "@/lib/cn";
 

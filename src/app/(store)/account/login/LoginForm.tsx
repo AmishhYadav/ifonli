@@ -2,7 +2,9 @@
 
 import { useActionState, useEffect, useRef } from "react";
 
-import { Button, Field, Icon, Input } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
 
 import { loginAction } from "./actions";
 import { initialLoginState } from "./types";

@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect, type MouseEvent } from "react";
 
-import { Icon, buttonVariants } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
+import { buttonVariants } from "@/components/ui/buttonStyles";
 import { cn } from "@/lib/cn";
 
 import { seedCartCount, setCartOpen } from "./cart-store";
+import { preloadCartDrawer } from "./CartDrawer";
 import { useCartStore } from "./useCart";
 
 /**
@@ -36,6 +38,9 @@ export function CartTrigger({ initialCount, className }: { initialCount: number 
     <Link
       href="/cart"
       onClick={onClick}
+      onPointerEnter={() => void preloadCartDrawer()}
+      onFocus={() => void preloadCartDrawer()}
+      onTouchStart={() => void preloadCartDrawer()}
       aria-label={shown > 0 ? `Cart, ${shown} ${shown === 1 ? "item" : "items"}` : "Cart"}
       aria-haspopup="dialog"
       data-testid="cart-button"

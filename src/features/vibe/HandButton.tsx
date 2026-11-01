@@ -32,7 +32,7 @@ function warm(vibe: Vibe): void {
 
 function whenIdle(callback: () => void): void {
   if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(callback, { timeout: 4000 });
+    window.requestIdleCallback(callback, { timeout: 1500 });
   } else {
     window.setTimeout(callback, 600);
   }
@@ -126,6 +126,9 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
 
   const clearPress = () => window.clearTimeout(pressTimer.current);
 
+  // The visitor is about to click: make sure the vibe this click goes to is warm (a no-op once it is).
+  const warmNext = () => warm(nextVibe(target.current ?? getVibe(), cycle));
+
   const hideTipSoon = () => {
     window.clearTimeout(tipTimer.current);
     tipTimer.current = window.setTimeout(() => setTipOpen(false), TIP_HOLD_MS);
@@ -146,7 +149,10 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
         }
         void switchVibe();
       }}
+      onPointerEnter={warmNext}
+      onFocus={warmNext}
       onPointerDown={(event) => {
+        warmNext();
         lastPointer.current = event.pointerType;
         if (event.pointerType !== "touch") return;
         longPressed.current = false;

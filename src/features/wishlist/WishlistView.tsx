@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { ProductCardSkeleton, ProductCardView } from "@/components/store/ProductCardView";
 import { ProductGrid, ProductGridItem } from "@/components/store/ProductGrid";
-import { Button, EmptyState } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 import { getWishlistItems, type WishlistItem } from "./actions";
 import { getWishlist, pruneWishlist } from "./store";
