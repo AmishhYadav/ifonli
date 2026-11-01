@@ -7,12 +7,12 @@
   --display-tracking: -0.01em;
   --display-stretch: 100%;
   --display-filter: none;
-  --radius-card: 12px;
-  --radius-button: 8px;
-  --radius-input: 8px;
+  --radius-card: 16px;
+  --radius-button: 9999px;
+  --radius-input: 12px;
   --border-w: 1px;
-  --shadow-card: 0 1px 2px color-mix(in srgb, var(--ink) 14%, transparent);
-  --shadow-button: none;
+  --shadow-card: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 12px 32px -12px color-mix(in srgb, var(--ink) 18%, transparent);
+  --shadow-button: 0 8px 20px -8px color-mix(in srgb, var(--accent) 55%, transparent);
   --icon-stroke: 2;
   --icon-linecap: round;
   --icon-linejoin: round;
@@ -21,6 +21,6 @@
   --texture-url: none;
   --texture-size: 64px;
   --cursor: auto;
-  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --motion-dur: 200ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-dur: 320ms;
 }

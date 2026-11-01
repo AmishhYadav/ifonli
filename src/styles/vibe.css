@@ -1,5 +1,5 @@
 /*
- * Vibe runtime styles: base element styles, the texture layer, copy-variant visibility, the hand glyph,
+ * Vibe runtime styles: base element styles, copy-variant visibility, the hand glyph,
  * icon tokens, view transition and reduced motion. All values come from tokens (src/styles/tokens).
  */
 
@@ -7,7 +7,8 @@
   *,
   ::before,
   ::after {
-    border-color: var(--border);
+    /* Soft by default: dividers and card edges use the hairline. Only form controls use --border (>= 3:1). */
+    border-color: var(--hairline);
   }
 
   html {
@@ -66,39 +67,6 @@
   }
 }
 
-/* Texture layer: a mask painted with --texture-ink. Fixed behind the whole page, absolute inside a scope. */
-body::before,
-[data-vibe]:not(:root)::before {
-  content: "";
-  pointer-events: none;
-  background-color: var(--texture-ink);
-  opacity: var(--texture-opacity);
-  -webkit-mask-image: var(--texture-url);
-  mask-image: var(--texture-url);
-  -webkit-mask-size: var(--texture-size);
-  mask-size: var(--texture-size);
-  -webkit-mask-repeat: repeat;
-  mask-repeat: repeat;
-}
-
-body::before {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-}
-
-[data-vibe]:not(:root)::before {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-}
-
-/* Buy pages take palette only: no texture. */
-body:has(main[data-vibe-scope="buy"])::before {
-  display: none;
-}
-
 /*
  * Copy variants (VibeText) and hand/name variants: every variant is in the DOM, the nearest [data-vibe]
  * decides which one has a box. --dv-* flags are generated per vibe in tokens/*.css.
@@ -109,9 +77,6 @@ body:has(main[data-vibe-scope="buy"])::before {
 }
 [data-v="bold"] {
   display: var(--dv-bold, none);
-}
-[data-v="overthinking"] {
-  display: var(--dv-overthinking, none);
 }
 [data-v="gothic"] {
   display: var(--dv-gothic, none);
@@ -143,10 +108,6 @@ body:has(main[data-vibe-scope="buy"])::before {
 .vibe-hand[data-hand="bold"] {
   -webkit-mask-image: url("/vibe/hands/bold.svg");
   mask-image: url("/vibe/hands/bold.svg");
-}
-.vibe-hand[data-hand="overthinking"] {
-  -webkit-mask-image: url("/vibe/hands/overthinking.svg");
-  mask-image: url("/vibe/hands/overthinking.svg");
 }
 .vibe-hand[data-hand="gothic"] {
   -webkit-mask-image: url("/vibe/hands/gothic.svg");
@@ -189,11 +150,11 @@ body:has(main[data-vibe-scope="buy"])::before {
   filter: var(--icon-filter);
 }
 
-/* Vibe switch cross-fade (document.startViewTransition in HandButton). */
+/* Vibe switch cross-fade (document.startViewTransition in HandButton): a slow, soothing colour fade. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 250ms;
-  animation-timing-function: var(--motion-ease);
+  animation-duration: 600ms;
+  animation-timing-function: ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

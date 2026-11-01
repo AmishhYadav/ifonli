@@ -4,7 +4,6 @@
 @import "../styles/tokens/base.css";
 @import "../styles/tokens/cute.css";
 @import "../styles/tokens/bold.css";
-@import "../styles/tokens/overthinking.css";
 @import "../styles/tokens/gothic.css";
 @import "../styles/tokens/funky.css";
 /* buy.css must come after every vibe file (see scripts/build-tokens.ts). */
@@ -23,7 +22,10 @@
   --color-on-accent: var(--on-accent);
   --color-accent-2: var(--accent-2);
   --color-accent-3: var(--accent-3);
+  /* border-border = form-control outlines only (>= 3:1). border-hairline = dividers, card edges, header underline. */
   --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-hand: var(--hand);
   --color-focus-ring: var(--focus-ring);
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -57,7 +59,27 @@
 @utility border-token {
   border-style: solid;
   border-width: var(--border-w);
+  /* The >= 3:1 form-control outline (Field, Checkbox, Radio). Cards and dividers use border-hairline instead. */
   border-color: var(--border);
+}
+/*
+ * Product art tiles. Keyed by the PRODUCT's vibe, not the active theme (the stops are global custom properties on
+ * :root, see tokens/base.css): put art-<primaryVibe> on the image tile. art-none is the neutral tile.
+ */
+@utility art-cute {
+  background: linear-gradient(160deg, var(--art-cute-a), var(--art-cute-b));
+}
+@utility art-funky {
+  background: linear-gradient(160deg, var(--art-funky-a), var(--art-funky-b));
+}
+@utility art-bold {
+  background: linear-gradient(160deg, var(--art-bold-a), var(--art-bold-b));
+}
+@utility art-gothic {
+  background: linear-gradient(160deg, var(--art-gothic-a), var(--art-gothic-b));
+}
+@utility art-none {
+  background: linear-gradient(160deg, var(--surface-2), var(--surface));
 }
 @utility font-body {
   font-family: var(--font-body);

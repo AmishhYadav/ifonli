@@ -77,7 +77,7 @@
 .stage-veil-dark {
   background-color: var(--ink);
 }
-/* Gothic's ink is light: its "dark" is a deeper black than the page. */
+/* The dark vibes' ink is light: their "dark" is a deeper black than the page. */
 .hero-stage[data-dark="bg"] .stage-veil-dark {
   background-color: color-mix(in oklab, var(--bg) 30%, black);
 }
