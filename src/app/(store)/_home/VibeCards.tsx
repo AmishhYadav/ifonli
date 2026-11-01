@@ -27,27 +27,28 @@ export async function VibeCards() {
     <section
       id="vibes"
       aria-label="Shop by vibe"
-      className="below-fold mx-auto mt-14 max-w-[1440px] scroll-mt-24 px-4 sm:px-6"
+      className="below-fold mx-auto mt-14 max-w-[1440px] px-4 sm:px-6"
     >
       <VibeCopy k="home.vibesTitle" as="h2" className="font-display text-3xl display-fx sm:text-4xl" />
-      <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         {vibes.map((v) => {
           const vibe = v.slug as Vibe;
           const covers = (tiles[vibe] ?? []).slice(0, 3);
           return (
             // Each card is skipped until it is near the viewport, so a phone does not fetch the display font and
             // texture of the vibes that are several screens down.
-            <li key={v.slug} className="below-fold min-w-0 [--cv-h:26rem]">
+            <li key={v.slug} className="below-fold min-w-0 [--cv-h:9.5rem] sm:[--cv-h:26rem]">
               <VibeScope
                 vibe={vibe}
                 as="article"
-                className="group relative flex h-full flex-col overflow-hidden rounded-card bg-surface text-ink shadow-card transition-[transform,box-shadow] ease-vibe hover:-translate-y-1.5 hover:shadow-button has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus-ring"
+                className="group relative flex h-full flex-row overflow-hidden sm:flex-col rounded-card bg-surface text-ink shadow-card transition-[transform,box-shadow] ease-vibe hover:-translate-y-1.5 hover:shadow-button has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus-ring"
               >
-                <div className={cn("grid place-items-center px-5 py-7", ART[vibe])}>
-                  <TileFan tiles={covers} />
+                {/* A phone gets a compact horizontal card (side cover) so the four moods take one screen, not four. */}
+                <div className={cn("grid w-[8.5rem] flex-none place-items-center px-2 py-4 sm:w-auto sm:px-5 sm:py-7", ART[vibe])}>
+                  <TileFan tiles={covers} size="card" />
                 </div>
-                <div className="flex flex-1 flex-col gap-2.5 p-5">
-                  <h3 className="font-display text-3xl leading-tight display-fx">
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-4 sm:gap-2.5 sm:p-5">
+                  <h3 className="font-display text-2xl leading-tight display-fx sm:text-3xl">
                     <Link
                       href={`/vibes/${v.slug}`}
                       className="outline-none after:absolute after:inset-0 after:content-['']"
@@ -55,8 +56,8 @@ export async function VibeCards() {
                       {v.name}
                     </Link>
                   </h3>
-                  <p className="text-base text-ink-muted">{textOr(v.description, VIBE_TAGLINES[vibe])}</p>
-                  <p className="mt-auto flex items-center justify-between pt-2 text-sm font-semibold">
+                  <p className="line-clamp-3 text-sm text-ink-muted sm:line-clamp-none sm:text-base">{textOr(v.description, VIBE_TAGLINES[vibe])}</p>
+                  <p className="mt-auto flex items-center justify-between pt-1 text-sm font-semibold sm:pt-2">
                     <span>{v.productCount} products</span>
                     <Icon
                       name="arrow-right"

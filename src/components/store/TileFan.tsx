@@ -16,19 +16,21 @@ export function TileFan({
   className,
 }: {
   tiles: HeroTile[];
-  size?: "md" | "lg";
+  /** `card`: a compact fan on a phone (a side cover), the `md` fan from `sm` up. */
+  size?: "md" | "lg" | "card";
   className?: string;
 }) {
   const big = size === "lg";
+  const card = size === "card";
   return (
     <div
       aria-hidden="true"
-      className={cn("relative flex items-center justify-center", big ? "h-56 w-80" : "h-32", className)}
+      className={cn("relative flex items-center justify-center", big ? "h-56 w-80" : card ? "h-24 sm:h-32" : "h-32", className)}
     >
       <span
         className={cn(
           "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--surface)_55%,transparent)]",
-          big ? "size-52" : "size-28",
+          big ? "size-52" : card ? "size-20 sm:size-28" : "size-28",
         )}
       />
       {tiles.slice(0, 3).map((tile, i) => {
@@ -44,11 +46,11 @@ export function TileFan({
             key={tile.productId}
             className={cn(
               "relative rounded-card bg-surface shadow-card",
-              big ? "-mx-4 size-36" : "-mx-3 size-20",
+              big ? "-mx-4 size-36" : card ? "-mx-2 size-12 sm:-mx-3 sm:size-20" : "-mx-3 size-20",
               ROTATIONS[i % ROTATIONS.length],
             )}
           >
-            <Image src={src} alt="" fill sizes={big ? "144px" : "80px"} className="object-contain p-2" />
+            <Image src={src} alt="" fill sizes={big ? "144px" : card ? "(min-width: 640px) 80px, 48px" : "80px"} className="object-contain p-2" />
           </span>
         );
       })}
