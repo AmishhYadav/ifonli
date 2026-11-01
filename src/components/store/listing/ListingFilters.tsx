@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, useTransition, type FormEvent } from "react";
 
-import { Button, Checkbox, Input, Switch, VibeDot } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Input } from "@/components/ui/Field";
+import { Switch } from "@/components/ui/Switch";
+import { VibeDot } from "@/components/ui/Chip";
 import { VIBE_NAMES, isVibe } from "@/features/vibe/config";
 import { formatINR } from "@/lib/money";
 

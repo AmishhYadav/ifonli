@@ -15,6 +15,7 @@ import { profileFor } from "./profiles";
 import type { MotionProfile } from "./profiles/types";
 import { collectRefs, type StageRefs } from "./refs";
 import {
+  HERO_TIME_SCALE,
   MIN_SWITCH_SPACING,
   PROFILE_FADE,
   REST_TIME,
@@ -222,6 +223,9 @@ export class Director {
 
     this.tl?.kill();
     const tl = buildTimeline({ refs: this.refs, profile: this.profile, geo });
+    // Live speed. Applied to every (re)build, so a resize or a vibe switch never snaps back to full speed.
+    // Loop time (totalTime, seek, the dissolve boundaries) is unaffected by the scale.
+    tl.timeScale(HERO_TIME_SCALE);
     tl.eventCallback("onUpdate", this.tick);
     this.tl = tl;
     return true;

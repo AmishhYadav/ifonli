@@ -18,7 +18,7 @@ import { markdownToPlainText } from "@/components/store/pdp/markdown";
 import { PurchaseProvider } from "@/components/store/pdp/PurchaseProvider";
 import { StockFallback } from "@/components/store/pdp/StockControls";
 import { VariantPicker } from "@/components/store/pdp/VariantPicker";
-import { VibeChip } from "@/components/ui";
+import { VibeChip } from "@/components/ui/Chip";
 import { PdpTracker } from "@/features/analytics";
 import { isVibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";

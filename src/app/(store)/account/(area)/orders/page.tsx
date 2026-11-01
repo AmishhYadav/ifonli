@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { OrderSummaryList } from "@/components/orders/OrderSummaryList";
-import { Button, Card } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { requireCustomer } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { ACCOUNT_ORDERS_PAGE_SIZE, listAccountOrders } from "@/server/services/customer-orders";

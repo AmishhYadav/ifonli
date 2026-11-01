@@ -1,4 +1,4 @@
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import type { CartNotice } from "@/features/cart/types";
 
 /**

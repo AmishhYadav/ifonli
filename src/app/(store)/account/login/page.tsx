@@ -3,7 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { Button, Skeleton } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { safeNextPath } from "@/features/account/redirect";
 import { emailSchema } from "@/features/checkout/schema";
 import { getOptionalCustomer, getSession } from "@/server/auth/session";

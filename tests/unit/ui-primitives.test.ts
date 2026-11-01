@@ -4,7 +4,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { ProductCardView } from "@/components/store/ProductCardView";
-import { Button, ICON_NAMES, IconButton, Price, discountPercent } from "@/components/ui";
+import { Button, IconButton } from "@/components/ui/Button";
+import { ICON_NAMES } from "@/components/ui/Icon";
+import { Price, discountPercent } from "@/components/ui/Price";
 import { cn } from "@/lib/cn";
 import type { ProductCard } from "@/server/services/queries/types";
 

@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
-import { buttonVariants, EmptyState, Icon } from "@/components/ui";
+import { buttonVariants } from "@/components/ui/buttonStyles";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
 import type { CartView } from "@/features/cart/types";
 import { VIBES, VIBE_NAMES } from "@/features/vibe/config";
 import { cn } from "@/lib/cn";

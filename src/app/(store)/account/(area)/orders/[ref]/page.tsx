@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { OrderDetailView } from "@/components/orders/OrderDetailView";
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { requireCustomer } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { getOrderForAccount } from "@/server/services/customer-orders";

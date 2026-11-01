@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { VibeCopy } from "@/components/store/VibeCopy";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import type { Vibe } from "@/features/vibe/config";
 import { cn } from "@/lib/cn";
 import { getHeroTilesForAllVibes } from "@/server/cache/catalog";

@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 
-import { Price } from "@/components/ui";
+import { Price } from "@/components/ui/Price";
 import { cn } from "@/lib/cn";
 
 import { usePurchase } from "./PurchaseProvider";

@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Badge, Icon, Price, Skeleton, VibeDot } from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Icon } from "@/components/ui/Icon";
+import { Price } from "@/components/ui/Price";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { VibeDot } from "@/components/ui/Chip";
 import { VIBE_NAMES, isVibe } from "@/features/vibe/config";
 import { cn } from "@/lib/cn";
 import type { ProductCard as ProductCardData } from "@/server/services/queries/types";
@@ -53,7 +57,7 @@ export function ProductCardView({
     <article
       className={cn(
         "group relative flex h-full flex-col overflow-hidden rounded-card border-token bg-surface text-ink shadow-card",
-        "transition-[transform,box-shadow] ease-vibe hover:-translate-y-1",
+        "transition-transform ease-vibe hover:-translate-y-1",
         "has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus-ring",
         className,
       )}

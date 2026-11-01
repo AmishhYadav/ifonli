@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 
 function subscribe(onChange: () => void): () => void {
   window.addEventListener("online", onChange);

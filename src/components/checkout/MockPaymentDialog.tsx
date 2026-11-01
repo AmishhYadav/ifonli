@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { Button, Dialog, DialogContent } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Dialog, DialogContent } from "@/components/ui/Dialog";
 import type { RazorpayCheckoutPayload } from "@/features/checkout/types";
 import { formatINR } from "@/lib/money";
 

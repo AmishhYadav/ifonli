@@ -1,13 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 
-import { Button, Dialog, DialogContent, Icon, IconButton } from "@/components/ui";
+import { IconButton } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
 import { usePurchase } from "./PurchaseProvider";
 import { imageIndexForVariant, type PdpImage } from "./product-model";
+
+const GalleryZoom = dynamic(() => import("./GalleryZoom").then((m) => m.GalleryZoom), { ssr: false });
 
 const reducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -45,6 +49,9 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
   const strip = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
+  // The zoom dialog (and the dialog library behind it) is only downloaded once a photo has been opened.
+  const [zoomEver, setZoomEver] = useState(false);
+  if (zoomOpen && !zoomEver) setZoomEver(true);
   const [zoomed, setZoomed] = useState(false);
   const count = images.length;
 
@@ -204,49 +211,25 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
         </ul>
       ) : null}
 
-      <Dialog open={zoomOpen} onOpenChange={setZoomOpen}>
-        <DialogContent
+      {zoomEver ? (
+        <GalleryZoom
+          open={zoomOpen}
+          onOpenChange={setZoomOpen}
           title={`${productName}, photo ${Math.min(index, count - 1) + 1} of ${count}`}
-          hideTitle
-          className="max-w-[min(94vw,52rem)]"
-          onKeyDown={(event) => {
-            if (count < 2) return;
-            if (event.key === "ArrowRight") goTo(index + 1, "auto");
-            if (event.key === "ArrowLeft") goTo(index - 1, "auto");
-          }}
-          footer={
-            <>
-              <Button variant="secondary" onClick={() => setZoomed((z) => !z)} aria-pressed={zoomed}>
-                {zoomed ? "Zoom out" : "Zoom in"}
-              </Button>
-              {count > 1 ? (
-                <>
-                  <Button variant="secondary" iconStart="chevron-left" onClick={() => goTo(index - 1, "auto")}>
-                    Previous
-                  </Button>
-                  <Button variant="secondary" iconEnd="chevron-right" onClick={() => goTo(index + 1, "auto")}>
-                    Next
-                  </Button>
-                </>
-              ) : null}
-            </>
-          }
+          count={count}
+          zoomed={zoomed}
+          onToggleZoom={() => setZoomed((z) => !z)}
+          onPrevious={() => goTo(index - 1, "auto")}
+          onNext={() => goTo(index + 1, "auto")}
         >
           <div
-            tabIndex={0}
-            role="group"
-            aria-label="Photo, scroll to pan when zoomed in"
-            className="max-h-[65dvh] overflow-auto rounded-card border border-border bg-surface-2"
+            className="relative aspect-square max-w-none transition-[width] ease-vibe"
+            style={{ width: zoomed ? "200%" : "100%" }}
           >
-            <div
-              className="relative aspect-square max-w-none transition-[width] ease-vibe"
-              style={{ width: zoomed ? "200%" : "100%" }}
-            >
-              <Picture image={current} sizes="(min-width: 1024px) 1600px, 188vw" />
-            </div>
+            <Picture image={current} sizes="(min-width: 1024px) 1600px, 188vw" />
           </div>
-        </DialogContent>
-      </Dialog>
+        </GalleryZoom>
+      ) : null}
     </section>
   );
 }

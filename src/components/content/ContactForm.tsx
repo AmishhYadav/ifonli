@@ -8,7 +8,9 @@ import {
   type ContactFormField,
   type ContactFormState,
 } from "@/app/(store)/help/types";
-import { Button, Field, Icon, Input, Textarea } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Field, Input, Textarea } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
 
 const MESSAGE_MAX = 2000;
 const ORDER_FIELDS: ContactFormField[] = ["name", "email", "phone", "orderRef", "message"];

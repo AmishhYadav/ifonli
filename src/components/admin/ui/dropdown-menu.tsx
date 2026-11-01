@@ -1,6 +1,6 @@
 "use client";
 
-import { DropdownMenu as MenuPrimitive } from "radix-ui";
+import * as MenuPrimitive from "radix-ui/dropdown-menu";
 import * as React from "react";
 
 import { cn, adminPortalContainer } from "./cn";

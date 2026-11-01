@@ -50,7 +50,7 @@ export async function OfferBanners() {
 
   if (global.length === 0 && specific.length === 0) return null;
   return (
-    <section aria-label="Offers" className="mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
+    <section aria-label="Offers" className="below-fold mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
       <ul className="grid gap-4 md:grid-cols-2">
         {global.map((banner) => (
           <li key={banner.id}>

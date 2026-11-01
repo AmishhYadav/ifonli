@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { Button, EmptyState } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 /** Shown instead of the form when there is nothing to check out. */
 export function EmptyCheckout() {

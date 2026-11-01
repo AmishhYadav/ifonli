@@ -2,17 +2,10 @@
 
 import { useState } from "react";
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardTitle,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTrigger,
-  Icon,
-} from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Card, CardBody, CardTitle } from "@/components/ui/Card";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
+import { Icon } from "@/components/ui/Icon";
 
 import { deleteAccountAction } from "../actions";
 

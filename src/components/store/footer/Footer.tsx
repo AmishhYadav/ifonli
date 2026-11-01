@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { AnalyticsFooterLink } from "@/features/analytics/AnalyticsMount";
 import { getCollections } from "@/server/cache/catalog";
 import { getStoreInfo } from "@/server/cache/settings";
@@ -37,7 +37,7 @@ export async function Footer() {
   const officer = info.grievance;
 
   return (
-    <footer className="mt-20 border-t border-border bg-surface text-ink">
+    <footer className="mt-20 border-t border-border bg-surface text-ink below-fold [--cv-h:30rem]">
       <div className="mx-auto grid max-w-[1440px] gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.4fr]">
         <div className="flex flex-col gap-3">
           <Logo className="self-start" />

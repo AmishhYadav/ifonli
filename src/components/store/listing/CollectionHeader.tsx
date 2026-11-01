@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import type { Crumb } from "@/lib/seo";
 
 /** Breadcrumb trail (visible; the matching JSON-LD is emitted by the page). */

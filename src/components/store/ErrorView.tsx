@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
-import { Button, Input, VibeChip } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Field";
+import { VibeChip } from "@/components/ui/Chip";
 import { VIBES } from "@/features/vibe/config";
 import { reportClientError } from "@/lib/monitoring/client";
 

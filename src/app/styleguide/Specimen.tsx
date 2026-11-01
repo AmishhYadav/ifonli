@@ -1,42 +1,23 @@
 import type { ReactNode } from "react";
 
 import { ProductCard } from "@/components/store";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-  Badge,
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  Checkbox,
-  Chip,
-  EmptyState,
-  Field,
-  ICON_NAMES,
-  Icon,
-  IconButton,
-  Input,
-  Price,
-  QuantityStepper,
-  Radio,
-  RadioGroup,
-  Select,
-  Skeleton,
-  Spinner,
-  Switch,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Textarea,
-  Tooltip,
-  VibeChip,
-} from "@/components/ui";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
+import { Badge } from "@/components/ui/Badge";
+import { Button, IconButton } from "@/components/ui/Button";
+import { Card, CardBody, CardFooter, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Chip, VibeChip } from "@/components/ui/Chip";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Field, Input, Select, Textarea } from "@/components/ui/Field";
+import { ICON_NAMES, Icon } from "@/components/ui/Icon";
+import { Price } from "@/components/ui/Price";
+import { QuantityStepper } from "@/components/ui/QuantityStepper";
+import { Radio, RadioGroup } from "@/components/ui/Radio";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Spinner } from "@/components/ui/Spinner";
+import { Switch } from "@/components/ui/Switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { VIBES } from "@/features/vibe/config";
 
 import { COLUMN_PRODUCT } from "./sample-data";

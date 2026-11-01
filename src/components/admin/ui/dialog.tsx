@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { Dialog as DialogPrimitive } from "radix-ui";
+import * as DialogPrimitive from "radix-ui/dialog";
 import * as React from "react";
 
 import { cn, adminPortalContainer } from "./cn";

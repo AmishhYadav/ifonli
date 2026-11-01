@@ -3,17 +3,13 @@
 import { useState } from "react";
 
 import { addressLines } from "@/components/orders/format";
-import {
-  Badge,
-  Button,
-  Card,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  EmptyState,
-  Icon,
-  useToast,
-} from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/Dialog";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
+import { useToast } from "@/components/ui/Toast";
 import { MAX_SAVED_ADDRESSES, type SavedAddress } from "@/features/account/schema";
 
 import { makeDefaultAddressAction, removeAddressAction } from "../actions";

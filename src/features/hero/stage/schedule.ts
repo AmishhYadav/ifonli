@@ -46,6 +46,16 @@ export function sceneEnd(id: number): number {
   return ms(sceneStart(id) + (SCENES[id - 1]?.duration ?? 0));
 }
 
+/**
+ * Playback speed of the live hero relative to the schedule above (owner feedback: the centre animation played
+ * too fast). The Director applies it with `timeline.timeScale()`, so one loop takes `LOOP_DURATION / HERO_TIME_SCALE`
+ * seconds on the wall clock (15 s at 0.8). Everything in this file, the storyboard, `__ifonliHero.seek()` and the
+ * visual tests stay in loop time: `totalTime()` is not affected by the scale. Keep it at or below 1: a slower
+ * timeline only lengthens every dissolve, so the WCAG 2.3.1 guard in `flash.ts` (which reasons in loop time) can
+ * only get safer, never worse.
+ */
+export const HERO_TIME_SCALE = 0.8;
+
 /** Wrap any time into [0, LOOP_DURATION). */
 export function wrapTime(t: number): number {
   const m = t % LOOP_DURATION;

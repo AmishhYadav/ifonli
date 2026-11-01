@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { formatINR } from "@/lib/money";
 
 export interface OrderLine {

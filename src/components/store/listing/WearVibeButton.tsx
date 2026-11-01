@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import type { Vibe } from "@/features/vibe/config";
 import { VIBE_NAMES } from "@/features/vibe/config";
 import { setVibe } from "@/features/vibe/store";

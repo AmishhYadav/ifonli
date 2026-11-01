@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useTransition } from "react";
 
-import { Select } from "@/components/ui";
+import { Select } from "@/components/ui/Field";
 
 import { SORT_LABELS, type SearchSortValue } from "./params";
 

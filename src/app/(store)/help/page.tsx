@@ -6,7 +6,7 @@ import { FaqList } from "@/components/content/FaqList";
 import { PlaceholderValue } from "@/components/store/footer/PlaceholderValue";
 import { JsonLd } from "@/components/store/JsonLd";
 import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
-import { Icon, type IconName } from "@/components/ui";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import { breadcrumbJsonLd, type Crumb } from "@/lib/seo";
 import { getStoreInfo } from "@/server/cache/settings";
 import { getHelpFaqs } from "@/server/content/cached";

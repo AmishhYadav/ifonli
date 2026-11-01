@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { Button, EmptyState, VibeChip } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { VibeChip } from "@/components/ui/Chip";
 import { VIBES } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { getCollections, getFeaturedForAllVibes } from "@/server/cache/catalog";

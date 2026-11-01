@@ -1,4 +1,4 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
 import type { HelpFaqGroup } from "@/server/content/policies";
 
 import { PolicyProse } from "./PolicyProse";

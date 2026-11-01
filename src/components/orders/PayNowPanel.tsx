@@ -5,7 +5,8 @@ import { useEffect } from "react";
 
 import { PaymentStatusPanel } from "@/components/checkout/PaymentStatusPanel";
 import { usePayment } from "@/components/checkout/usePayment";
-import { Button, Icon } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 
 export interface PayNowPanelProps {
   orderRef: string;

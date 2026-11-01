@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { FinalisingNotice } from "@/components/content/FinalisingNotice";
 import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
-import { Badge, Icon } from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Icon } from "@/components/ui/Icon";
 import type { Crumb } from "@/lib/seo";
 import { getStoreInfo } from "@/server/cache/settings";
 import { getPolicyIndex } from "@/server/content/cached";

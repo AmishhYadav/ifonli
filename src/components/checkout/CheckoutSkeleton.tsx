@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /** Layout-matching placeholder while the cart loads. */
 export function CheckoutSkeleton() {

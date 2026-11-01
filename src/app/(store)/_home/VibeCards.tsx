@@ -3,7 +3,7 @@ import Link from "next/link";
 import { TileFan } from "@/components/store/TileFan";
 import { VibeCopy } from "@/components/store/VibeCopy";
 import { VIBE_TAGLINES } from "@/components/store/vibe-taglines";
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { isVibe, type Vibe } from "@/features/vibe/config";
 import { VibeScope } from "@/features/vibe/VibeScope";
 import { textOr } from "@/lib/seo";
@@ -18,7 +18,7 @@ export async function VibeCards() {
     <section
       id="vibes"
       aria-label="Shop by vibe"
-      className="mx-auto mt-14 max-w-[1440px] scroll-mt-24 px-4 sm:px-6"
+      className="below-fold mx-auto mt-14 max-w-[1440px] scroll-mt-24 px-4 sm:px-6"
     >
       <VibeCopy k="home.vibesTitle" as="h2" className="font-display text-3xl display-fx sm:text-4xl" />
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -26,7 +26,9 @@ export async function VibeCards() {
           const vibe = v.slug as Vibe;
           const covers = (tiles[vibe] ?? []).slice(0, 3);
           return (
-            <li key={v.slug} className="min-w-0">
+            // Each card is skipped until it is near the viewport, so a phone does not fetch the display font and
+            // texture of the vibes that are several screens down.
+            <li key={v.slug} className="below-fold min-w-0 [--cv-h:26rem]">
               <VibeScope
                 vibe={vibe}
                 as="article"

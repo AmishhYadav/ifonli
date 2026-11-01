@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 import { getCollections } from "@/server/cache/catalog";
 
@@ -12,7 +12,7 @@ export async function TypeLinks() {
   const { types } = await getCollections();
   if (types.length === 0) return null;
   return (
-    <section aria-labelledby="types-title" className="mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
+    <section aria-labelledby="types-title" className="below-fold mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
       <h2 id="types-title" className="font-display text-3xl display-fx sm:text-4xl">
         Shop by type
       </h2>

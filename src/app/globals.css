@@ -11,7 +11,6 @@
 @import "../styles/tokens/buy.css";
 @import "../styles/vibe.css";
 @import "../styles/ui.css";
-@import "../styles/admin.css";
 
 /* Colour tokens become Tailwind utilities: bg-bg, bg-surface, text-ink, border-border, ring-focus-ring ... */
 @theme inline {
@@ -74,12 +73,27 @@
 @utility display-fx {
   filter: var(--display-filter);
 }
+/*
+ * Below-the-fold content: the browser skips style, layout and paint (and the fonts, textures and images that only
+ * that content uses) until it is near the viewport. `auto` remembers the real height after the first render, so
+ * scrolling back shifts nothing; `--cv-h` is the guess used before that. Paint containment would clip card shadows
+ * and glows at the box, so `overflow-clip-margin` widens the clip; engines without it (Safari) keep rendering
+ * everything, as before.
+ */
+@utility below-fold {
+  @supports (overflow-clip-margin: 1px) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto var(--cv-h, 600px);
+    overflow-clip-margin: 2.5rem;
+  }
+}
 @utility ease-vibe {
   transition-timing-function: var(--motion-ease);
   transition-duration: var(--motion-dur);
 }
 
-/* Admin panel colours (variables live in styles/admin.css under [data-admin]): bg-admin-surface, text-admin-ink ... */
+/* Admin panel colours: bg-admin-surface, text-admin-ink ... The variables and [data-admin] rules live in styles/admin.css,
+   which only the admin layout imports (storefront pages never download it). */
 @theme inline {
   --color-admin-bg: var(--admin-bg);
   --color-admin-surface: var(--admin-surface);

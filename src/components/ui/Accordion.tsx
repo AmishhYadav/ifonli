@@ -1,6 +1,6 @@
 "use client";
 
-import { Accordion as AccordionPrimitive } from "radix-ui";
+import * as AccordionPrimitive from "radix-ui/accordion";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/cn";

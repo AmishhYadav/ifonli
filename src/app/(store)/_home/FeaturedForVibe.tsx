@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { ProductCard, ProductGrid, ProductGridItem } from "@/components/store";
 import { VibeCopy } from "@/components/store/VibeCopy";
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { VIBE_NAMES, type Vibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { getFeaturedForAllVibes } from "@/server/cache/catalog";
@@ -23,7 +23,7 @@ export async function FeaturedForVibe() {
   const order = [first, ...cycle.filter((v) => v !== first)].filter((v): v is Vibe => Boolean(v));
 
   return (
-    <section aria-label="Featured products" className="mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
+    <section aria-label="Featured products" className="below-fold mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <VibeCopy k="home.featuredTitle" as="h2" className="font-display text-3xl display-fx sm:text-4xl" />
         <div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog as DialogPrimitive } from "radix-ui";
+import * as DialogPrimitive from "radix-ui/dialog";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/cn";

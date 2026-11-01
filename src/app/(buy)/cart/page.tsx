@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { CartPageView } from "@/components/store/cart/CartPageView";
 import { getReturnPolicySummary } from "@/components/store/cart/policy";
 import { VibeCopy } from "@/components/store/VibeCopy";
-import { Skeleton } from "@/components/ui";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { getCurrentCartView } from "@/features/cart/queries";
 
 export const metadata: Metadata = {

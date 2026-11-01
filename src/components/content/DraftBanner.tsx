@@ -1,4 +1,4 @@
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 
 /**
  * Review-mode banner (development and dev-pages builds): the owner can read the page but must not
