@@ -368,6 +368,53 @@ export async function getFeaturedForAllVibes(
   return result;
 }
 
+/** Fewest own-vibe products a home section shows before it pads with other vibes' products. */
+const HOME_MIN_OWN = 4;
+
+/**
+ * Home "featured for your vibe" sets: like `getFeaturedForAllVibes`, but each vibe shows products that BELONG to
+ * it (primary vibe), because a product card wears its own vibe's colours and a set of mixed cards looks patchy
+ * on a themed page. Curated `home_featured` picks of that vibe come first (by rank), then the vibe's remaining
+ * products by featured rank. Only when a vibe has fewer than `HOME_MIN_OWN` products of its own is the set padded
+ * with the vibe's curated picks and tagged products whose primary vibe is another. One catalogue read for all vibes.
+ */
+export async function getHomeFeaturedForAllVibes(
+  db: DbClient,
+  limitPerVibe = 8,
+  opts: QueryOptions = {},
+): Promise<Record<string, ProductCard[]>> {
+  const [index, slots] = await Promise.all([
+    loadCatalogIndex(db, { now: opts.now ?? new Date() }),
+    loadSlots(db, "home_featured"),
+  ]);
+  const byId = new Map(index.products.map((p) => [p.id, p]));
+  const limit = Math.max(0, limitPerVibe);
+  const result: Record<string, ProductCard[]> = {};
+  for (const vibe of index.vibes) {
+    const curated = slots
+      .filter((s) => s.vibeSlug === vibe.slug)
+      .map((s) => byId.get(s.productId))
+      .filter((p): p is IndexedProduct => p !== undefined);
+    const own = [
+      ...curated.filter((p) => p.primaryVibe === vibe.slug),
+      ...index.products
+        .filter((p) => p.primaryVibe === vibe.slug)
+        .sort(compareFeatured(vibe.slug)),
+    ];
+    const chosen = [...new Map(own.map((p) => [p.id, p])).values()];
+    if (chosen.length < Math.min(HOME_MIN_OWN, limit)) {
+      const seen = new Set(chosen.map((p) => p.id));
+      const rest = [
+        ...curated,
+        ...index.products.filter((p) => p.vibeSlugs.includes(vibe.slug)).sort(compareFeatured(vibe.slug)),
+      ].filter((p) => !seen.has(p.id));
+      chosen.push(...new Map(rest.map((p) => [p.id, p])).values());
+    }
+    result[vibe.slug] = chosen.slice(0, limit).map(toCard);
+  }
+  return result;
+}
+
 /**
  * Hero tiles per vibe: curated `hero_tiles` slots (by rank) whose product has a cutout image;
  * otherwise active products of the vibe that have a cutout (vibe featured rank, then newest).

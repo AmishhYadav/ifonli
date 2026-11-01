@@ -5,6 +5,7 @@ import { getCollections } from "@/server/cache/catalog";
 import { getVibeSettings } from "@/server/cache/settings";
 
 import { CartButton } from "./CartButton";
+import { HeaderOffset } from "./HeaderOffset";
 import { IconLink } from "./IconLink";
 import { Logo } from "./Logo";
 import type { MenuLink } from "./MobileMenu";
@@ -39,6 +40,7 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-bg/85 backdrop-blur">
+      <HeaderOffset />
       <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-4 pt-2 sm:gap-3 sm:px-6">
         <HandButton cycle={cycle} className="header-hand" />
         <Logo tagline className="ml-1" />

@@ -30,3 +30,36 @@
   color: var(--on-accent);
   font-weight: 600;
 }
+
+/*
+ * Soft edge fades on the scrolling pill row (NavPills.tsx sets data-more-start / data-more-end on the <nav> only
+ * while there is more to scroll to on that side). They fade to the page background the header is drawn on, never
+ * catch a tap, and the opacity change respects reduced motion (vibe.css zeroes transitions).
+ */
+.nav-pills {
+  position: relative;
+}
+.nav-pills::before,
+.nav-pills::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s var(--motion-ease, ease);
+  z-index: 1;
+}
+.nav-pills::before {
+  left: 0;
+  background: linear-gradient(to right, var(--bg), transparent);
+}
+.nav-pills::after {
+  right: 0;
+  background: linear-gradient(to left, var(--bg), transparent);
+}
+.nav-pills[data-more-start]::before,
+.nav-pills[data-more-end]::after {
+  opacity: 1;
+}
