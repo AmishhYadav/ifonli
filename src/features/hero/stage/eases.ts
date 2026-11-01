@@ -7,7 +7,7 @@ const clamp01 = (n: number): number => (n < 0 ? 0 : n > 1 ? 1 : n);
 const smooth = (n: number): number => n * n * (3 - 2 * n);
 
 /**
- * "Overthinking" easing: the motion starts, stops to reconsider, starts again, then settles.
+ * Hesitation easing: the motion starts, stops to reconsider, starts again, then settles.
  * `strength` 0..1 is the share of the duration spent hesitating (0 = a plain smooth ease). Monotone,
  * f(0) = 0 and f(1) = 1, so tiles always arrive exactly where the pose says.
  */

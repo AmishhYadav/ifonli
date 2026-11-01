@@ -8,7 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
  * Needs the dev database with the placeholder product seed (32 products).
  */
 
-const ORDER = ["cute", "bold", "overthinking", "gothic", "funky"] as const;
+const ORDER = ["cute", "funky", "bold", "gothic"] as const;
 
 const htmlVibe = (page: Page) => page.locator("html").getAttribute("data-vibe");
 const cards = (page: Page) => page.locator('[data-testid="product-card"]:visible');
@@ -35,12 +35,12 @@ test.describe("home", () => {
     await expect(page.getByTestId("hero-shop")).toHaveAttribute("href", "/shop");
     // Poster: tiles of the active vibe only; every vibe's set is in the DOM.
     await expect(page.locator('[data-testid^="hero-tiles-cute-"]:visible')).toHaveCount(2);
-    expect(await page.locator('[data-testid^="hero-tiles-"]').count()).toBe(10);
-    // Featured: 8 cards visible out of 5 x 8 in the DOM.
+    expect(await page.locator('[data-testid^="hero-tiles-"]').count()).toBe(8);
+    // Featured: 8 cards visible out of 4 x 8 in the DOM.
     const featured = page.locator('section[aria-label="Featured products"]');
     await expect(featured.locator('[data-testid="product-card"]:visible')).toHaveCount(8);
-    expect(await featured.locator('[data-testid="product-card"]').count()).toBe(40);
-    // Five vibe cards, each in its own scope.
+    expect(await featured.locator('[data-testid="product-card"]').count()).toBe(32);
+    // Four vibe cards, each in its own scope.
     for (const v of ORDER) {
       await expect(page.locator(`#vibes article[data-vibe="${v}"]`)).toBeVisible();
     }
@@ -69,7 +69,7 @@ test.describe("home", () => {
     });
 
     await page.locator("button[data-vibe-hand]").first().click();
-    await expect.poll(() => htmlVibe(page)).toBe("bold");
+    await expect.poll(() => htmlVibe(page)).toBe("gothic");
     await page.waitForTimeout(500);
 
     const after = await visibleNames(page, featured);
@@ -151,13 +151,13 @@ test.describe("collections", () => {
 
   test('"Wear this vibe" on a vibe page switches the whole site', async ({ page }) => {
     await page.goto("/vibes/gothic?vibe=cute");
-    await expect(page.getByRole("heading", { level: 1, name: "Gothic" })).toBeVisible();
-    // The header band is scoped to Gothic while the site stays Cute.
-    await expect(page.locator('section[aria-label="Gothic vibe"]')).toHaveAttribute("data-vibe", "gothic");
+    await expect(page.getByRole("heading", { level: 1, name: "After the Dark" })).toBeVisible();
+    // The header band is scoped to After the Dark while the site stays Mochi.
+    await expect(page.locator('section[aria-label="After the Dark vibe"]')).toHaveAttribute("data-vibe", "gothic");
     expect(await htmlVibe(page)).toBe("cute");
     await page.getByTestId("wear-vibe").click();
     await expect.poll(() => htmlVibe(page)).toBe("gothic");
-    await expect(page.getByTestId("wear-vibe")).toHaveText(/You're wearing Gothic/);
+    await expect(page.getByTestId("wear-vibe")).toHaveText(/You're wearing After the Dark/);
     // Vibe pages list only that vibe's products.
     await expect(page.getByTestId("result-count")).toHaveText("10 products");
   });
@@ -200,7 +200,7 @@ test.describe("search", () => {
   test("shows themed no-results with ways forward", async ({ page }) => {
     await page.goto("/search?q=zzzzqqqq&vibe=gothic");
     await expect(page.getByRole("heading", { level: 2, name: "The void returns nothing" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Cute" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Mochi" }).first()).toBeVisible();
     await expect(page.locator('[data-testid="search-empty"] [data-testid="product-card"]:visible')).toHaveCount(4);
   });
 
@@ -235,9 +235,9 @@ test.describe("header", () => {
     await page.keyboard.press("Enter");
     await expect(vibes).toHaveAttribute("aria-expanded", "true");
     await page.keyboard.press("ArrowDown");
-    await expect(page.getByRole("link", { name: "Cute" }).first()).toBeFocused();
+    await expect(page.getByRole("link", { name: "Mochi" }).first()).toBeFocused();
     await page.keyboard.press("ArrowDown");
-    await expect(page.getByRole("link", { name: "Bold" }).first()).toBeFocused();
+    await expect(page.getByRole("link", { name: "Chaos Cabinet" }).first()).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(vibes).toHaveAttribute("aria-expanded", "false");
     await expect(vibes).toBeFocused();
@@ -250,9 +250,9 @@ test.describe("header", () => {
     expect(box?.x ?? 99).toBeLessThan(40);
     await hand.focus();
     await page.keyboard.press("Enter");
-    await expect.poll(() => htmlVibe(page)).toBe("bold");
+    await expect.poll(() => htmlVibe(page)).toBe("gothic");
     await page.keyboard.press("Space");
-    await expect.poll(() => htmlVibe(page)).toBe("overthinking");
+    await expect.poll(() => htmlVibe(page)).toBe("funky");
   });
 
   test("mobile: the menu opens in a drawer with vibe links", async ({ page, isMobile }) => {
@@ -260,8 +260,8 @@ test.describe("header", () => {
     await page.goto("/home");
     await page.getByRole("button", { name: "Open menu" }).click();
     const drawer = page.getByRole("dialog", { name: "Menu" });
-    await expect(drawer.getByRole("link", { name: /Gothic/ })).toBeVisible();
-    await drawer.getByRole("link", { name: /Gothic/ }).click();
+    await expect(drawer.getByRole("link", { name: /After the Dark/ })).toBeVisible();
+    await drawer.getByRole("link", { name: /After the Dark/ }).click();
     await expect(page).toHaveURL(/\/vibes\/gothic/);
   });
 });

@@ -11,7 +11,7 @@ import { getVibeSettings } from "@/server/cache/settings";
 const FEATURED_SIZES = "(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 46vw";
 
 /**
- * "Featured for your vibe": all five sets (default vibe first in the DOM), CSS shows the active one, so a
+ * "Featured for your vibe": all four sets (default vibe first in the DOM), CSS shows the active one, so a
  * hand-button switch swaps products without any network request. Images are lazy, so only the visible set loads.
  */
 export async function FeaturedForVibe() {

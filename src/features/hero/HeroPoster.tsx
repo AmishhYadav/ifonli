@@ -136,7 +136,7 @@ function TileSet({ vibe, tiles }: { vibe: Vibe; tiles: HeroTile[] }) {
 /**
  * Static poster hero (plan section 9): product cutouts on vibe-coloured square/circle backings in a grid,
  * with the headline, sub-line and Shop button in a separate top layer that is never animated away.
- * All five vibes' tile sets are in the markup; CSS shows the active one. This is the server-rendered LCP
+ * All four vibes' tile sets are in the markup; CSS shows the active one. This is the server-rendered LCP
  * view, and the only view for reduced motion, save-data, slow connections and no JS.
  *
  * `HeroEnhancer` (a small client component) mounts into `#hero-stage-root` and, only when the hero is in the

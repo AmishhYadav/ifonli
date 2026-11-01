@@ -8,7 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
  *   E2E_BASE_URL=http://localhost:3105 pnpm exec playwright test hero --project chromium-desktop
  */
 
-const VIBES = ["cute", "bold", "overthinking", "gothic", "funky"] as const;
+const VIBES = ["cute", "funky", "bold", "gothic"] as const;
 const STAGE_MARKER = "ifonli-hero-stage-chunk-v1";
 
 interface HeroState {
@@ -586,7 +586,7 @@ test.describe("dev storyboard", () => {
   test("/dev/hero renders ten frames per vibe from the timeline", async ({ page }) => {
     await page.goto("/dev/hero");
     await expect(page.getByRole("heading", { name: "Hero storyboard" })).toBeVisible();
-    for (const name of ["Cute", "Bold", "Overthinking", "Gothic", "Funky"]) {
+    for (const name of ["Mochi", "Chaos Cabinet", "Unapologetic", "After the Dark"]) {
       await page.getByRole("button", { name, exact: true }).click();
       await expect(page.locator("[data-testid^=frame-]")).toHaveCount(10);
       const frames = page.locator("[data-testid^=frame-]");

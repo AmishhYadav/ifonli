@@ -9,7 +9,7 @@ export interface VibeSettings {
 
 /**
  * Turns the raw admin values (`vibe_cycle`, `default_vibe`, `hero_enabled`) into safe settings. Unknown
- * slugs are dropped, an empty cycle falls back to all five vibes, and a default that is not in the cycle
+ * slugs are dropped, an empty cycle falls back to all four vibes, and a default that is not in the cycle
  * (say "gothic" while the cycle is cute, bold) becomes the cycle's first vibe: the no-flash head script
  * looks every vibe up in the cycle, so a default outside it would break its font preload and theme colour.
  */

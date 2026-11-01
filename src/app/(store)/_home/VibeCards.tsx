@@ -9,7 +9,7 @@ import { VibeScope } from "@/features/vibe/VibeScope";
 import { textOr } from "@/lib/seo";
 import { getCollections, getHeroTilesForAllVibes } from "@/server/cache/catalog";
 
-/** Five collection cards, each wrapped in its own VibeScope (its own palette, shape, type and texture). */
+/** Four collection cards, each wrapped in its own VibeScope (its own palette, shape, type and texture). */
 export async function VibeCards() {
   const [collections, tiles] = await Promise.all([getCollections(), getHeroTilesForAllVibes(3)]);
   const vibes = collections.vibes.filter((v) => isVibe(v.slug));

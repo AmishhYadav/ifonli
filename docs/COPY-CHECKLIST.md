@@ -20,7 +20,7 @@ How this list was checked:
 
 1. Review every changed string against sections 2 to 6.
 2. Copy on **checkout, payment, legal pages, critical errors and notifications is neutral and fixed**. It is never vibe-themed (plan section 8.5). Vibe voice is allowed only on expressive surfaces: hero, section titles, empty cart, no-results, 404/500, empty wishlist, add-to-cart toast and the "Wear this vibe" button.
-3. Check each vibe's version of a string, not only the default. A string can be fine in Cute and a problem in Overthinking.
+3. Check each vibe's version of a string, not only the default. A string can be fine in Mochi and a problem in Chaos Cabinet.
 4. If a string needs a number (stock, discount, deadline), it must be computed from real data. If you cannot point to the data, remove the number.
 5. Record the sign-off: reviewer, date, and which section 7 boxes were ticked.
 
@@ -61,12 +61,12 @@ Adding items, services or charges the customer did not choose.
 Using guilt or ridicule to steer a choice. This applies to **vibe copy**, which is why it is here first.
 
 - **Don't:**
-  - Overthinking, on leaving the cart: "Leaving already? I guess you don't love yourself."
-  - Cute, on a decline button: "No thanks, I don't like being cute."
-  - Bold: "No, I hate saving money."
+  - Chaos Cabinet, on leaving the cart: "Leaving already? I guess you don't love yourself."
+  - Mochi, on a decline button: "No thanks, I don't like being cute."
+  - Unapologetic: "No, I hate saving money."
   - Gothic: "Walk away, mortal. Your shelf will stay empty."
   - Funky: "I'm boring and I like it."
-- **Do instead:** decline options are plain and neutral in every vibe: "No thanks", "Not now", "Close". Do not show an exit-intent pop-up at all on cart or checkout. Playful voice can describe the **product or the mood**, never the **customer's decision**. Overthinking may joke about overthinking in general ("Take your time. Your cart will keep."), but not about the person leaving.
+- **Do instead:** decline options are plain and neutral in every vibe: "No thanks", "Not now", "Close". Do not show an exit-intent pop-up at all on cart or checkout. Playful voice can describe the **product or the mood**, never the **customer's decision**. A vibe may joke about the mood in general ("Take your time. Your cart will keep."), but not about the person leaving.
 
 ### 2.4 Forced action
 
@@ -88,11 +88,11 @@ Design that hides or distorts choices.
 
 - **Don't:**
   - A bright "Accept all" cookie button next to a faint grey "Reject".
-  - Return and shipping information in tiny, low-contrast text in the Gothic theme.
-  - Overthinking's crossed-out text (`<s>`) used for decoration so that it looks like a price or an option has been removed.
+  - Return and shipping information in tiny, low-contrast text in the After the Dark theme.
+  - Crossed-out text (`<s>`) used for decoration so that it looks like a price or an option has been removed.
   - A cart or checkout control that disappears in some themes.
   - Pre-ticked consent boxes.
-- **Do instead:** "Accept analytics" and "No thanks" have equal size, weight and contrast. Buy pages use palette colours only, with base shape and type (plan section 8.1). Key information, policy links and every button must pass the contrast check in all five themes. Strike-through is reserved for the MRP (see section 4). Consent boxes start unticked.
+- **Do instead:** "Accept analytics" and "No thanks" have equal size, weight and contrast. Buy pages use palette colours only, with base shape and type (plan section 8.1). Key information, policy links and every button must pass the contrast check in all four themes. Strike-through is reserved for the MRP (see section 4). Consent boxes start unticked.
 
 ### 2.7 Bait and switch
 
@@ -178,18 +178,17 @@ Vibe voice applies to expressive surfaces only. Checkout, payment, legal pages, 
 
 | Vibe | Voice | Fine | Never |
 |---|---|---|---|
-| Cute | Soft, friendly, a little sparkly | "Found something sweet?" / "Saved to your wishlist" | Guilt about leaving ("Aww, they'll miss you"), baby talk that talks down to adults, sad-face pressure on decline buttons |
-| Bold | Direct, confident, punchy | "Pick your statement." / "Loud and proud." | Insults or dares ("Don't be boring"), pressure ("Buy now or lose out"), all-caps for entire paragraphs |
-| Overthinking | Wry, self-aware, gently funny | "Take your time. Your cart will keep." / "Still deciding? Totally fair." | Mocking the shopper's choice or leaving ("I guess you don't love yourself"), diagnosing anxiety or making mental-health claims, crossing out real information |
-| Gothic | Dark, poetic, theatrical | "Something strange awaits." / "Add to your collection" | Words that treat death, self-harm or violence casually ("to die for", "kill it"), pressure framed as doom ("claimed at midnight"), tiny low-contrast text |
-| Funky | Playful, retro, upbeat | "Groovy pick!" / "Shake it up." | Slang that excludes or confuses, copy that depends on a warped or hard-to-read headline to make sense |
+| Mochi | Soft, friendly, a little sparkly | "Found something sweet?" / "Saved to your wishlist" | Guilt about leaving ("Aww, they'll miss you"), baby talk that talks down to adults, sad-face pressure on decline buttons |
+| Unapologetic | Direct, confident, main-character, punchy | "Pick your statement." / "Loud and proud." | Insults or dares ("Don't be boring"), pressure ("Buy now or lose out"), all-caps for entire paragraphs |
+| After the Dark | Dark, poetic, theatrical | "Something strange awaits." / "Add to your collection" | Words that treat death, self-harm or violence casually ("to die for", "kill it"), pressure framed as doom ("claimed at midnight"), tiny low-contrast text |
+| Chaos Cabinet | Playful, quirky, gloriously unhinged | "Groovy pick!" / "Shake it up." | Slang that excludes or confuses, copy that depends on a warped or hard-to-read headline to make sense |
 
 General rules for all vibes:
 
 - Jokes are about the product or mood, not about the customer.
 - No fear of missing out, shame, guilt or flattery used to push a sale.
 - A themed string must have the same facts as the neutral string (price, stock, deadline). Do not add new claims in themed text.
-- Check every themed string for the dark-pattern list in section 2 in all five voices.
+- Check every themed string for the dark-pattern list in section 2 in all four voices.
 - Do not use third-party brand names, characters or lyrics in copy unless the owner confirms the rights.
 
 ## 7. Reviewer checklist (tick before shipping)
@@ -208,7 +207,7 @@ General rules for all vibes:
 
 **Choices and consent**
 - [ ] Decline options are neutral and equal in prominence to accept options
-- [ ] No confirm-shaming in any of the five vibes
+- [ ] No confirm-shaming in any of the four vibes
 - [ ] Each consent box has one purpose, is written positively, and starts unticked
 - [ ] Guest checkout works; account creation is optional
 - [ ] No repeated pop-ups or prompts
@@ -226,7 +225,7 @@ General rules for all vibes:
 - [ ] Status messages are announced and stay visible long enough
 - [ ] Alt text is useful; key info is not in images
 - [ ] Indian English spelling; no unexplained jargon
-- [ ] Themed strings are checked in all five vibes and for contrast
+- [ ] Themed strings are checked in all four vibes and for contrast
 
 **Sign-off**
 

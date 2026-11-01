@@ -16,7 +16,7 @@ export const bold: MotionProfile = {
   wobble: { amp: 0, hz: 0 },
   flicker: { amp: 0, hz: 0 },
   connector: "blocky",
-  veilDark: "ink",
+  veilDark: "bg",
   darkLevel: 0.9,
   throughBlack: false,
   burstCount: 8,

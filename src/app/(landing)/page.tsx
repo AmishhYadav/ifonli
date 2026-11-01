@@ -12,7 +12,7 @@ import { getStoreInfo } from "@/server/cache/settings";
 export const metadata: Metadata = {
   title: { absolute: "IfOnli: charms, Hippers, 3D stickers and DIY kits" },
   description:
-    "Charms, Hippers, 3D stickers and DIY kits in five moods: cute, bold, overthinking, gothic and funky. Made in India.",
+    "Charms, Hippers, 3D stickers and DIY kits in four moods: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Made in India.",
   alternates: { canonical: "/" },
 };
 

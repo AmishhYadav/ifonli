@@ -340,7 +340,7 @@ async function loadSlots(
 }
 
 /**
- * Home page "featured" set per vibe (plan 8.3 needs all five). Curated `featured_slots`
+ * Home page "featured" set per vibe (plan 8.3 needs all four). Curated `featured_slots`
  * (`home_featured`, by rank) when the vibe has any visible curated product; otherwise the newest
  * active products tagged with the vibe. Curated sets are not topped up: the owner's choice wins.
  */

@@ -36,7 +36,7 @@ was considered and rejected: the timeline needs seek (storyboard, tests), per-sc
 | `src/features/hero/HeroEnhancer.tsx`                     | Lazy-load conditions, `hero_impression`, poster tile clicks                                             |
 | `src/features/hero/stageTiles.ts`                        | Server: per-vibe tile data (slug, name, `getImageProps` URL) for the stage                              |
 | `src/features/hero/stage/schedule.ts`                    | The 10 scenes, 12 s loop, boundaries, profile-switch rule, dissolve curve, storyboard/sample timestamps |
-| `src/features/hero/stage/profiles/{vibe}.ts`             | The five motion profiles                                                                                |
+| `src/features/hero/stage/profiles/{vibe}.ts`             | The four motion profiles                                                                                |
 | `src/features/hero/stage/scenes/scene01..10.ts`          | Scene modules, each builds its tweens into the master timeline                                          |
 | `src/features/hero/stage/timeline.ts`                    | Builds the one parameterised GSAP timeline (baseline state, scenes, ambient flicker/wobble)             |
 | `src/features/hero/stage/poses.ts`, `geometry.ts`        | Pure layout maths: poses per scene, stage geometry, poster cells, swirl                                 |
@@ -79,9 +79,8 @@ Keep the scale at or below 1: a slower timeline only lengthens each dissolve, so
 
 | Vibe         | Personality                                                                 |
 | ------------ | --------------------------------------------------------------------------- |
-| Cute         | `back.out` / `elastic.out`, springy pops, curved connectors                 |
-| Bold         | `expo` glides and `steps()` snaps, square-cornered connectors, dark 0.9     |
-| Overthinking | `hesitate()` ease (stops to reconsider twice), DrawSVG scribble connectors  |
+| Cute (Mochi) | `back.out` / `elastic.out`, springy pops, curved connectors                 |
+| Bold         | `expo` glides and `steps()` snaps, square-cornered connectors, dark 0.9 (the veil is `bg`: this theme is dark) |
 | Gothic       | slow `sine`, fade through black, candle-glow flicker (amplitude 0.07, 2 Hz) |
 | Funky        | wavy detours, wobbling products (7 deg), 70s wave connectors, elastic       |
 
@@ -110,7 +109,7 @@ the new profile at the same playhead and swaps the tiles, and the content dissol
   `sine.inOut`, never stepped or elastic); at most 4 luminance transitions start in any second (a flash is two, so this
   is at most 2 flashes against the limit of 3), including the loop wrap and the worst case of a profile switch at every
   allowed boundary; the Gothic flicker is an opacity swing of 0.07 (limit 0.1) at 2 Hz (limit 3). Unit and e2e tests
-  prove it for all five profiles.
+  prove it for all four profiles.
 - **Performance**: only transforms and opacity are animated (plus `stroke-dashoffset` on a few small DrawSVG paths).
   `will-change` is set only while running (`[data-running="true"]`). DOM tiles: 56 (wide) or 36 (stacked), never over
   60; fewer products than tiles repeat in order (as the poster does). Images are the 384 px `next/image` URL, 12 per

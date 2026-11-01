@@ -229,7 +229,7 @@ test.describe("cart", () => {
   test("an empty cart shows the themed empty state with links to the vibes", async ({ page }) => {
     await page.goto("/cart?vibe=gothic");
     await expect(page.getByText("Your bag is an empty crypt")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Funky" })).toHaveAttribute("href", "/vibes/funky");
+    await expect(page.getByRole("link", { name: "Chaos Cabinet" })).toHaveAttribute("href", "/vibes/funky");
   });
 
   test("the header badge shows the real count on a fresh page load (the Suspense fallback does not seed 0)", async ({ page }) => {

@@ -111,7 +111,7 @@ describe("token palettes", () => {
 describe("generated token CSS", () => {
   const css = generateTokenCss();
 
-  it("emits base, the five vibes and the buy scope", () => {
+  it("emits base, the four vibes and the buy scope", () => {
     expect(Object.keys(css).sort()).toEqual(
       [
         "base.css",
@@ -120,7 +120,6 @@ describe("generated token CSS", () => {
         "cute.css",
         "funky.css",
         "gothic.css",
-        "overthinking.css",
       ].sort(),
     );
   });
@@ -129,6 +128,13 @@ describe("generated token CSS", () => {
     expect(css["base.css"]).toContain(":root {");
     for (const vibe of VIBES) expect(css[`${vibe}.css`]).toContain(`[data-vibe="${vibe}"] {`);
     expect(css["buy.css"]).toContain('[data-vibe-scope="buy"] {');
+  });
+
+  it("emits per-vibe product art stops globally on :root", () => {
+    for (const vibe of VIBES) {
+      expect(css["base.css"]).toContain(`--art-${vibe}-a: `);
+      expect(css["base.css"]).toContain(`--art-${vibe}-b: `);
+    }
   });
 
   it("buy scope resets shape tokens only, never palette", () => {

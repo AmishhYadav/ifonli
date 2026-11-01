@@ -11,7 +11,7 @@ export const PRODUCT_SELECTOR = "[data-product-id]";
 
 /**
  * 0-based position of `target` among the cards that are on the page, skipping hidden ones. The home page
- * renders the product sets of all five vibes and shows only one, so counting hidden cards would give
+ * renders the product sets of all four vibes and shows only one, so counting hidden cards would give
  * every visible card a position that depends on how many hidden cards come before it.
  */
 export function positionAmongVisible<T>(cards: Iterable<T>, target: T, isVisible: (card: T) => boolean): number {

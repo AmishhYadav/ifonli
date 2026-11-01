@@ -1,7 +1,5 @@
 /**
  * Hidden SVG filter defs, rendered ONCE by the root layout (art: public/vibe/filters.svg source).
- *  - #wobble: hand-drawn jitter, used through the --icon-filter token (Overthinking)
- *  - #warp:   wavy headline, used through --display-filter (Funky, large display text only)
  *  - #grain:  fine noise for overlay elements
  * Filters are static, so they are safe under prefers-reduced-motion.
  */
@@ -16,58 +14,6 @@ export function VibeFilters() {
       focusable="false"
     >
       <defs>
-        <filter
-          id="wobble"
-          x="-6%"
-          y="-6%"
-          width="112%"
-          height="112%"
-          colorInterpolationFilters="sRGB"
-        >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.035 0.045"
-            numOctaves="2"
-            seed="4"
-            result="n"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="n"
-            scale="2.5"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
-        <filter
-          id="warp"
-          x="-8%"
-          y="-30%"
-          width="116%"
-          height="160%"
-          colorInterpolationFilters="sRGB"
-        >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.014 0.0015"
-            numOctaves="1"
-            seed="11"
-            result="n"
-          />
-          <feColorMatrix
-            in="n"
-            type="matrix"
-            values="0 0 0 0 .5  0 1 0 0 0  0 0 1 0 0  0 0 0 0 1"
-            result="v"
-          />
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="v"
-            scale="44"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
         <filter id="grain" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
           <feTurbulence
             type="fractalNoise"

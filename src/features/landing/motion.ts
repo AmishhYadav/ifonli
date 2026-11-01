@@ -288,7 +288,7 @@ export function startLandingMotion({ root, fontDescriptors, onEnter }: MotionOpt
       tl.fromTo(texts, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power1.out" }, 0.25);
     }
 
-    /* 3. five moods: pinned (CSS sticky), background and panels cross-fade together */
+    /* 3. four moods: pinned (CSS sticky), background and panels cross-fade together */
     const track = one("[data-moods-track]");
     if (track) {
       const panels = all(".l-mood", track);

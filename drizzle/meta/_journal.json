@@ -43,6 +43,13 @@
       "when": 1793510802946,
       "tag": "0005_db_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793557200072,
+      "tag": "0006_four_moods",
+      "breakpoints": true
     }
   ]
 }

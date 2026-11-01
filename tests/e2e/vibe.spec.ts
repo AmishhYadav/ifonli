@@ -6,13 +6,13 @@ import { expect, test, type Page } from "@playwright/test";
  *   E2E_BASE_URL=http://localhost:3100 pnpm exec playwright test vibe
  */
 
-const ORDER = ["cute", "bold", "overthinking", "gothic", "funky"] as const;
+/** The hand button's cycle order (settings.vibe_cycle default), not the nav order. */
+const ORDER = ["cute", "gothic", "funky", "bold"] as const;
 const NAMES: Record<(typeof ORDER)[number], string> = {
-  cute: "Cute",
-  bold: "Bold",
-  overthinking: "Overthinking",
-  gothic: "Gothic",
-  funky: "Funky",
+  cute: "Mochi",
+  gothic: "After the Dark",
+  funky: "Chaos Cabinet",
+  bold: "Unapologetic",
 };
 const next = (v: (typeof ORDER)[number]) => ORDER[(ORDER.indexOf(v) + 1) % ORDER.length]!;
 
@@ -90,7 +90,7 @@ async function ready(page: Page, url = PLAYGROUND) {
   );
 }
 
-test("(a) five clicks cycle cute > bold > overthinking > gothic > funky > cute", async ({
+test("(a) four clicks cycle cute > gothic > funky > bold > cute", async ({
   page,
 }) => {
   await ready(page);
@@ -100,7 +100,7 @@ test("(a) five clicks cycle cute > bold > overthinking > gothic > funky > cute",
   // Before any click: correct state, label and aria-label.
   expect(await htmlVibe(page)).toBe("cute");
 
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 4; i++) {
     const to = next(current);
     const event = await afterSwitch(page, () => button.click());
     expect(event).toMatchObject({ from: current, to });
@@ -119,36 +119,36 @@ test("(a) five clicks cycle cute > bold > overthinking > gothic > funky > cute",
 test("(b) vibe persists across reload and navigation", async ({ page, context }) => {
   await ready(page);
   const button = page.locator(BUTTON).first();
-  await afterSwitch(page, () => button.click()); // bold
-  await afterSwitch(page, () => button.click()); // overthinking
+  await afterSwitch(page, () => button.click()); // gothic
+  await afterSwitch(page, () => button.click()); // funky
 
   await page.reload();
-  expect(await htmlVibe(page)).toBe("overthinking");
-  expect(await visibleName(page)).toEqual(["Overthinking"]);
+  expect(await htmlVibe(page)).toBe("funky");
+  expect(await visibleName(page)).toEqual(["Chaos Cabinet"]);
 
   // Cookie + localStorage hold the value (no personal data).
   const cookies = await context.cookies();
   expect(cookies.find((c) => c.name === "ifonli_vibe")).toMatchObject({
-    value: "overthinking",
+    value: "funky",
     sameSite: "Lax",
     path: "/",
   });
-  expect(await page.evaluate(() => localStorage.getItem("ifonli_vibe"))).toBe("overthinking");
+  expect(await page.evaluate(() => localStorage.getItem("ifonli_vibe"))).toBe("funky");
 
   // Full page navigation.
   await page.locator('a[href="/dev/vibe/other"]').click();
   await page.waitForURL(/\/dev\/vibe\/other/);
-  expect(await htmlVibe(page)).toBe("overthinking");
+  expect(await htmlVibe(page)).toBe("funky");
 
   // Client-side navigation (next/link) keeps it, and the URL keeps carrying ?vibe=.
   await page.getByTestId("back-link").click();
   await page.waitForURL(/\/dev\/vibe(\?|$)/);
-  expect(await htmlVibe(page)).toBe("overthinking");
-  await expect.poll(() => new URL(page.url()).searchParams.get("vibe")).toBe("overthinking");
+  expect(await htmlVibe(page)).toBe("funky");
+  await expect.poll(() => new URL(page.url()).searchParams.get("vibe")).toBe("funky");
 
   // And the home page.
   await page.goto("/home");
-  expect(await htmlVibe(page)).toBe("overthinking");
+  expect(await htmlVibe(page)).toBe("funky");
 });
 
 test("(c) /?vibe=gothic renders gothic before first paint, then persists", async ({ browser }) => {
@@ -183,12 +183,12 @@ test("(c) /?vibe=gothic renders gothic before first paint, then persists", async
       (window as unknown as { __flash: Record<string, string> & { mutations: string[] } }).__flash,
   );
   expect(log.dcl).toBe("gothic");
-  expect(log.dclBg!.toLowerCase()).toBe("#0e0b10");
+  expect(log.dclBg!.toLowerCase()).toBe("#0f0b15");
   expect(log.frame).toBe("gothic");
   if (log.fcp) {
     // Paint timing is not reported by every engine; when it is, the vibe was already applied.
     expect(log.fcp).toBe("gothic");
-    expect(log.fcpBg!.toLowerCase()).toBe("#0e0b10");
+    expect(log.fcpBg!.toLowerCase()).toBe("#0f0b15");
   }
   // The only attribute change ever observed is the head script's cute > gothic; hydration never reverts it.
   expect(log.mutations).toEqual(["gothic"]);
@@ -211,13 +211,13 @@ test("(d) the URL reflects the vibe and keeps path, hash and other params", asyn
   await afterSwitch(page, () => button.click());
   const url = new URL(page.url());
   expect(url.pathname).toBe(PLAYGROUND);
-  expect(url.searchParams.get("vibe")).toBe("bold");
+  expect(url.searchParams.get("vibe")).toBe("gothic");
   expect(url.searchParams.get("keep")).toBe("1");
   expect(url.hash).toBe("#active");
   expect([...url.searchParams.keys()].filter((k) => k === "vibe")).toHaveLength(1);
 
   await afterSwitch(page, () => button.click());
-  expect(new URL(page.url()).searchParams.get("vibe")).toBe("overthinking");
+  expect(new URL(page.url()).searchParams.get("vibe")).toBe("funky");
 
   // Canonical never carries ?vibe.
   const canonical = await page.locator('link[rel="canonical"]').count();
@@ -243,12 +243,12 @@ test("(e) keyboard: Tab reaches the button, Enter and Space both switch", async 
   await expect(button).toBeFocused();
 
   let event = await afterSwitch(page, () => page.keyboard.press("Enter"));
-  expect(event.to).toBe("bold");
-  expect(await htmlVibe(page)).toBe("bold");
+  expect(event.to).toBe("gothic");
+  expect(await htmlVibe(page)).toBe("gothic");
 
   event = await afterSwitch(page, () => page.keyboard.press("Space"));
-  expect(event.to).toBe("overthinking");
-  expect(await htmlVibe(page)).toBe("overthinking");
+  expect(event.to).toBe("funky");
+  expect(await htmlVibe(page)).toBe("funky");
   await expect(button).toBeFocused();
 });
 
@@ -262,8 +262,8 @@ test.describe("touch", () => {
     const button = page.locator(BUTTON).first();
 
     const event = await afterSwitch(page, () => button.tap());
-    expect(event).toMatchObject({ from: "cute", to: "bold" });
-    expect(await htmlVibe(page)).toBe("bold");
+    expect(event).toMatchObject({ from: "cute", to: "gothic" });
+    expect(await htmlVibe(page)).toBe("gothic");
 
     // Long press (500 ms): tooltip opens, no switch on release.
     await button.evaluate(async (el) => {
@@ -275,7 +275,7 @@ test.describe("touch", () => {
       el.dispatchEvent(new PointerEvent("pointerup", { pointerType: "touch", bubbles: true }));
       (el as HTMLElement).click();
     });
-    expect(await htmlVibe(page)).toBe("bold");
+    expect(await htmlVibe(page)).toBe("gothic");
     const tip = await button.evaluate((el) => {
       const tooltip = el.querySelector(".hand-tip");
       const shown = [...(tooltip?.querySelectorAll("[data-v]") ?? [])].find(
@@ -286,12 +286,12 @@ test.describe("touch", () => {
         pointerEvents: tooltip ? getComputedStyle(tooltip).pointerEvents : "",
       };
     });
-    expect(tip.text).toBe("Next: Overthinking");
+    expect(tip.text).toBe("Next: Chaos Cabinet");
     expect(tip.pointerEvents).toBe("none"); // never blocks the tap
 
     // A normal tap still works afterwards.
     const second = await afterSwitch(page, () => button.tap());
-    expect(second.to).toBe("overthinking");
+    expect(second.to).toBe("funky");
   });
 });
 
@@ -302,19 +302,19 @@ test.describe("reduced motion", () => {
     await ready(page);
     const button = page.locator(BUTTON).first();
     const event = await afterSwitch(page, () => button.click());
-    expect(event).toMatchObject({ from: "cute", to: "bold", usedViewTransition: false });
-    expect(await htmlVibe(page)).toBe("bold");
+    expect(event).toMatchObject({ from: "cute", to: "gothic", usedViewTransition: false });
+    expect(await htmlVibe(page)).toBe("gothic");
     await expect(button).not.toHaveAttribute("data-turn", /.*/); // the card-turn flip is off under reduced motion
     const hasViewTransitionAnimations = await page.evaluate(() =>
       document
         .getAnimations()
-        .some((a) => String(a.effect?.getComputedTiming().duration) === "250"),
+        .some((a) => String(a.effect?.getComputedTiming().duration) === "600"),
     );
     expect(hasViewTransitionAnimations).toBe(false);
   });
 });
 
-test("(h) every switch completes in < 400 ms (chromium desktop)", async ({ page }, testInfo) => {
+test("(h) every switch completes in < 900 ms (chromium desktop)", async ({ page }, testInfo) => {
   test.skip(!isProdRun, PROD_ONLY_REASON);
   test.skip(
     testInfo.project.name !== "chromium-desktop",
@@ -323,12 +323,13 @@ test("(h) every switch completes in < 400 ms (chromium desktop)", async ({ page 
   await ready(page);
   const button = page.locator(BUTTON).first();
   const durations: number[] = [];
-  // Two full laps: the first lap includes first-use font/texture fetches (worst case).
-  for (let i = 0; i < 10; i++) {
+  // Two full laps: the first lap includes first-use font fetches (worst case). The duration runs until the
+  // 600 ms colour cross-fade has finished (view transition `finished`), so the budget is the fade plus 300 ms.
+  for (let i = 0; i < 8; i++) {
     const event = await afterSwitch(page, () => button.click());
     expect(event.usedViewTransition).toBe(true);
     durations.push(event.durationMs);
-    expect(event.durationMs, `switch ${i + 1}: ${event.from} > ${event.to}`).toBeLessThan(400);
+    expect(event.durationMs, `switch ${i + 1}: ${event.from} > ${event.to}`).toBeLessThan(900);
   }
   testInfo.annotations.push({ type: "durations-ms", description: durations.join(", ") });
   console.log(`vibe switch durations (ms): ${durations.join(", ")}`);
@@ -346,7 +347,7 @@ test("(i) first load requests only the body font and the active display font", a
       requested.push(path.split("/").pop()!);
   });
 
-  // The playground strip renders all five vibes at once, so use the single-vibe page.
+  // The playground strip renders all four vibes at once, so use the single-vibe page.
   await page.goto(`${PLAYGROUND}/other?vibe=bold`, { waitUntil: "load" });
 
   // Fonts that started downloading before the load event finished.
@@ -358,15 +359,15 @@ test("(i) first load requests only the body font and the active display font", a
       .map((e) => new URL(e.name).pathname.split("/").pop()!);
   });
   expect([...new Set(beforeLoad)].sort()).toEqual(
-    ["archivo-wdth125-wght900-latin.woff2", "figtree-wght400-800-latin.woff2"].sort(),
+    ["bebas-neue-wght400-latin.woff2", "nunito-wght400-800-latin.woff2"].sort(),
   );
   expect(new Set(requested).has("fredoka-wght500-700-latin.woff2")).toBe(false);
 
-  // Only after idle: the FOLLOWING vibe's font (overthinking = Kalam), and nothing else yet.
+  // Only after idle: the FOLLOWING vibe's font (the cycle wraps from bold to cute = Fredoka), and nothing else yet.
   await expect
-    .poll(() => requested.includes("kalam-wght700-latin.woff2"), { timeout: 8000 })
+    .poll(() => requested.includes("fredoka-wght500-700-latin.woff2"), { timeout: 8000 })
     .toBe(true);
-  expect(requested.filter((f) => /grenze|shrikhand|fredoka/.test(f))).toEqual([]);
+  expect(requested.filter((f) => /creepster|rubik/.test(f))).toEqual([]);
   // Each file at most once (preload and @font-face share one request).
   // (WebKit re-requests a script-inserted font preload once; known engine quirk, still only 1 display font.)
   if (browserName !== "webkit") expect(requested.length).toBe(new Set(requested).size);
@@ -380,17 +381,17 @@ test("scopes: nested VibeScope, buy scope and per-scope copy", async ({ page }) 
       .first()
       .evaluate((el, n) => getComputedStyle(el).getPropertyValue(n).trim(), name);
 
-  // Page is gothic (2px radius, near-black bg).
-  expect(await cssVar("html", "--radius-card")).toBe("2px");
-  expect((await cssVar("html", "--bg")).toLowerCase()).toBe("#0e0b10");
+  // Page is After the Dark (20px radius, dark purple-black bg).
+  expect(await cssVar("html", "--radius-card")).toBe("20px");
+  expect((await cssVar("html", "--bg")).toLowerCase()).toBe("#0f0b15");
 
   // Buy scope: palette from the vibe, shape/type/texture from base.
   const buy = '[data-testid="buy-panel"]';
-  expect((await cssVar(buy, "--bg")).toLowerCase()).toBe("#0e0b10");
-  expect(await cssVar(buy, "--radius-card")).toBe("12px");
+  expect((await cssVar(buy, "--bg")).toLowerCase()).toBe("#0f0b15");
+  expect(await cssVar(buy, "--radius-card")).toBe("16px");
   expect(await cssVar(buy, "--border-w")).toBe("1px");
   expect(await cssVar(buy, "--texture-url")).toBe("none");
-  expect(await cssVar(buy, "--font-display")).toContain("Figtree");
+  expect(await cssVar(buy, "--font-display")).toContain("Nunito");
 
   // Nested scopes each carry their own vibe, including inside a buy scope's sibling tree.
   const radii: Record<string, string> = {};
@@ -399,10 +400,9 @@ test("scopes: nested VibeScope, buy scope and per-scope copy", async ({ page }) 
   }
   expect(radii).toEqual({
     cute: "9999px",
-    bold: "0px",
-    overthinking: "14px 4px 12px 5px / 5px 12px 4px 14px",
-    gothic: "2px",
+    gothic: "9999px",
     funky: "9999px",
+    bold: "9999px",
   });
 
   // Each scope shows exactly its own copy variant.

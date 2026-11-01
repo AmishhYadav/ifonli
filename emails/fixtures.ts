@@ -76,7 +76,7 @@ export const FIXTURE_PAYLOADS: { [T in TemplateName]: PayloadOf<T> } = {
     rows: [
       { sku: "SKU-MUG-BLK", productName: "Skull Mug", variantTitle: "Matte black", available: 0, threshold: 5 },
       { sku: "SKU-STK-CAC", productName: "Tiny Cactus Sticker Pack", variantTitle: "", available: 2, threshold: 5 },
-      { sku: "SKU-TEE-M", productName: "Overthinking Tee", variantTitle: "M", available: 4, threshold: 5 },
+      { sku: "SKU-TEE-M", productName: "Unapologetic Tee", variantTitle: "M", available: 4, threshold: 5 },
     ],
   },
   payment_anomaly: {

@@ -19,7 +19,15 @@ export const PALETTE_KEYS = [
   "on-accent",
   "accent-2",
   "accent-3",
+  /**
+   * `border` is the >= 3:1 colour and is ONLY for form-control outlines (inputs, checkboxes, radios, selects).
+   * Everything else (dividers, card edges, the header underline) uses the soft `hairline`, which is not
+   * contrast-checked.
+   */
   "border",
+  "hairline",
+  /** Skin tone of the hand logo, per theme. */
+  "hand",
   "focus-ring",
   "success",
   "warning",
@@ -72,6 +80,30 @@ export interface ResolvedTokens {
 
 /* ------------------------------------------------------------------ base */
 
+/** Shape tokens shared by every theme: soft curves, no hard outlines, no offset shadows, no textures. */
+const SOFT_SHAPE = {
+  "display-stretch": "100%",
+  "display-filter": "none",
+  "radius-button": "9999px",
+  "border-w": "1px",
+  "icon-stroke": "2",
+  "icon-linecap": "round",
+  "icon-linejoin": "round",
+  "icon-filter": "none",
+  "hand-scale": "1",
+  "texture-url": "none",
+  "texture-size": "64px",
+  cursor: "auto",
+  "motion-ease": "cubic-bezier(0.22, 1, 0.36, 1)",
+  "motion-dur": "320ms",
+} as const satisfies Partial<ShapeTokens>;
+
+const SHADOW_BUTTON = "0 8px 20px -8px color-mix(in srgb, var(--accent) 55%, transparent)";
+const SHADOW_CARD_LIGHT =
+  "0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 12px 32px -12px color-mix(in srgb, var(--ink) 18%, transparent)";
+const SHADOW_CARD_DARK =
+  "0 16px 40px -16px rgb(0 0 0 / 0.7), inset 0 0 0 1px color-mix(in srgb, var(--ink) 6%, transparent)";
+
 export const base: ResolvedTokens = {
   palette: {
     bg: "#FFFFFF",
@@ -84,6 +116,8 @@ export const base: ResolvedTokens = {
     "accent-2": "#FACC15",
     "accent-3": "#A5B4FC",
     border: "#8A8A94",
+    hairline: "#E7E7EA",
+    hand: "#F1D3BC",
     "focus-ring": "#3B4BD8",
     success: "#15803D",
     warning: "#92400E",
@@ -95,239 +129,181 @@ export const base: ResolvedTokens = {
     "texture-opacity": "0",
   },
   shape: {
+    ...SOFT_SHAPE,
     // Base display font is the shared body font, so buy pages need no extra font download.
     "font-display": "var(--font-body)",
     "display-weight": "700",
     "display-tracking": "-0.01em",
-    "display-stretch": "100%",
-    "display-filter": "none",
-    "radius-card": "12px",
-    "radius-button": "8px",
-    "radius-input": "8px",
-    "border-w": "1px",
-    "shadow-card": "0 1px 2px color-mix(in srgb, var(--ink) 14%, transparent)",
-    "shadow-button": "none",
-    "icon-stroke": "2",
-    "icon-linecap": "round",
-    "icon-linejoin": "round",
-    "icon-filter": "none",
-    "hand-scale": "1",
-    "texture-url": "none",
-    "texture-size": "64px",
-    cursor: "auto",
-    "motion-ease": "cubic-bezier(0.2, 0.8, 0.2, 1)",
-    "motion-dur": "200ms",
+    "radius-card": "16px",
+    "radius-input": "12px",
+    "shadow-card": SHADOW_CARD_LIGHT,
+    "shadow-button": SHADOW_BUTTON,
   },
+};
+
+/* ------------------------------------------------------------ product art */
+
+/**
+ * Product-tile gradient stops, keyed by the PRODUCT's vibe (not the active theme), so a Mochi charm keeps its mint
+ * tile while the visitor browses in After the Dark. The generator emits them as `--art-<vibe>-a` / `-b` on :root and
+ * globals.css exposes `.art-<vibe>`; `.art-none` is the neutral surface-2 to surface tile.
+ */
+export const ART_GRADIENTS: Record<Vibe, readonly [string, string]> = {
+  cute: ["#C3F5DE", "#DBF0FF"],
+  funky: ["#D1ED74", "#00EAF4"],
+  bold: ["#C20011", "#290B0A"],
+  gothic: ["#261A3A", "#05050D"],
 };
 
 /* ----------------------------------------------------------------- vibes */
 
+/*
+ * Palettes are the demo's colours (OKLCH converted to hex). Where a demo colour failed WCAG AA for its job the hue was
+ * kept and only the lightness moved, by the minimum needed (see the "was" comments).
+ */
 export const vibes: Record<Vibe, VibeTokens> = {
+  // Mochi: mint, soft and squishy. Light.
   cute: {
     palette: {
-      bg: "#FFF4F8",
-      surface: "#FFFFFF",
-      "surface-2": "#FFE6F0",
-      ink: "#3B2340",
-      "ink-muted": "#6E4F73",
-      accent: "#C2185B",
+      bg: "#E9FAF2",
+      surface: "#F6FEFA",
+      "surface-2": "#D8EFDC",
+      ink: "#0C3D3F",
+      "ink-muted": "#416E6B", // was #45726F: 4.45:1 on surface-2
+      accent: "#1A7F6C", // was #339A83: 3.45:1 under white text
       "on-accent": "#FFFFFF",
-      "accent-2": "#FFE08A", // butter
-      "accent-3": "#D8C7FF", // lavender
-      border: "#B96A8F",
-      "focus-ring": "#6A1B9A",
+      "accent-2": "#F2C6A4", // peach (deepened from the hand skin tone so it reads as a swatch)
+      "accent-3": "#A9D8F5", // sky (deepened from the art gradient end)
+      border: "#5E8B82", // form controls only
+      hairline: "#CDE5D9",
+      hand: "#F8D7BE",
+      "focus-ring": "#146B5B",
       success: "#1B7A4B",
       warning: "#8A5300",
       danger: "#B00020",
-      price: "#3B2340",
-      sale: "#C2185B",
-      link: "#C2185B",
-      "texture-ink": "#C2185B",
-      "texture-opacity": "0.1",
+      price: "#0C3D3F",
+      sale: "#A85C16", // was #C87A30: 3.1:1
+      link: "#1A7F6C",
+      "texture-ink": "#1A7F6C",
+      "texture-opacity": "0",
     },
     shape: {
       "font-display": '"Fredoka", "Fredoka Fallback", ui-rounded, sans-serif',
       "display-weight": "600",
       "display-tracking": "0",
-      "radius-card": "24px",
-      "radius-button": "9999px",
-      "radius-input": "16px",
-      "border-w": "2px",
-      "shadow-card": "0 8px 24px color-mix(in srgb, var(--accent) 18%, transparent)",
-      "shadow-button": "0 4px 0 color-mix(in srgb, var(--accent) 45%, transparent)",
-      "icon-stroke": "2",
-      "texture-url": 'url("/vibe/textures/cute.svg")',
-      "texture-size": "192px 192px",
-      "motion-ease": "cubic-bezier(0.34, 1.4, 0.64, 1)",
-      "motion-dur": "260ms",
+      "radius-card": "20px",
+      "radius-input": "14px",
+      "shadow-card": SHADOW_CARD_LIGHT,
+      "shadow-button": SHADOW_BUTTON,
     },
   },
 
+  // Unapologetic: black and red. Dark.
   bold: {
     palette: {
-      bg: "#FFFFFF",
-      surface: "#FFFFFF",
-      "surface-2": "#EFEFEF",
-      ink: "#0A0A0A",
-      "ink-muted": "#454545",
-      accent: "#E10600",
+      bg: "#070707",
+      surface: "#121212",
+      "surface-2": "#1B1B1B",
+      ink: "#F5F5F5",
+      "ink-muted": "#9E9E9E",
+      accent: "#E80A28", // was #EE0B2A: 4.45:1 under white text
       "on-accent": "#FFFFFF",
-      "accent-2": "#FFD400", // yellow block
-      "accent-3": "#0047FF", // blue block
-      border: "#0A0A0A",
-      "focus-ring": "#0047FF",
-      success: "#0B7A3B",
-      warning: "#8A5A00",
-      danger: "#C40000",
-      price: "#0A0A0A",
-      sale: "#C40500",
-      link: "#0047FF",
-      "texture-ink": "#0A0A0A",
-      "texture-opacity": "0.06",
+      "accent-2": "#C20011", // deep red (light ink must stay readable on accent-2)
+      "accent-3": "#F9C718", // yellow
+      border: "#6E6E6E", // form controls only
+      hairline: "#2E2E2E",
+      hand: "#D89F80",
+      "focus-ring": "#F9C718",
+      success: "#4CC38A",
+      warning: "#F9C718",
+      danger: "#FF6B7A",
+      price: "#F5F5F5",
+      sale: "#F9C718",
+      link: "#FF5468", // the red lifted to 4.5:1 for link text on black
+      "texture-ink": "#E80A28",
+      "texture-opacity": "0",
     },
     shape: {
-      "font-display": '"Archivo", "Archivo Fallback", Impact, sans-serif',
-      "display-weight": "900",
-      "display-tracking": "-0.02em",
-      "display-stretch": "125%",
-      "radius-card": "0px",
-      "radius-button": "0px",
-      "radius-input": "0px",
-      "border-w": "3px",
-      "shadow-card": "6px 6px 0 var(--ink)",
-      "shadow-button": "4px 4px 0 var(--ink)",
-      "icon-stroke": "2.5",
-      "icon-linecap": "square",
-      "icon-linejoin": "miter",
-      "texture-url": 'url("/vibe/textures/bold.svg")',
-      "texture-size": "96px 96px",
-      "motion-ease": "cubic-bezier(0.7, 0, 0.2, 1)",
-      "motion-dur": "140ms",
+      "font-display": '"Bebas Neue", "Bebas Neue Fallback", Impact, sans-serif',
+      "display-weight": "400",
+      "display-tracking": "0.02em",
+      "radius-card": "20px",
+      "radius-input": "14px",
+      "shadow-card": SHADOW_CARD_DARK,
+      "shadow-button": SHADOW_BUTTON,
     },
   },
 
-  overthinking: {
-    palette: {
-      bg: "#F7F5EE",
-      surface: "#FDFCF7",
-      "surface-2": "#ECE9DC",
-      ink: "#2B3A4A",
-      "ink-muted": "#506074",
-      accent: "#3D5A80",
-      "on-accent": "#FFFFFF",
-      "accent-2": "#FFF59D", // highlighter
-      "accent-3": "#E27D7D", // margin red
-      border: "#7A889A",
-      "focus-ring": "#3D5A80",
-      success: "#2E7D32",
-      warning: "#8A5300",
-      danger: "#B3261E",
-      price: "#2B3A4A",
-      sale: "#B3261E",
-      link: "#3D5A80",
-      "texture-ink": "#3D5A80",
-      "texture-opacity": "0.35",
-    },
-    shape: {
-      "font-display": '"Kalam", "Kalam Fallback", "Comic Sans MS", cursive',
-      "display-weight": "700",
-      "display-tracking": "0",
-      "radius-card": "18px 6px 16px 5px / 6px 16px 5px 18px",
-      "radius-button": "14px 4px 12px 5px / 5px 12px 4px 14px",
-      "radius-input": "10px 3px 9px 4px / 4px 9px 3px 10px",
-      "border-w": "2px",
-      "shadow-card": "3px 4px 0 color-mix(in srgb, var(--ink) 22%, transparent)",
-      "shadow-button": "2px 3px 0 color-mix(in srgb, var(--ink) 30%, transparent)",
-      "icon-stroke": "1.75",
-      "icon-filter": "url(#wobble)",
-      "texture-url": 'url("/vibe/textures/overthinking.svg")',
-      "texture-size": "1024px 256px",
-      "motion-ease": "cubic-bezier(0.45, 0.05, 0.55, 0.95)",
-      "motion-dur": "320ms",
-    },
-  },
-
+  // After the Dark: dark purple-black with a red accent.
   gothic: {
     palette: {
-      bg: "#0E0B10",
-      surface: "#1A1420",
-      "surface-2": "#251C2C",
-      ink: "#EDE6F0",
-      "ink-muted": "#B3A6BD",
-      accent: "#B93560", // oxblood, lifted so it holds 3:1 against the near-black bg
-      "on-accent": "#FFFFFF",
-      "accent-2": "#5B3A7A", // violet
-      "accent-3": "#E0A23A", // candle gold
-      border: "#7A6688",
-      "focus-ring": "#F2B8CC",
+      bg: "#0F0B15",
+      surface: "#181322",
+      "surface-2": "#241E2E",
+      ink: "#E0DBEA",
+      "ink-muted": "#928B9F",
+      accent: "#CC272E",
+      "on-accent": "#F5F5F5",
+      "accent-2": "#5A3F8A", // violet (lifted from the art gradient start)
+      "accent-3": "#EF7926", // ember orange
+      border: "#6E6480", // form controls only
+      hairline: "#302A3B",
+      hand: "#D3CDBF",
+      "focus-ring": "#C9B8F2",
       success: "#5CC48A",
       warning: "#E0A23A",
       danger: "#FF8A98",
-      price: "#EDE6F0",
-      sale: "#FF8FA8",
-      link: "#E58BA9", // rose
-      "texture-ink": "#E58BA9",
-      "texture-opacity": "0.07",
+      price: "#E0DBEA",
+      sale: "#EF7926",
+      link: "#F26B70", // the red lifted to 4.5:1 for link text on the dark surfaces
+      "texture-ink": "#CC272E",
+      "texture-opacity": "0",
     },
     shape: {
-      "font-display": '"Grenze Gotisch", "Grenze Gotisch Fallback", "Times New Roman", serif',
-      "display-weight": "700",
-      "display-tracking": "0.02em",
-      "radius-card": "2px",
-      "radius-button": "2px",
-      "radius-input": "2px",
-      "border-w": "1px",
-      "shadow-card": "0 0 28px color-mix(in srgb, var(--accent) 35%, transparent)",
-      "shadow-button": "0 0 14px color-mix(in srgb, var(--accent) 55%, transparent)",
-      "icon-stroke": "1.25",
-      "icon-linecap": "butt",
-      "icon-linejoin": "miter",
-      "hand-scale": "1.2",
-      "texture-url": 'url("/vibe/textures/gothic.svg")',
-      "texture-size": "96px 96px",
-      "motion-ease": "cubic-bezier(0.4, 0, 0.2, 1)",
-      "motion-dur": "300ms",
+      "font-display": '"Creepster", "Creepster Fallback", "Times New Roman", serif',
+      "display-weight": "400",
+      "display-tracking": "0",
+      "radius-card": "20px",
+      "radius-input": "14px",
+      "icon-stroke": "1.75",
+      "shadow-card": SHADOW_CARD_DARK,
+      "shadow-button": SHADOW_BUTTON,
     },
   },
 
+  // Chaos Cabinet: lemon and mint with an orange accent. Light.
   funky: {
     palette: {
-      bg: "#FFF1D6",
-      surface: "#FFFAEE",
-      "surface-2": "#FFE2A8",
-      ink: "#2A1B3D",
-      "ink-muted": "#5E4A75",
-      accent: "#E55A1C", // orange
-      "on-accent": "#190E26",
-      "accent-2": "#00B3A4", // teal
-      "accent-3": "#E83F8C", // magenta
-      border: "#7A5C9A",
-      "focus-ring": "#5B2A9D",
-      success: "#0B7A55",
+      bg: "#F4F6C8",
+      surface: "#FDFEE7",
+      "surface-2": "#8FF4E0", // very minty on purpose: chips and tiles, not body text
+      ink: "#1C1A46",
+      "ink-muted": "#4D5081",
+      accent: "#BB4100", // was #DD5400: 3.9:1 under white text
+      "on-accent": "#FFFFFF",
+      "accent-2": "#8FF4E0", // mint
+      "accent-3": "#D1ED74", // lime
+      border: "#7478A6", // form controls only
+      hairline: "#E3E6B0",
+      hand: "#7BD77F",
+      "focus-ring": "#3A3DA0",
+      success: "#0B6B3A",
       warning: "#8A5300",
       danger: "#B3122F",
-      price: "#2A1B3D",
-      sale: "#B3122F",
-      link: "#A2185E",
-      "texture-ink": "#2A1B3D",
-      "texture-opacity": "0.05",
+      price: "#1C1A46",
+      sale: "#007313", // was #008D00: 3.9:1
+      link: "#A63800",
+      "texture-ink": "#BB4100",
+      "texture-opacity": "0",
     },
     shape: {
-      "font-display": '"Shrikhand", "Shrikhand Fallback", "Brush Script MT", cursive',
+      "font-display": '"Rubik Glitch", "Rubik Glitch Fallback", "Brush Script MT", cursive',
       "display-weight": "400",
-      "display-tracking": "0.01em",
-      "display-filter": "url(#warp)",
-      "radius-card": "28px",
-      "radius-button": "9999px",
+      "display-tracking": "0",
+      "radius-card": "20px",
       "radius-input": "14px",
-      "border-w": "2px",
-      "shadow-card": "6px 6px 0 var(--accent-2), 12px 12px 0 var(--accent-3)",
-      "shadow-button": "3px 3px 0 var(--accent-2), 6px 6px 0 var(--accent-3)",
-      "icon-stroke": "2.5",
-      "texture-url": 'url("/vibe/textures/funky.svg")',
-      "texture-size": "128px 96px",
-      "motion-ease": "cubic-bezier(0.34, 1.56, 0.64, 1)",
-      "motion-dur": "280ms",
+      "shadow-card": SHADOW_CARD_LIGHT,
+      "shadow-button": SHADOW_BUTTON,
     },
   },
 };
@@ -365,7 +341,7 @@ const ui = (fg: PaletteKey, bg: PaletteKey): ContrastPair => ({
   label: `${fg} on ${bg}`,
 });
 
-/** Pairs every vibe (and base) must satisfy. */
+/** Pairs every vibe (and base) must satisfy. `hairline` and `hand` are decorative and deliberately not checked. */
 export const COMMON_PAIRS: readonly ContrastPair[] = [
   text("ink", "bg"),
   text("ink", "surface"),
@@ -409,7 +385,14 @@ export const EXTRA_PAIRS: Partial<Record<Vibe, readonly ContrastPair[]>> = {
     text("sale", "surface-2"),
     text("ink", "bg"),
   ],
-  bold: [ui("border", "surface"), ui("accent", "surface")],
+  bold: [
+    ui("border", "surface"),
+    ui("accent", "surface"),
+    ui("focus-ring", "surface-2"),
+    text("success", "surface"),
+    text("warning", "surface"),
+    text("link", "surface-2"),
+  ],
 };
 
 export function pairsFor(vibe: Vibe | "base"): ContrastPair[] {

@@ -5,9 +5,8 @@ import { cute } from "./cute";
 import { funky } from "./funky";
 import { gothic } from "./gothic";
 import type { CopyDictionary } from "./keys";
-import { overthinking } from "./overthinking";
 
 export { COPY_KEYS, type CopyDictionary, type CopyKey } from "./keys";
 
 /** One dictionary per vibe; a missing key in any of them is a type error. */
-export const COPY: Record<Vibe, CopyDictionary> = { cute, bold, overthinking, gothic, funky };
+export const COPY: Record<Vibe, CopyDictionary> = { cute, funky, bold, gothic };

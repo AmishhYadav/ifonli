@@ -1,6 +1,6 @@
 # IfOnli
 
-India-only (INR) D2C store for charms, Hippers, 3D stickers and DIY accessories, organised by mood ("vibe"). One Next.js app serves the storefront, checkout and admin, with a signature hand button that re-skins the whole site across five vibes (Cute, Bold, Overthinking, Gothic, Funky).
+India-only (INR) D2C store for charms, Hippers, 3D stickers and DIY accessories, organised by mood ("vibe"). One Next.js app serves the storefront, checkout and admin, with a signature hand button that re-skins the whole site across four vibes (Mochi, Chaos Cabinet, Unapologetic, After the Dark).
 
 ## Status
 

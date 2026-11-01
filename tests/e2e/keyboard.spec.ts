@@ -258,7 +258,7 @@ test.describe("checkout", () => {
     baseURL,
   }) => {
     await seedCart(context, baseURL!, 1);
-    await gotoVibe(page, "/checkout", "overthinking");
+    await gotoVibe(page, "/checkout", "funky");
     await expect(page.getByTestId("review")).toHaveAttribute("aria-busy", "false", {
       timeout: 30_000,
     });
@@ -411,7 +411,7 @@ test.describe("dialogs and account forms", () => {
 test.describe("tracking and help", () => {
   for (const path of ["/track", "/help", "/policies/shipping", "/cart", "/search?q=heart"]) {
     test(`${path}: every stop shows a focus indicator`, async ({ page }) => {
-      await gotoVibe(page, path, "overthinking");
+      await gotoVibe(page, path, "funky");
       await page.waitForLoadState("networkidle");
       await expectVisibleFocus(page, path, 80);
     });

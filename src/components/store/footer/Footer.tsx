@@ -42,7 +42,7 @@ export async function Footer() {
         <div className="flex flex-col gap-3">
           <Logo className="self-start" />
           <p className="max-w-xs text-base text-ink-muted">
-            Charms, Hippers, 3D stickers and DIY kits in five moods. Made in India.
+            Charms, Hippers, 3D stickers and DIY kits in four moods. Made in India.
           </p>
           <ul className="flex flex-wrap gap-x-4">
             {collections.vibes.map((v) => (

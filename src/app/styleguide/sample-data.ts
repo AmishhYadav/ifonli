@@ -50,17 +50,6 @@ export const COLUMN_PRODUCT: Record<Vibe | "buy", ProductCard> = {
     mrpFromPaise: 29900,
     file: "charm-lightning.svg",
   }),
-  overthinking: sampleProduct({
-    slug: "hmm-bubble",
-    name: "Hmm bubble sticker",
-    typeSlug: "sticker-3d",
-    typeName: "3D sticker",
-    primaryVibe: "overthinking",
-    priceFromPaise: 19900,
-    mrpFromPaise: 19900,
-    hasPriceRange: true,
-    file: "sticker3d-hmm-bubble.svg",
-  }),
   gothic: sampleProduct({
     slug: "skull-charm",
     name: "Skull charm",
@@ -153,7 +142,7 @@ export const GRID_PRODUCTS: { label: string; product: ProductCard }[] = [
     product: sampleProduct({
       slug: "no-image",
       name: "Product without a photo yet",
-      primaryVibe: "overthinking",
+      primaryVibe: "funky",
     }),
   },
   {

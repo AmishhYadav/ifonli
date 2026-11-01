@@ -7,7 +7,7 @@ import { expect, test, type Page } from "@playwright/test";
  *   E2E_BASE_URL=http://localhost:3100 pnpm exec playwright test styleguide
  */
 
-const VIBES = ["cute", "bold", "overthinking", "gothic", "funky"] as const;
+const VIBES = ["cute", "funky", "bold", "gothic"] as const;
 const col = (page: Page, name: string) => page.getByTestId(`col-${name}`);
 
 test.beforeEach(async ({ page }) => {
@@ -30,13 +30,11 @@ test("renders every vibe column plus a buy-scope column", async ({ page }) => {
   await expect(sold.getByRole("link")).toHaveAttribute("href", /\/products\//);
 });
 
-test("Buy scope resets shape: pill buttons in Cute, base radius in the buy column", async ({ page }) => {
-  const radius = (name: string) =>
-    col(page, name)
-      .getByRole("button", { name: "Primary" })
-      .evaluate((el) => getComputedStyle(el).borderTopLeftRadius);
-  expect(await radius("cute")).not.toBe(await radius("buy"));
-  expect(await radius("buy")).toBe("8px");
+test("Buy scope resets shape: Mochi's 20px cards, the base 16px in the buy column", async ({ page }) => {
+  const cardRadius = (name: string) =>
+    col(page, name).evaluate((el) => getComputedStyle(el).getPropertyValue("--radius-card").trim());
+  expect(await cardRadius("cute")).toBe("20px");
+  expect(await cardRadius("buy")).toBe("16px");
 });
 
 test("buttons and steppers meet the 44px touch target", async ({ page }) => {
@@ -180,7 +178,7 @@ test("no serious or critical accessibility violations", async ({ page }) => {
 });
 
 test("no serious or critical violations with a dialog open", async ({ page }) => {
-  await col(page, "overthinking").getByRole("button", { name: "Open dialog" }).click();
+  await col(page, "funky").getByRole("button", { name: "Open dialog" }).click();
   await expect(page.getByRole("dialog", { name: "Notify me" })).toBeVisible();
   const results = await new AxeBuilder({ page }).analyze();
   const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");

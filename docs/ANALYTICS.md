@@ -21,7 +21,7 @@ track("hero_pause", { meta: { by: "user" } });
 | Event | Sent by | `value` / `meta` |
 |---|---|---|
 | `page_view` | `AnalyticsProvider` (every client navigation) | |
-| `product_impression` | impression observer: card at least 50% visible for 1 s, once per page view | `meta.pos` (position among the cards that are visible: the home page renders the sets of all five vibes and only one is shown) |
+| `product_impression` | impression observer: card at least 50% visible for 1 s, once per page view | `meta.pos` (position among the cards that are visible: the home page renders the sets of all four vibes and only one is shown) |
 | `product_click` | delegated click on a product card link | `meta.pos` (same counting) |
 | `pdp_view` | `PdpTracker` on the product page | |
 | `pdp_scroll_depth` | `PdpTracker`: 25 / 50 / 75 / 100 % of `<main>`, each once | `value` = milestone |

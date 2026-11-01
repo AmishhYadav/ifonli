@@ -10,16 +10,25 @@ import {
   isVibe,
   nextVibe,
 } from "@/features/vibe/config";
-import { PALETTE_KEYS, SHAPE_KEYS, base, resolveTokens, vibes } from "@/features/vibe/tokens";
+import {
+  ART_GRADIENTS,
+  PALETTE_KEYS,
+  SHAPE_KEYS,
+  base,
+  resolveTokens,
+  vibes,
+} from "@/features/vibe/tokens";
 
 describe("nextVibe", () => {
-  it("follows the fixed order cute > bold > overthinking > gothic > funky > cute", () => {
-    expect(VIBES).toEqual(["cute", "bold", "overthinking", "gothic", "funky"]);
-    expect(nextVibe("cute")).toBe("bold");
-    expect(nextVibe("bold")).toBe("overthinking");
-    expect(nextVibe("overthinking")).toBe("gothic");
+  it("follows the hand-button order cute > gothic > funky > bold > cute", () => {
+    expect(nextVibe("cute")).toBe("gothic");
     expect(nextVibe("gothic")).toBe("funky");
-    expect(nextVibe("funky")).toBe("cute");
+    expect(nextVibe("funky")).toBe("bold");
+    expect(nextVibe("bold")).toBe("cute");
+  });
+
+  it("lists vibes in nav order cute, funky, bold, gothic", () => {
+    expect(VIBES).toEqual(["cute", "funky", "bold", "gothic"]);
   });
 
   it("wraps around a custom cycle and skips vibes that are not in it", () => {
@@ -46,8 +55,9 @@ describe("nextVibe", () => {
 });
 
 describe("config invariants", () => {
-  it("default cycle contains every vibe, default vibe is cute", () => {
-    expect([...DEFAULT_VIBE_CYCLE]).toEqual([...VIBES]);
+  it("default cycle contains every vibe in the hand-button order, default vibe is cute", () => {
+    expect([...DEFAULT_VIBE_CYCLE]).toEqual(["cute", "gothic", "funky", "bold"]);
+    expect([...DEFAULT_VIBE_CYCLE].sort()).toEqual([...VIBES].sort());
     expect(DEFAULT_VIBE).toBe("cute");
   });
 
@@ -63,6 +73,15 @@ describe("config invariants", () => {
       expect(DISPLAY_FONT_LOAD[v]).toMatch(/1em "/);
     }
     expect(new Set(Object.values(DISPLAY_FONT_FILES)).size).toBe(VIBES.length);
+  });
+
+  it("uses the demo's names", () => {
+    expect(VIBE_NAMES).toEqual({
+      cute: "Mochi",
+      funky: "Chaos Cabinet",
+      bold: "Unapologetic",
+      gothic: "After the Dark",
+    });
   });
 });
 
@@ -80,6 +99,29 @@ describe("tokens", () => {
     for (const v of VIBES) {
       for (const k of Object.keys(vibes[v].palette)) expect(PALETTE_KEYS).toContain(k);
       for (const k of Object.keys(vibes[v].shape)) expect(SHAPE_KEYS).toContain(k);
+    }
+  });
+
+  it("every theme is soft: pill buttons, rounded cards, no textures, no offset shadows", () => {
+    for (const v of ["base", ...VIBES] as const) {
+      const { shape, palette } = resolveTokens(v);
+      expect(shape["radius-button"], v).toBe("9999px");
+      expect(shape["texture-url"], v).toBe("none");
+      expect(palette["texture-opacity"], v).toBe("0");
+      expect(shape["display-filter"], v).toBe("none");
+      expect(shape["icon-filter"], v).toBe("none");
+      expect(parseInt(shape["radius-card"], 10), v).toBeGreaterThanOrEqual(16);
+      // Hard offset shadows look like "6px 6px 0 colour": no unblurred, non-zero-offset layers.
+      expect(shape["shadow-card"], v).not.toMatch(/(^|, )[1-9]\d*px [1-9]\d*px 0 /);
+      expect(shape["shadow-button"], v).not.toMatch(/(^|, )[1-9]\d*px [1-9]\d*px 0 /);
+    }
+  });
+
+  it("every theme has a soft hairline and a hand skin tone; product art has two stops per vibe", () => {
+    for (const v of VIBES) {
+      expect(vibes[v].palette.hairline, v).toMatch(/^#[0-9A-F]{6}$/);
+      expect(vibes[v].palette.hand, v).toMatch(/^#[0-9A-F]{6}$/);
+      expect(ART_GRADIENTS[v]).toHaveLength(2);
     }
   });
 

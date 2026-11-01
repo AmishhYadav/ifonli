@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-export const VIBES = ["cute", "bold", "overthinking", "gothic", "funky"] as const;
+export const VIBES = ["cute", "funky", "bold", "gothic"] as const;
 export type Vibe = (typeof VIBES)[number];
 
 /**

@@ -59,7 +59,7 @@ export function Opening() {
           </h1>
           <p className="l-open__tag">Tiny things. Big feelings.</p>
           <p className="l-open__sub">
-            Charms, Hippers, 3D stickers and DIY kits in five moods. Made in India.
+            Charms, Hippers, 3D stickers and DIY kits in four moods. Made in India.
           </p>
         </div>
       </div>
@@ -103,12 +103,12 @@ export function Makes() {
   );
 }
 
-/** Chapter 3: five moods. Each panel is its own vibe scope, so its text takes that vibe's ink and fonts. */
+/** Chapter 3: four moods. Each panel is its own vibe scope, so its text takes that vibe's ink and fonts. */
 export function Moods() {
   return (
     <section className="l-moods" aria-labelledby="moods-title" data-moods>
       <h2 id="moods-title" className="l-moods__title">
-        Five moods, one for every you.
+        Four moods, one for every you.
       </h2>
       <div className="l-moods__track" data-moods-track>
         <div className="l-moods__stage">
