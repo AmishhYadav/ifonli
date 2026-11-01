@@ -192,6 +192,8 @@ export async function loadCatalogIndex(
       hasPriceRange: hasPriceRange(pVariants.map((v) => v.pricePaise)),
       inStock,
       lowStock: inStock && allLow,
+      // One active variant, in stock: the card can add it straight to the bag. Same availability rule as `inStock`.
+      quickAddVariantId: pVariants.length === 1 && inStock ? cheapest.id : null,
       image: toImageRef(photo ?? cutout),
       cutout: toImageRef(cutout),
       createdAt: p.createdAt,
@@ -216,6 +218,7 @@ export function toCard(p: IndexedProduct): ProductCard {
     hasPriceRange: p.hasPriceRange,
     inStock: p.inStock,
     lowStock: p.lowStock,
+    quickAddVariantId: p.quickAddVariantId,
     image: p.image,
     cutout: p.cutout,
   };

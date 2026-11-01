@@ -99,6 +99,7 @@ const base: ProductCard = {
   inStock: true,
   lowStock: false,
   image: null,
+  quickAddVariantId: null,
   cutout: null,
 };
 const card = (p: Partial<ProductCard>) =>
