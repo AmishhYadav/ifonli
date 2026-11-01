@@ -20,6 +20,14 @@ describe("nav pill states (styles/nav-pills.css)", () => {
     expect(soft).not.toMatch(/background:\s*var\(--accent\)\s*;/);
   });
 
+  it("fades each pill-row edge only while there is more to scroll to on that side", () => {
+    expect(css).toContain(".nav-pills[data-more-start]::before");
+    expect(css).toContain(".nav-pills[data-more-end]::after");
+    const base = css.match(/\.nav-pills::before,\s*\.nav-pills::after\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(base).toContain("opacity: 0");
+    expect(base).toContain("pointer-events: none");
+  });
+
   it("uses theme tokens only (no raw colours)", () => {
     expect(css).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgb\(|hsl\(/);
   });

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
 
 import "@/styles/nav-pills.css";
 
 import type { Vibe } from "@/features/vibe/config";
+import { useVibe } from "@/features/vibe/useVibe";
 import { VibeLink } from "@/features/vibe/VibeLink";
 import { cn } from "@/lib/cn";
 
@@ -62,11 +63,60 @@ function Pill({ link, active, spaced }: { link: PillLink; active: boolean; space
   );
 }
 
+/**
+ * Phone behaviour of the pill row. (1) The current theme's pill is scrolled to the middle of the row on load
+ * (instantly) and whenever the vibe changes (smoothly, unless the visitor prefers reduced motion). Only the row's
+ * own scrollLeft moves, never the page (no scrollIntoView). (2) `data-more-start` / `data-more-end` on the <nav>
+ * say whether there is more to scroll to on that side; nav-pills.css fades that edge in, so a clipped pill reads
+ * as "scroll me" rather than as a cut-off label.
+ */
+function usePillRowScroll(nav: React.RefObject<HTMLElement | null>, list: React.RefObject<HTMLUListElement | null>) {
+  const { vibe } = useVibe();
+  const loaded = useRef(false);
+
+  useEffect(() => {
+    const row = list.current;
+    const pill = row?.querySelector<HTMLElement>(`[data-nav-vibe="${vibe}"]`);
+    if (!row || !pill) return;
+    const rowBox = row.getBoundingClientRect();
+    const pillBox = pill.getBoundingClientRect();
+    const left = row.scrollLeft + (pillBox.left - rowBox.left) - (rowBox.width - pillBox.width) / 2;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    row.scrollTo({ left: Math.max(0, left), behavior: loaded.current && !reduced ? "smooth" : "instant" });
+    loaded.current = true;
+  }, [vibe, list]);
+
+  useEffect(() => {
+    const row = list.current;
+    const host = nav.current;
+    if (!row || !host) return;
+    const update = () => {
+      const max = row.scrollWidth - row.clientWidth;
+      host.toggleAttribute("data-more-start", row.scrollLeft > 4);
+      host.toggleAttribute("data-more-end", row.scrollLeft < max - 4);
+    };
+    update();
+    row.addEventListener("scroll", update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(row);
+    return () => {
+      row.removeEventListener("scroll", update);
+      observer.disconnect();
+    };
+  }, [nav, list]);
+}
+
 function PillRow({ vibes, types, shop, pathname }: NavPillsProps & { pathname: string | null }) {
   const isActive = (href: string) => pathname === href;
+  const nav = useRef<HTMLElement>(null);
+  const list = useRef<HTMLUListElement>(null);
+  usePillRowScroll(nav, list);
   return (
-    <nav aria-label="Primary" className="mx-auto max-w-[1440px]">
-      <ul className="flex items-center gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
+    <nav ref={nav} aria-label="Primary" className="nav-pills mx-auto max-w-[1440px]">
+      <ul
+        ref={list}
+        className="flex items-center gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden"
+      >
         {vibes.map((link) => (
           <Pill key={link.href} link={link} active={isActive(link.href)} />
         ))}
