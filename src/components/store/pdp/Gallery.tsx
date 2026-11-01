@@ -2,14 +2,14 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import { IconButton } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
 import { usePurchase } from "./PurchaseProvider";
-import { imageIndexForVariant, type PdpImage } from "./product-model";
+import { galleryOrder, imageIndexForVariant, type PdpImage } from "./product-model";
 
 const GalleryZoom = dynamic(() => import("./GalleryZoom").then((m) => m.GalleryZoom), { ssr: false });
 
@@ -42,19 +42,23 @@ function Picture({
       alt={image.alt}
       fill
       sizes={sizes}
-      priority={priority}
+      // The first slide is the LCP image: eager + high fetch priority (Next 16 deprecates `priority` for
+      // `preload`, but its docs steer responsive, multi-image cases to `loading` / `fetchPriority`).
+      loading={priority ? "eager" : undefined}
+      fetchPriority={priority ? "high" : undefined}
       className={cn(image.isCutout ? "object-contain p-[10%]" : "object-cover", className)}
     />
   );
 }
 
 /**
- * Product gallery: square slides in a scroll-snap strip (native touch swipe), previous / next buttons,
- * arrow keys on the strip, thumbnails, and a click-to-open zoom dialog. Every slide is the same square so
- * switching images never moves the page. A variant that has its own photo brings it into view.
+ * Product gallery: the cutout leads (on the product's vibe gradient), then the photos. Square slides in a
+ * scroll-snap strip (native touch swipe), previous / next buttons, arrow keys on the strip, thumbnails, and a
+ * click-to-open zoom dialog. Every slide is the same square so switching images never moves the page. A variant
+ * that has its own photo brings it into view.
  */
 export function Gallery({
-  images,
+  images: imagesInBuildOrder,
   productName,
   primaryVibe,
 }: {
@@ -64,6 +68,7 @@ export function Gallery({
   primaryVibe?: string | null;
 }) {
   const art = artClass(primaryVibe);
+  const images = useMemo(() => galleryOrder(imagesInBuildOrder), [imagesInBuildOrder]);
   const { variantId } = usePurchase();
   const strip = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -207,18 +212,18 @@ export function Gallery({
           {images.map((image, i) => {
             const active = i === Math.min(index, count - 1);
             return (
-              <li key={image.id}>
+              <li key={image.id} className="flex flex-col items-center gap-1.5">
+                {/* Selected = lifted (bigger, soft shadow, full strength) with a small pill under it: no hard ring,
+                    and the cue is shape and size as well as colour. */}
                 <button
                   type="button"
                   onClick={() => goTo(i)}
                   aria-label={`Show photo ${i + 1} of ${count}`}
                   aria-current={active ? "true" : undefined}
                   className={cn(
-                    "relative block size-16 overflow-hidden rounded-input transition-[opacity,box-shadow] ease-vibe sm:size-[4.5rem]",
+                    "relative block size-16 overflow-hidden rounded-input transition-[opacity,box-shadow,transform] ease-vibe sm:size-[4.5rem]",
                     art,
-                    active
-                      ? "ring-2 ring-accent ring-offset-2 ring-offset-bg"
-                      : "opacity-70 hover:opacity-100",
+                    active ? "scale-105 opacity-100 shadow-card" : "opacity-60 hover:opacity-100",
                   )}
                 >
                   <Image
@@ -226,9 +231,21 @@ export function Gallery({
                     alt=""
                     fill
                     sizes="72px"
+                    // Eager but low priority: the thumbnail shares its default `src` URL with the slide of the
+                    // same photo, and Next's dev LCP check keys on that URL, so a lazy thumbnail would make the
+                    // eager LCP slide look lazy to it. The thumbnails are tiny and sit right under the photo.
+                    loading="eager"
+                    fetchPriority="low"
                     className={image.isCutout ? "object-contain p-1.5" : "object-cover"}
                   />
                 </button>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "h-1 w-6 rounded-full bg-accent transition-opacity ease-vibe",
+                    active ? "opacity-100" : "opacity-0",
+                  )}
+                />
               </li>
             );
           })}
@@ -247,7 +264,7 @@ export function Gallery({
           onNext={() => goTo(index + 1, "auto")}
         >
           <div
-            className="relative aspect-square max-w-none transition-[width] ease-vibe"
+            className={cn("relative aspect-square max-w-none transition-[width] ease-vibe", art)}
             style={{ width: zoomed ? "200%" : "100%" }}
           >
             <Picture image={current} sizes="(min-width: 1024px) 1600px, 188vw" />
