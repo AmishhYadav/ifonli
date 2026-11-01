@@ -91,7 +91,7 @@ export function OrderDetailView({ order, extras, access, signedIn }: OrderDetail
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <h1
-          className="font-display text-3xl leading-tight sm:text-4xl"
+          className="buy-display buy-display-fx text-4xl leading-tight"
           data-testid="order-headline"
         >
           {headline(order)}

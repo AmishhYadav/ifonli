@@ -488,7 +488,7 @@ export function CheckoutForm({
 
         {/* 1. Contact */}
         <section aria-labelledby="checkout-contact" className="flex flex-col gap-4">
-          <h2 id="checkout-contact" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-contact" className="buy-display text-2xl leading-tight">
             Contact
           </h2>
           <Field
@@ -518,7 +518,7 @@ export function CheckoutForm({
 
         {/* 2. Delivery address */}
         <section aria-labelledby="checkout-address" className="flex flex-col gap-4">
-          <h2 id="checkout-address" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-address" className="buy-display text-2xl leading-tight">
             Delivery address
           </h2>
           {savedAddresses.length > 0 ? (
@@ -603,7 +603,7 @@ export function CheckoutForm({
 
         {/* 3. Shipping */}
         <section aria-labelledby="checkout-shipping" className="flex flex-col gap-3">
-          <h2 id="checkout-shipping" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-shipping" className="buy-display text-2xl leading-tight">
             Shipping
           </h2>
           {!pincode ? (
@@ -645,7 +645,7 @@ export function CheckoutForm({
 
         {/* 4. Payment */}
         <section aria-labelledby="checkout-payment" className="flex flex-col gap-3">
-          <h2 id="checkout-payment" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-payment" className="buy-display text-2xl leading-tight">
             Payment
           </h2>
           <RadioGroup
@@ -691,7 +691,7 @@ export function CheckoutForm({
         data-testid="review"
         aria-busy={!quoteFresh}
       >
-        <h2 id="checkout-review" className="font-display text-2xl leading-tight">
+        <h2 id="checkout-review" className="buy-display text-2xl leading-tight">
           Review your order
         </h2>
 
@@ -725,7 +725,7 @@ export function CheckoutForm({
 
         <p className="-mt-2 text-sm">
           <Link href="/cart" className="inline-flex min-h-11 items-center text-link underline underline-offset-4 hover:no-underline">
-            Edit your cart
+            Edit your bag
           </Link>
         </p>
 
@@ -809,7 +809,7 @@ export function CheckoutForm({
                       href="/cart"
                       className="font-semibold text-link underline underline-offset-4 hover:no-underline"
                     >
-                      Review your cart
+                      Review your bag
                     </Link>
                   </p>
                 ) : null}
