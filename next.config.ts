@@ -49,6 +49,8 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
   },
   partialPrefetching: true,
+  // `next dev` logs every Server Function call with its arguments, which would print passwords and sign-in codes.
+  logging: { serverFunctions: false },
   async headers() {
     const base = buildSecurityHeaders({
       production,
@@ -59,6 +61,17 @@ const nextConfig: NextConfig = {
     });
     return [
       { source: "/:path*", headers: base },
+      // Files in public/ are served `max-age=0` by default. Their names are not hashed, so a changed
+      // file must still reach people: fonts get a month (plus a day of serving stale while the CDN
+      // refetches) and are deliberately not `immutable`; icons, vibe art and placeholders a day.
+      {
+        source: "/fonts/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" }],
+      },
+      {
+        source: "/(icons|vibe|placeholders)/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
       // Order pages carry guest order tokens (?t=) and personal data: send no Referer at all.
       ...NO_REFERRER_SOURCES.map((source) => ({
         source,

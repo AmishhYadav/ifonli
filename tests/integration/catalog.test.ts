@@ -40,7 +40,7 @@ describe("listProducts", () => {
       primaryVibe: "cute",
       priceFromPaise: 14900,
       mrpFromPaise: 14900,
-      hasMultipleVariants: true,
+      hasPriceRange: true,
       inStock: true,
     });
     // cutout-only product: image falls back to the cutout
@@ -48,7 +48,7 @@ describe("listProducts", () => {
     expect(heart.cutout?.path).toContain("heart-cutout");
 
     const skull = r.items.find((i) => i.slug === "skull-charm")!;
-    expect(skull).toMatchObject({ priceFromPaise: 19900, mrpFromPaise: 24900, hasMultipleVariants: false });
+    expect(skull).toMatchObject({ priceFromPaise: 19900, mrpFromPaise: 24900, hasPriceRange: false });
     expect(skull.image?.path).toContain("skull-photo");
     expect(skull.cutout?.path).toContain("skull-cutout");
     expect(skull.image).toEqual({
@@ -257,7 +257,7 @@ describe("getProductBySlug", () => {
       primaryVibe: "cute",
       priceFromPaise: 14900,
       mrpFromPaise: 14900,
-      hasMultipleVariants: true,
+      hasPriceRange: true,
     });
     expect(p!.options).toHaveLength(1);
     expect(p!.options[0]!.name).toBe("Colour");

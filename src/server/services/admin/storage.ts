@@ -42,3 +42,27 @@ export async function deleteStorageObjects(bucket: string, paths: string[]): Pro
   });
   if (!res.ok) throw new StorageError(`Deleting from ${bucket} failed (${res.status})`, res.status);
 }
+
+/** Writes (or replaces) an object in a bucket with the service key; used to store the cleaned-up copy of an upload. */
+export async function writeStorageObject(
+  bucket: string,
+  path: string,
+  body: Buffer,
+  contentType: string,
+): Promise<void> {
+  const { baseUrl, serviceKey } = config();
+  const encoded = path.split("/").map(encodeURIComponent).join("/");
+  const res = await fetch(`${baseUrl}/object/${encodeURIComponent(bucket)}/${encoded}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${serviceKey}`,
+      apikey: serviceKey,
+      "Content-Type": contentType,
+      "x-upsert": "true",
+      "Cache-Control": "max-age=3600",
+    },
+    body: new Uint8Array(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new StorageError(`Writing ${bucket}/${path} failed (${res.status})`, res.status);
+}

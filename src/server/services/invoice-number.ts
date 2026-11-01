@@ -3,8 +3,9 @@ import "server-only";
 import { eq, sql } from "drizzle-orm";
 
 import { invoiceCounters, invoices } from "@/server/db/schema";
-import { financialYear, formatInvoiceNumber } from "@/server/domain";
+import { financialYear, formatInvoiceNumber, type ShippingTaxRule } from "@/server/domain";
 
+import { loadCommerceSettings } from "./commerce/settings";
 import { addOrderEvent } from "./order-events";
 import type { DbClient } from "./queries/shared";
 import { readSettings } from "./queries/shared";
@@ -30,9 +31,59 @@ export async function nextInvoiceNumber(tx: DbClient, now: Date): Promise<string
 }
 
 /**
+ * The seller and tax data an invoice is built from, frozen when the order is confirmed (plan 7.12):
+ * an invoice must show what was true at the sale, not whatever the settings say on the day it is first
+ * downloaded. Stored in `invoices.snapshot`; orders invoiced before the column existed have none and
+ * fall back to the live settings.
+ */
+export interface InvoiceSnapshot {
+  version: 1;
+  seller: { legalName: string; brandName: string; address: string; state: string; gstin: string | null };
+  /** Setting labels whose stored value was still a launch placeholder at the time. */
+  placeholderFields: string[];
+  /** 2-digit GST code of the seller state ("00" when unknown). */
+  sellerStateCode: string;
+  /** How GST on shipping / the COD fee was worked out. */
+  shippingTaxRule: ShippingTaxRule;
+}
+
+const PLACEHOLDER_RE = /PLACEHOLDER/i;
+
+/** Reads the current settings into an invoice snapshot (placeholders flagged, never silently blank). */
+export async function loadInvoiceSnapshot(tx: DbClient): Promise<InvoiceSnapshot> {
+  const [s, commerce] = await Promise.all([
+    readSettings(tx, ["legal_name", "brand_name", "registered_address", "state", "gstin"]),
+    loadCommerceSettings(tx),
+  ]);
+  const placeholderFields: string[] = [];
+  const stored = (key: "legal_name" | "registered_address" | "state", fieldLabel: string): string => {
+    const r = s[key];
+    const value = r.value;
+    if (r.isPlaceholder || PLACEHOLDER_RE.test(value)) {
+      placeholderFields.push(fieldLabel);
+      return PLACEHOLDER_RE.test(value) ? value : `PLACEHOLDER - ${value}`;
+    }
+    return value;
+  };
+  return {
+    version: 1,
+    seller: {
+      legalName: stored("legal_name", "legal name"),
+      brandName: s.brand_name.value,
+      address: stored("registered_address", "registered address"),
+      state: stored("state", "business state"),
+      gstin: s.gstin.value ? s.gstin.value : null,
+    },
+    placeholderFields,
+    sellerStateCode: commerce.tax.sellerStateCode,
+    shippingTaxRule: commerce.tax.shippingTaxRule,
+  };
+}
+
+/**
  * Gives the order its invoice number if it has none yet ("Tax invoice" when `gstin` is set, else
- * "Bill of supply"). Idempotent. Used by the COD placement path and as a back-fill by the invoice
- * service; prepaid orders get theirs in `finalizePaidOrder`.
+ * "Bill of supply") and freezes the seller / tax data of the invoice. Idempotent. Used by the COD
+ * placement path, `finalizePaidOrder`, and as a back-fill by the invoice service.
  */
 export async function ensureInvoiceNumber(
   tx: DbClient,
@@ -45,12 +96,13 @@ export async function ensureInvoiceNumber(
     .where(eq(invoices.orderId, orderId))
     .limit(1);
   if (existing) return { number: existing.number, created: false };
-  const { gstin } = await readSettings(tx, ["gstin"]);
+  const snapshot = await loadInvoiceSnapshot(tx);
   const number = await nextInvoiceNumber(tx, now);
   await tx.insert(invoices).values({
     orderId,
     number,
-    kind: gstin.value ? "tax_invoice" : "bill_of_supply",
+    kind: snapshot.seller.gstin ? "tax_invoice" : "bill_of_supply",
+    snapshot,
   });
   await addOrderEvent(tx, orderId, { type: "invoice_assigned", note: number });
   return { number, created: true };

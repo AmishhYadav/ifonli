@@ -26,15 +26,19 @@ import {
 export function EnrollForm({
   email: initialEmail,
   enrolled,
+  mustChangePassword,
 }: {
   email: string;
   enrolled: boolean;
+  /** The current password is a temporary one: ask for a new one in the same step. */
+  mustChangePassword: boolean;
 }) {
   const router = useRouter();
   // Props change when the page re-renders after an action; the address shown must not.
   const [email] = React.useState(initialEmail);
   const [stage, setStage] = React.useState<"password" | "scan" | "backup">("password");
   const [password, setPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
   const [code, setCode] = React.useState("");
   const [setup, setSetup] = React.useState<EnrollmentStart | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -51,10 +55,13 @@ export function EnrollForm({
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const res = await startEnrollmentAction({ password });
+      const res = await startEnrollmentAction(
+        mustChangePassword ? { password, newPassword } : { password },
+      );
       if (!res.ok) return setError(res.error);
       setSetup(res.data);
       setPassword("");
+      setNewPassword("");
       setStage("scan");
     });
   }
@@ -124,10 +131,14 @@ export function EnrollForm({
         {stage === "password" ? (
           <form onSubmit={start} className="flex flex-col gap-4" noValidate>
             <Field
-              label="Confirm your password"
+              label={mustChangePassword ? "Temporary password" : "Confirm your password"}
               htmlFor="password"
-              hint="We ask again before showing the setup key."
-              error={error ?? undefined}
+              hint={
+                mustChangePassword
+                  ? "The one you were given. You will replace it below."
+                  : "We ask again before showing the setup key."
+              }
+              error={mustChangePassword ? undefined : (error ?? undefined)}
             >
               <Input
                 id="password"
@@ -140,7 +151,26 @@ export function EnrollForm({
                 aria-invalid={!!error}
               />
             </Field>
-            <Button type="submit" disabled={pending || !password}>
+            {mustChangePassword ? (
+              <Field
+                label="New password"
+                htmlFor="new-password"
+                hint="At least 12 characters. Other sessions are signed out."
+                error={error ?? undefined}
+              >
+                <Input
+                  id="new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={12}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  aria-invalid={!!error}
+                />
+              </Field>
+            ) : null}
+            <Button type="submit" disabled={pending || !password || (mustChangePassword && !newPassword)}>
               {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
               Show QR code
             </Button>

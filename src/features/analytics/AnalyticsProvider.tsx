@@ -9,7 +9,7 @@ import type { VibeChangeDetail } from "@/features/vibe/store";
 import { track } from "@/lib/analytics/client";
 
 import { heroEventToTrack } from "./hero-bridge";
-import { PRODUCT_SELECTOR, startImpressionObserver, type ImpressionObserver } from "./impressions";
+import { PRODUCT_SELECTOR, cardPosition, startImpressionObserver, type ImpressionObserver } from "./impressions";
 
 /**
  * Mounted once in the storefront layouts. Renders nothing and never touches the DOM it watches:
@@ -50,8 +50,7 @@ export function AnalyticsProvider() {
       if (!card || !link || !card.contains(link)) return;
       const productId = card.dataset.productId;
       if (!productId) return;
-      const position = Array.from(document.querySelectorAll(PRODUCT_SELECTOR)).indexOf(card);
-      track("product_click", { productId, meta: { pos: Math.max(0, position) } });
+      track("product_click", { productId, meta: { pos: cardPosition(card) } });
     };
     document.addEventListener("click", onClick, { capture: true, passive: true });
 

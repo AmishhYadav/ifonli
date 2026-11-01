@@ -8,7 +8,10 @@ import {
   adminAuditLog,
   carts,
   contactMessages,
+  couponRedemptions,
+  coupons,
   customerProfiles,
+  notificationOutbox,
   orderItems,
   orders,
   session,
@@ -18,7 +21,7 @@ import {
   wishlistItems,
 } from "@/server/db/schema";
 import { createAddress, updateProfile } from "@/server/services/account";
-import { deleteCustomerAccount, exportCustomerData } from "@/server/services/dpdp";
+import { SUPPORT_TEXT_REMOVED, deleteCustomerAccount, exportCustomerData } from "@/server/services/dpdp";
 import { replaceAccountWishlist } from "@/server/services/wishlist";
 
 import { seedCatalogFixture, type Fixture } from "./catalog-fixture";
@@ -76,6 +79,17 @@ async function populate(userId: string, email: string) {
     notes: "internal note: possible repeat claimant",
   });
   await db().insert(contactMessages).values({ name: "Asha", email, message: "Where is my order please" });
+  const [coupon] = await db()
+    .insert(coupons)
+    .values({ code: `WELCOME-${userId}`, kind: "percent", value: 1000 })
+    .returning();
+  await db()
+    .insert(couponRedemptions)
+    .values({ couponId: coupon!.id, orderId: placed.order.orderId, email, status: "confirmed" });
+  await db().insert(notificationOutbox).values([
+    { orderId: placed.order.orderId, channel: "email", template: "order_confirmation", to: email, status: "sent", payload: { name: "Asha" } },
+    { channel: "email", template: "marketing_note", to: email.toUpperCase(), status: "failed" },
+  ]);
   return placed;
 }
 
@@ -99,6 +113,10 @@ describe("export my data", () => {
       expect.objectContaining({ orderRef: mine.order.ref, type: "damaged", photos: 1 }),
     ]);
     expect(data.contactMessages).toHaveLength(1);
+    expect(data.couponRedemptions).toEqual([
+      expect.objectContaining({ couponCode: "WELCOME-cust-a", orderRef: mine.order.ref, email: "asha@example.com" }),
+    ]);
+    expect(data.notifications.map((n) => n.template).sort()).toEqual(["marketing_note", "order_confirmation"]);
 
     // no secrets, no staff notes, nothing of the other customer
     const json = JSON.stringify(data);
@@ -158,6 +176,49 @@ describe("delete my account", () => {
       ok: false,
       code: "not_found",
     });
+  });
+
+  it("erases the personal data that is not a tax or accounting record", async () => {
+    const placed = await populate("cust-a", "asha@example.com");
+    const other = await populate("cust-b", "bela@example.com");
+    const removed: string[][] = [];
+
+    await deleteCustomerAccount(db(), "cust-a", {
+      actor: { id: "cust-a" },
+      removePhotos: async (paths) => void removed.push(paths),
+    });
+
+    // the case stays with its order, without the customer's words or photos
+    const [kase] = await db().select().from(supportCases).where(eq(supportCases.orderId, placed.order.orderId));
+    expect(kase).toMatchObject({ type: "damaged", description: SUPPORT_TEXT_REMOVED, photoPaths: [] });
+    expect(removed).toEqual([["support/x/y.jpg"]]);
+
+    // coupon redemption keeps its count but not the address
+    const [redemption] = await db().select().from(couponRedemptions).where(eq(couponRedemptions.orderId, placed.order.orderId));
+    expect(redemption!.email).toMatch(/^deleted-.+@deleted\.invalid$/);
+    expect(JSON.stringify(redemption)).not.toContain("asha@example.com");
+
+    // outbox rows (about the order, or to the address in any letter case) and contact messages are gone
+    expect(await db().select().from(notificationOutbox).where(eq(notificationOutbox.orderId, placed.order.orderId))).toHaveLength(0);
+    const left = await db().select().from(notificationOutbox);
+    expect(left.map((n) => n.to.toLowerCase())).toEqual(["bela@example.com", "bela@example.com"]);
+    expect((await db().select().from(contactMessages)).map((m) => m.email)).toEqual(["bela@example.com"]);
+
+    // the other customer's case is untouched
+    const [theirs] = await db().select().from(supportCases).where(eq(supportCases.orderId, other.order.orderId));
+    expect(theirs!.description).toBe("Arrived cracked");
+  });
+
+  it("still erases the account when the photos cannot be removed from storage", async () => {
+    await populate("cust-a", "asha@example.com");
+    const res = await deleteCustomerAccount(db(), "cust-a", {
+      actor: { id: "cust-a" },
+      removePhotos: async () => {
+        throw new Error("storage down");
+      },
+    });
+    expect(res.ok).toBe(true);
+    expect(await db().select().from(user).where(eq(user.id, "cust-a"))).toHaveLength(0);
   });
 
   it("records a staff actor as 'staff' (the admin Customers module reuses this)", async () => {

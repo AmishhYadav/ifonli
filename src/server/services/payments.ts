@@ -1,11 +1,12 @@
 import "server-only";
 
-import { and, asc, eq, gt, isNull } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
 
 import { formatINR } from "@/lib/money";
 import {
   couponRedemptions,
-  invoices,
+  coupons,
+  notificationOutbox,
   orderItems,
   orders,
   payments,
@@ -23,13 +24,12 @@ import { getPaymentProvider } from "@/server/payments/registry";
 
 import { recordPurchase } from "./analytics/purchase";
 import { clearCartForOrder } from "./cart";
-import { confirmRedemption } from "./coupons";
+import { REDEMPTION_COUNTING, confirmRedemption } from "./coupons";
 import { adjustStock } from "./inventory";
 import { addOrderEvent } from "./order-events";
-import { nextInvoiceNumber } from "./invoice-number";
+import { ensureInvoiceNumber, nextInvoiceNumber } from "./invoice-number";
 import { expireOrder } from "./orders";
 import type { DbClient } from "./queries/shared";
-import { readSettings } from "./queries/shared";
 import { loadVariantStock } from "./queries/stock";
 import { dispositionOf, executeRefund, type PaymentDisposition } from "./refunds";
 
@@ -135,7 +135,7 @@ export async function finalizePaidOrder(
   try {
     result = await db.transaction((tx) => finalizeInTransaction(tx, orderId, payment, now));
   } catch (e) {
-    if (e instanceof AmountMismatchError) await alertAmountMismatch(db, orderId, payment);
+    if (e instanceof AmountMismatchError) await refundAmountMismatch(db, orderId, payment, opts.provider);
     throw e;
   }
 
@@ -264,13 +264,11 @@ async function finalizeInTransaction(
     .set({ status: "confirmed", paymentStatus: "paid", paidAt: now })
     .where(eq(orders.id, orderId));
 
-  // Coupon: reserved -> confirmed. A late capture finds it already released: the customer has paid,
-  // so the redemption is restored regardless of the usage cap.
+  // Coupon: reserved -> confirmed. A late capture finds it already released: the customer has paid
+  // the discounted price, so the sale stands, but the redemption comes back under the coupon lock and
+  // the limits are re-checked; going over is recorded and the admin is told, never silent.
   if ((await confirmRedemption(tx, orderId)) === 0) {
-    await tx
-      .update(couponRedemptions)
-      .set({ status: "confirmed" })
-      .where(and(eq(couponRedemptions.orderId, orderId), eq(couponRedemptions.status, "released")));
+    await restoreReleasedRedemption(tx, order);
   }
 
   const late = order.status === "expired";
@@ -309,23 +307,65 @@ async function finalizeInTransaction(
     payload: { ref: order.ref, orderId, totalPaise: order.totalPaise, paymentMethod: "razorpay", late },
   });
 
-  // Last: the invoice counter row lock is held until commit.
-  const { gstin } = await readSettings(tx, ["gstin"]);
-  const [existingInvoice] = await tx.select({ id: invoices.id }).from(invoices).where(eq(invoices.orderId, orderId));
-  if (!existingInvoice) {
-    const number = await nextInvoiceNumber(tx, now);
-    await tx.insert(invoices).values({
-      orderId,
-      number,
-      kind: gstin.value ? "tax_invoice" : "bill_of_supply",
-    });
-    await addOrderEvent(tx, orderId, { type: "invoice_assigned", note: number });
-  }
+  // Last: the invoice counter row lock is held until commit. The seller / tax data on the invoice is
+  // frozen here, at confirmation.
+  await ensureInvoiceNumber(tx, orderId, now);
 
   // Analytics (fail-safe, own savepoint): the sale is recorded in the same transaction as the capture.
   await recordPurchase(tx, orderId, { now });
 
   return { outcome: "finalized", orderId, late, productIds, refundIds: [] };
+}
+
+/**
+ * Late capture: puts a released coupon redemption back to `confirmed`. The coupon row is locked so the
+ * count and the update are atomic. If the usage limit or the per-customer limit is already used up by
+ * other orders, the redemption is restored anyway (the money is in and the discount was part of the
+ * price) but the order gets an internal `coupon_over_limit` event and the admin an alert.
+ */
+async function restoreReleasedRedemption(tx: DbClient, order: OrderRow): Promise<void> {
+  const [released] = await tx
+    .select()
+    .from(couponRedemptions)
+    .where(and(eq(couponRedemptions.orderId, order.id), eq(couponRedemptions.status, "released")))
+    .limit(1);
+  if (!released) return;
+
+  const [coupon] = await tx.select().from(coupons).where(eq(coupons.id, released.couponId)).for("update");
+  const others = and(
+    eq(couponRedemptions.couponId, released.couponId),
+    inArray(couponRedemptions.status, [...REDEMPTION_COUNTING]),
+    ne(couponRedemptions.orderId, order.id),
+  );
+  const [[total], [mine]] = await Promise.all([
+    tx.select({ n: sql<number>`count(*)::int` }).from(couponRedemptions).where(others),
+    tx
+      .select({ n: sql<number>`count(*)::int` })
+      .from(couponRedemptions)
+      .where(and(others, sql`lower(${couponRedemptions.email}) = lower(${released.email})`)),
+  ]);
+
+  await tx.update(couponRedemptions).set({ status: "confirmed" }).where(eq(couponRedemptions.id, released.id));
+
+  const overTotal = coupon?.usageLimit != null && (total?.n ?? 0) >= coupon.usageLimit;
+  const overCustomer = coupon?.perCustomerLimit != null && (mine?.n ?? 0) >= coupon.perCustomerLimit;
+  if (!overTotal && !overCustomer) return;
+
+  const which = overTotal ? "its usage limit" : "its per-customer limit";
+  await addOrderEvent(tx, order.id, {
+    type: "coupon_over_limit",
+    note: `Coupon ${coupon?.code ?? order.couponCode ?? ""} went over ${which}: the payment arrived after the reservation expired and other orders had used the allowance. The sale was kept.`,
+  });
+  await enqueueAdminAlert(tx, {
+    orderId: order.id,
+    template: "payment_anomaly",
+    payload: {
+      kind: "Coupon limit exceeded by a late payment",
+      ref: order.ref,
+      orderId: order.id,
+      amountPaise: order.totalPaise,
+    },
+  });
 }
 
 /**
@@ -340,6 +380,8 @@ async function refuseCapture(
   reason: PaymentDisposition,
   _now: Date,
   productIds: string[],
+  /** Set when the capture is refused because its amount differs from the order total. */
+  mismatch = false,
 ): Promise<TxResult> {
   const raw = paymentRaw(payment, { disposition: reason });
   let row: PaymentRow;
@@ -373,28 +415,40 @@ async function refuseCapture(
     no_stock: "Payment after the reservation expired and stock sold out (auto-refund)",
     order_closed: "Payment on a closed order (auto-refund)",
   };
+  const refundReason = mismatch ? "Captured amount did not match the order total (auto-refund)" : REASONS[reason];
   const [refund] = await tx
     .insert(refunds)
-    .values({ orderId: order.id, paymentId: row!.id, amountPaise: payment.amountPaise, reason: REASONS[reason], status: "pending" })
+    .values({ orderId: order.id, paymentId: row!.id, amountPaise: payment.amountPaise, reason: refundReason, status: "pending" })
     .returning({ id: refunds.id });
 
   await addOrderEvent(tx, order.id, {
-    type: `payment_${reason}`,
-    note: `${formatINR(payment.amountPaise)} captured and ${
-      reason === "no_stock" ? "refunded because the items sold out" : "refunded automatically"
-    } (${REASONS[reason]}).`,
+    type: mismatch ? "payment_amount_mismatch" : `payment_${reason}`,
+    note: mismatch
+      ? `Captured ${formatINR(payment.amountPaise)} but the order total is ${formatINR(order.totalPaise)}. Not confirmed; the full amount is being refunded.`
+      : `${formatINR(payment.amountPaise)} captured and ${
+          reason === "no_stock" ? "refunded because the items sold out" : "refunded automatically"
+        } (${REASONS[reason]}).`,
     visible: reason === "no_stock",
   });
   await enqueueAdminAlert(tx, {
     orderId: order.id,
     template: "payment_anomaly",
-    payload: {
-      kind: reason,
-      ref: order.ref,
-      orderId: order.id,
-      providerPaymentId: payment.providerPaymentId,
-      amountPaise: payment.amountPaise,
-    },
+    payload: mismatch
+      ? {
+          kind: "amount_mismatch",
+          ref: order.ref,
+          orderId: order.id,
+          providerPaymentId: payment.providerPaymentId,
+          capturedPaise: payment.amountPaise,
+          orderTotalPaise: order.totalPaise,
+        }
+      : {
+          kind: reason,
+          ref: order.ref,
+          orderId: order.id,
+          providerPaymentId: payment.providerPaymentId,
+          amountPaise: payment.amountPaise,
+        },
   });
   await enqueueCustomerNotification(tx, {
     orderId: order.id,
@@ -411,6 +465,54 @@ async function refuseCapture(
     productIds,
     refundIds: [refund!.id],
   };
+}
+
+/**
+ * A captured payment whose amount differs from the order total: the order is NOT confirmed and the
+ * whole captured amount is refunded (the same mechanism as the no-stock auto-refund), with the admin
+ * alert. Idempotent per payment: a repeat (verify + webhook + cron) finds the decision already
+ * recorded and only re-sends a refund that has not reached the provider. When the payment cannot be
+ * tied to a provider order of this order there is nothing to refund against, so only the alert is
+ * written. A payment that already paid the order is left alone.
+ */
+async function refundAmountMismatch(
+  db: DbClient,
+  orderId: string,
+  payment: CapturedPayment,
+  provider?: PaymentProvider,
+): Promise<void> {
+  let refundIds: string[] = [];
+  try {
+    const out = await db.transaction(async (tx) => {
+      const [order] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
+      if (!order) return { refundIds: [] as string[], alertOnly: false };
+      const rows = await tx.select().from(payments).where(eq(payments.orderId, orderId)).orderBy(asc(payments.createdAt), asc(payments.id)).for("update");
+      const byPid = rows.find((r) => r.providerPaymentId === payment.providerPaymentId);
+      const byOid = rows.find((r) => r.providerOrderId === payment.providerOrderId);
+      if (byPid?.status === "captured") {
+        // Decision already taken: re-send a refund that never reached the provider, nothing else.
+        if (!dispositionOf(byPid)) return { refundIds: [] as string[], alertOnly: false };
+        const open = await tx
+          .select({ id: refunds.id })
+          .from(refunds)
+          .where(and(eq(refunds.paymentId, byPid.id), eq(refunds.status, "pending"), isNull(refunds.providerRefundId)));
+        return { refundIds: open.map((r) => r.id), alertOnly: false };
+      }
+      if (!byPid && !byOid) return { refundIds: [] as string[], alertOnly: true };
+      const r = await refuseCapture(tx, order, byPid ?? byOid, payment, "order_closed", new Date(), [], true);
+      return { refundIds: r.refundIds, alertOnly: false };
+    });
+    refundIds = out.refundIds;
+    if (out.alertOnly) await alertAmountMismatch(db, orderId, payment);
+  } catch (e) {
+    console.error("refundAmountMismatch failed", e instanceof Error ? e.message : e);
+    await alertAmountMismatch(db, orderId, payment);
+    return;
+  }
+  for (const id of refundIds) {
+    const r = await executeRefund(db, id, provider ?? getPaymentProvider());
+    if (r.status === "error") console.error("auto-refund deferred", { refundId: id, retryable: r.retryable });
+  }
 }
 
 /** A captured payment whose amount differs from the order total: do not confirm, tell the admin. */
@@ -458,6 +560,13 @@ export interface PaymentFailureInput {
  * `payment_status` become `failed`, a timeline event is written, and the order stays
  * `pending_payment` so the customer can retry on the same provider order. Ignored once the order is
  * paid (a stale failure of an earlier attempt must not undo a success). Idempotent.
+ *
+ * The customer also gets ONE `payment_failed` e-mail per order, queued in this transaction and only
+ * while the order is still `pending_payment` (never for a paid, cancelled or expired order). A later
+ * failed retry of the same order adds a timeline event but no second e-mail: the first one already
+ * points to the order page, and a customer who keeps failing should not be mailed for every try. The
+ * order row lock taken below serialises concurrent failures, so the "already queued?" check is safe;
+ * a webhook replay never gets this far (`webhook_events` dedupe, then the same-payment guard).
  */
 export async function recordPaymentFailure(
   db: DbClient,
@@ -499,6 +608,24 @@ export async function recordPaymentFailure(
       note: `Payment attempt failed${input.errorCode ? ` (${input.errorCode})` : ""}. You can retry.`,
       visible: true,
     });
+    if (order.status === "pending_payment") await queuePaymentFailedEmail(tx, order);
     return { recorded: true, orderId: order.id };
+  });
+}
+
+/** Queues the `payment_failed` e-mail unless this order already has one (see `recordPaymentFailure`). */
+async function queuePaymentFailedEmail(tx: DbClient, order: typeof orders.$inferSelect): Promise<void> {
+  const [queued] = await tx
+    .select({ id: notificationOutbox.id })
+    .from(notificationOutbox)
+    .where(and(eq(notificationOutbox.orderId, order.id), eq(notificationOutbox.template, "payment_failed")))
+    .limit(1);
+  if (queued) return;
+  // No guest token in the payload (only its hash is stored): the e-mail links to /track, like the others.
+  await enqueueCustomerNotification(tx, {
+    orderId: order.id,
+    template: "payment_failed",
+    to: order.email,
+    payload: { ref: order.ref, orderId: order.id },
   });
 }

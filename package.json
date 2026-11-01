@@ -2,6 +2,9 @@
   "name": "ifonli",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -23,6 +26,7 @@
     "db:import-reference": "tsx --conditions=react-server scripts/import-reference.ts",
     "db:seed-products": "tsx --conditions=react-server scripts/seed-products.ts",
     "db:seed-content": "tsx --conditions=react-server scripts/seed-content.ts",
+    "db:store-values": "tsx --conditions=react-server scripts/store-values/apply-settings-content.ts && tsx --conditions=react-server scripts/store-values/apply-catalogue.ts",
     "admin:create": "tsx --conditions=react-server scripts/create-admin.ts",
     "storage:setup": "tsx --conditions=react-server scripts/setup-storage.ts"
   },

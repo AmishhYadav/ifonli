@@ -32,6 +32,11 @@ const seriousViolations = async (page: Page) => {
 test.describe("policies", () => {
   for (const slug of POLICIES) {
     test(`/policies/${slug} renders as a draft with its title, version and contents`, async ({ page }) => {
+      // admin-content.spec publishes and edits the shipping policy, possibly while this runs in another worker.
+      test.skip(
+        slug === "shipping" && !!process.env.E2E_ADMIN_FLOW,
+        "shipping is changed by admin-content.spec when E2E_ADMIN_FLOW is set",
+      );
       const response = await page.goto(`/policies/${slug}`);
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

@@ -61,6 +61,7 @@ Each setting has a placeholder and a launch gate. The owner supplies the real va
 - [ ] Vibes: vibe_cycle, default_vibe, hero_enabled, custom_cursor_enabled (Phase 2)
 - [ ] Notifications: channels per event, admin_alert_emails (Phase 5)
 - [ ] Analytics: ga4_measurement_id, consent_required, event_retention_months (Phase 6)
+- [ ] Data retention periods to confirm with the lawyer (placeholders in `src/server/services/retention.ts`, see D-RET-1): closed contact messages 365 days; text and photos of resolved or rejected support cases 365 days; delivered e-mails 90 days; processed webhook events 90 days; orders and invoices kept about 8 years (GST and Companies Act, not purged)
 
 ## Reference data follow-ups (found during Phase 0 data prep)
 

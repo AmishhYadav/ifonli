@@ -1,10 +1,11 @@
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { upsertAdminUser } from "@/server/auth/admin-user";
+import { getPasswordChangeState, upsertAdminUser } from "@/server/auth/admin-user";
 import { getAuth } from "@/server/auth/auth";
 import { getDb } from "@/server/db";
-import { account, user } from "@/server/db/schema";
+import { account, user, verification } from "@/server/db/schema";
+import { createStaffUser, resetStaffPassword, resetStaffTwoFactor } from "@/server/services/admin/users";
 
 import { totp } from "../e2e/helpers/totp";
 
@@ -34,14 +35,15 @@ describe("D-AUTH-1: credential sign-in is for admins only", () => {
       role: "owner",
       password: PASSWORD,
     });
-    const wrong = getAuth().api.signInEmail({
-      body: { email: "boss@example.com", password: "nope-nope-nope-1" },
-    });
-    const unknown = getAuth().api.signInEmail({
-      body: { email: "ghost@example.com", password: PASSWORD },
-    });
-    await expect(wrong).rejects.toMatchObject({ statusCode: 401 });
-    await expect(unknown).rejects.toMatchObject({ statusCode: 401 });
+    // One at a time: a rejected promise nobody is awaiting yet is an unhandled rejection under load.
+    const wrong = await getAuth()
+      .api.signInEmail({ body: { email: "boss@example.com", password: "nope-nope-nope-1" } })
+      .then(() => null, (e: unknown) => e);
+    const unknown = await getAuth()
+      .api.signInEmail({ body: { email: "ghost@example.com", password: PASSWORD } })
+      .then(() => null, (e: unknown) => e);
+    expect(wrong).toMatchObject({ statusCode: 401, message: "Invalid email or password" });
+    expect(unknown).toMatchObject({ statusCode: 401, message: "Invalid email or password" });
   });
 
   it("refuses credential sign-in for a customer even with a valid password hash", async () => {
@@ -190,5 +192,122 @@ describe("upsertAdminUser", () => {
         password: PASSWORD,
       }),
     ).rejects.toThrow(/Role/);
+  });
+});
+
+describe("temporary staff passwords", () => {
+  const ownerActor = { id: "owner-actor", role: "owner" };
+  const state = (id: string) => getPasswordChangeState(getDb(), id);
+
+  async function seedActor() {
+    await getDb().insert(user).values({
+      id: ownerActor.id,
+      name: "Owner",
+      email: "actor@example.com",
+      role: "owner",
+      twoFactorEnabled: true,
+    });
+  }
+
+  it("a new staff account must replace its password, and the temporary one expires after a week", async () => {
+    await seedActor();
+    const created = await createStaffUser(
+      getDb(),
+      { name: "New Hire", email: "hire@example.com", role: "fulfilment" },
+      ownerActor,
+    );
+    expect(await state(created.id)).toMatchObject({ state: "required" });
+    const signIn = () =>
+      getAuth().api.signInEmail({ body: { email: "hire@example.com", password: created.tempPassword! } });
+    await expect(signIn()).resolves.toBeDefined();
+
+    // Past the deadline the temporary password no longer signs in, with the usual generic error.
+    await getDb()
+      .update(user)
+      .set({ passwordChangeDeadline: new Date(Date.now() - 1000) })
+      .where(eq(user.id, created.id));
+    expect(await state(created.id)).toEqual({ state: "expired" });
+    await expect(signIn()).rejects.toMatchObject({ statusCode: 401, message: "Invalid email or password" });
+  });
+
+  it("changing the password mid-enrolment keeps the enrolling session and drops the others", async () => {
+    await seedActor();
+    const created = await createStaffUser(
+      getDb(),
+      { name: "New Hire", email: "hire@example.com", role: "admin" },
+      ownerActor,
+    );
+    const auth = getAuth();
+    const login = async () => {
+      const res = await auth.api.signInEmail({
+        body: { email: "hire@example.com", password: created.tempPassword! },
+        returnHeaders: true,
+      });
+      return new Headers({ cookie: res.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ") });
+    };
+    const attacker = await login();
+    const mine = await login();
+
+    // The same calls, in the same order, as `startEnrollmentAction`.
+    const enabled = await auth.api.enableTwoFactor({
+      body: { password: created.tempPassword!, method: "totp" },
+      headers: mine,
+    });
+    if (enabled.method !== "totp") throw new Error("expected totp");
+    const changed = await auth.api.changePassword({
+      body: { currentPassword: created.tempPassword!, newPassword: "A-Brand-New-Passphrase-1", revokeOtherSessions: true },
+      headers: mine,
+      returnHeaders: true,
+    });
+    const refreshed = new Headers({
+      cookie: changed.headers.getSetCookie().map((c) => c.split(";")[0]).join("; "),
+    });
+
+    expect(await auth.api.getSession({ headers: attacker })).toBeNull();
+    expect((await auth.api.getSession({ headers: refreshed }))?.user.email).toBe("hire@example.com");
+    const secret = new URL(enabled.totpURI).searchParams.get("secret")!;
+    await auth.api.verifyTOTP({ body: { code: totp(secret) }, headers: refreshed });
+    await expect(
+      auth.api.signInEmail({ body: { email: "hire@example.com", password: created.tempPassword! } }),
+    ).rejects.toBeDefined();
+    await expect(
+      auth.api.signInEmail({ body: { email: "hire@example.com", password: "A-Brand-New-Passphrase-1" } }),
+    ).resolves.toMatchObject({ twoFactorRedirect: true });
+  });
+
+  it("the marker is a column on the user (about a week out), not a row the verification sweep could remove", async () => {
+    await seedActor();
+    const created = await createStaffUser(
+      getDb(),
+      { name: "New Hire", email: "hire@example.com", role: "admin" },
+      ownerActor,
+    );
+    const [row] = await getDb().select().from(user).where(eq(user.id, created.id));
+    const week = 7 * 24 * 3600 * 1000;
+    expect(Math.abs(row!.passwordChangeDeadline!.getTime() - (Date.now() + week))).toBeLessThan(60_000);
+    expect(await getDb().select().from(verification)).toHaveLength(0);
+    // Clearing it (the script upsert, or a completed change) leaves NULL.
+    await upsertAdminUser(getDb(), { email: "hire@example.com", role: "admin", password: PASSWORD });
+    const [after] = await getDb().select().from(user).where(eq(user.id, created.id));
+    expect(after!.passwordChangeDeadline).toBeNull();
+  });
+
+  it("owner resets: only someone still to enrol is asked for a new password; script upserts clear it", async () => {
+    await seedActor();
+    const db = getDb();
+    await db.insert(user).values([
+      { id: "u-new", name: "Not Enrolled", email: "new@example.com", role: "admin", twoFactorEnabled: false },
+      { id: "u-enrolled", name: "Enrolled", email: "enrolled@example.com", role: "admin", twoFactorEnabled: true },
+    ]);
+    await resetStaffPassword(db, "u-new", ownerActor);
+    await resetStaffPassword(db, "u-enrolled", ownerActor);
+    expect(await state("u-new")).toMatchObject({ state: "required" });
+    expect(await state("u-enrolled")).toEqual({ state: "none" });
+
+    await resetStaffTwoFactor(db, "u-enrolled", ownerActor);
+    expect(await state("u-enrolled")).toMatchObject({ state: "required" });
+
+    await upsertAdminUser(db, { email: "new@example.com", role: "admin", password: PASSWORD });
+    expect(await state("u-new")).toEqual({ state: "none" });
   });
 });

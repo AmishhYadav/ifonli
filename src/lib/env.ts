@@ -83,3 +83,57 @@ export function getServerEnv(): ServerEnv {
   }
   return cached;
 }
+
+/** Secrets shorter than this are guessable or placeholders; `openssl rand -hex 32` gives 64. */
+const MIN_SECRET_LENGTH = 32;
+
+const REQUIRED_IN_PRODUCTION = [
+  "DATABASE_URL",
+  "RESEND_API_KEY",
+  "EMAIL_FROM",
+  "RAZORPAY_KEY_ID",
+  "RAZORPAY_KEY_SECRET",
+  "RAZORPAY_WEBHOOK_SECRET",
+] as const;
+const STRONG_SECRETS = ["BETTER_AUTH_SECRET", "CRON_SECRET"] as const;
+
+/**
+ * What is wrong with a production environment, as readable lines (never values). A site URL has to
+ * be https, except for localhost, so a production build can still be run and tested on one machine.
+ */
+export function productionEnvProblems(source: Record<string, string | undefined>): string[] {
+  const problems: string[] = [];
+  const get = (name: string) => source[name]?.trim() ?? "";
+
+  const siteUrl = get("NEXT_PUBLIC_SITE_URL");
+  if (!siteUrl) {
+    problems.push("NEXT_PUBLIC_SITE_URL is not set (links in e-mails, the sitemap and canonical URLs would point at localhost)");
+  } else {
+    try {
+      const url = new URL(siteUrl);
+      const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+      if (url.protocol !== "https:" && !(local && url.protocol === "http:")) {
+        problems.push("NEXT_PUBLIC_SITE_URL must be an https:// URL");
+      }
+    } catch {
+      problems.push("NEXT_PUBLIC_SITE_URL is not a valid URL");
+    }
+  }
+  for (const name of STRONG_SECRETS) {
+    const value = get(name);
+    if (!value) problems.push(`${name} is not set`);
+    else if (value.length < MIN_SECRET_LENGTH) problems.push(`${name} must be at least ${MIN_SECRET_LENGTH} characters`);
+  }
+  for (const name of REQUIRED_IN_PRODUCTION) {
+    if (!get(name)) problems.push(`${name} is not set`);
+  }
+  return problems;
+}
+
+/** Throws one error listing everything wrong, so a bad deploy fails at boot and says why. */
+export function assertProductionEnv(source: Record<string, string | undefined>): void {
+  const problems = productionEnvProblems(source);
+  if (problems.length > 0) {
+    throw new Error(`Invalid production environment:\n - ${problems.join("\n - ")}`);
+  }
+}

@@ -6,6 +6,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { config } from "dotenv";
 import postgres from "postgres";
+import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
 /**
  * Customer accounts e2e: passwordless e-mail OTP login (the code is read from the dev mail channel's
@@ -76,6 +77,9 @@ async function deleteTestData() {
 }
 
 test.beforeAll(async () => {
+  // Shared fixtures: wait for any other spec that rewrites them (tests/support/fixture-lock.ts).
+  test.setTimeout(900_000);
+  await acquireFixtureLock();
   const keys = Object.keys(TEST_SETTINGS);
   const settingRows = await sql<Snapshot["settings"]>`select key, value, is_placeholder from settings where key in ${sql(keys)}`;
   const [pin] = await sql<{ cod_allowed: boolean; serviceable: boolean }[]>`
@@ -97,18 +101,22 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await deleteTestData();
-  const had = new Set(snapshot.settings.map((s) => s.key));
-  for (const key of Object.keys(TEST_SETTINGS)) {
-    if (!had.has(key)) await sql`delete from settings where key = ${key}`;
+  try {
+    await deleteTestData();
+    const had = new Set(snapshot.settings.map((s) => s.key));
+    for (const key of Object.keys(TEST_SETTINGS)) {
+      if (!had.has(key)) await sql`delete from settings where key = ${key}`;
+    }
+    for (const s of snapshot.settings) {
+      await sql`update settings set value = ${sql.json(s.value as never)}, is_placeholder = ${s.is_placeholder} where key = ${s.key}`;
+    }
+    await sql`update pincodes set cod_allowed = ${snapshot.pincode.cod_allowed}, serviceable = ${snapshot.pincode.serviceable} where pincode = ${PINCODE}`;
+    await sql`update variants set stock_on_hand = ${snapshot.stock} where id = ${snapshot.variantId}`;
+    await sql`delete from carts where token like 'e2e-%'`;
+    await sql.end();
+  } finally {
+    await releaseFixtureLock();
   }
-  for (const s of snapshot.settings) {
-    await sql`update settings set value = ${sql.json(s.value as never)}, is_placeholder = ${s.is_placeholder} where key = ${s.key}`;
-  }
-  await sql`update pincodes set cod_allowed = ${snapshot.pincode.cod_allowed}, serviceable = ${snapshot.pincode.serviceable} where pincode = ${PINCODE}`;
-  await sql`update variants set stock_on_hand = ${snapshot.stock} where id = ${snapshot.variantId}`;
-  await sql`delete from carts where token like 'e2e-%'`;
-  await sql.end();
 });
 
 test.describe.configure({ mode: "serial" });

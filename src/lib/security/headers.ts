@@ -29,7 +29,11 @@ export interface SecurityHeaderOptions {
   siteUrl?: string | undefined;
   /** Supabase project URL (SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL): storage images and media. */
   supabaseUrl?: string | undefined;
-  /** GA4 measurement id. When set the Google Tag Manager / Analytics origins are allowed. */
+  /**
+   * GA4 measurement id from the build environment. No longer changes the policy: the id can also come from
+   * the admin setting `ga4_measurement_id` (read at request time), so the Google origins are always allowed.
+   * Kept so existing callers still type-check.
+   */
   ga4Id?: string | undefined;
   /** Where violation reports go. Same-origin path. */
   reportPath?: string;
@@ -53,6 +57,9 @@ export const RAZORPAY = {
   img: ["https://cdn.razorpay.com", "https://checkout.razorpay.com"],
 } as const;
 
+// Always in the policy (not only when NEXT_PUBLIC_GA4_ID is set at build): the measurement id may come from
+// the admin setting instead, which the build cannot see. The origins are inert until gtag loads, and the
+// storefront only loads gtag after an id exists and the visitor has consented.
 const GA_SCRIPT = ["https://www.googletagmanager.com"];
 const GA_CONNECT = [
   "https://www.google-analytics.com",
@@ -92,7 +99,6 @@ export function buildBaselinePolicy(): string {
 export function buildContentSecurityPolicy(options: SecurityHeaderOptions): string {
   const { production } = options;
   const supabase = originOf(options.supabaseUrl);
-  const ga = !!options.ga4Id?.trim();
   const report = options.reportPath ?? CSP_REPORT_PATH;
   const httpsSite = originOf(options.siteUrl)?.startsWith("https:") ?? false;
 
@@ -101,7 +107,7 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions): stri
     "'unsafe-inline'",
     ...(production ? [] : ["'unsafe-eval'"]), // React dev tooling only; never in production
     ...RAZORPAY.script,
-    ...(ga ? GA_SCRIPT : []),
+    ...GA_SCRIPT,
   ];
   const connectSrc = [
     "'self'",
@@ -109,7 +115,7 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions): stri
     // customer support photos).
     ...(supabase ? [supabase] : []),
     ...RAZORPAY.connect,
-    ...(ga ? GA_CONNECT : []),
+    ...GA_CONNECT,
     ...(production ? [] : ["ws://localhost:*", "ws://127.0.0.1:*"]), // HMR
   ];
   const imgSrc = [
@@ -118,7 +124,7 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions): stri
     "blob:",
     ...(supabase ? [supabase] : []),
     ...RAZORPAY.img,
-    ...(ga ? GA_IMG : []),
+    ...GA_IMG,
   ];
 
   const directives: string[] = [

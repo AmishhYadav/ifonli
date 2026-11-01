@@ -141,7 +141,7 @@ describe("cleanup", () => {
     ]);
     await db().insert(rateLimits).values({ key: "k", windowStart: new Date(Date.now() - 3 * 86_400_000), count: 1 });
 
-    expect(await cleanupHousekeeping(db())).toEqual({ cartsDeleted: 1, webhookEventsDeleted: 1, rateLimitWindowsDeleted: 1 });
+    expect(await cleanupHousekeeping(db())).toMatchObject({ cartsDeleted: 1, webhookEventsDeleted: 1, rateLimitWindowsDeleted: 1 });
     expect((await db().select({ id: carts.id }).from(carts)).map((c) => c.id)).toEqual([live.id]);
     expect((await db().select().from(webhookEvents)).map((w) => w.providerEventId).sort()).toEqual(["old-unprocessed", "recent"]);
   });

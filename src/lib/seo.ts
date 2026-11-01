@@ -5,7 +5,11 @@
 
 const FALLBACK_SITE_URL = "http://localhost:3000";
 
-/** Public origin of the site, without a trailing slash. */
+/**
+ * Public origin of the site, without a trailing slash. The localhost fallback is for local work and
+ * `next build` only: a production server refuses to boot without NEXT_PUBLIC_SITE_URL
+ * (`assertProductionEnv`, called from `instrumentation-node.ts`), so it never serves localhost links.
+ */
 export function siteUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (!raw) return FALLBACK_SITE_URL;

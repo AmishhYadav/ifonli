@@ -12,12 +12,15 @@
  *   --reset-2fa           drop the existing authenticator so TOTP is enrolled again at next login
  *
  * Safe to re-run: an existing account is updated (role, password), never duplicated. Refuses to
- * touch a production database unless --force is given.
+ * touch a database that is not on this machine unless --allow-remote is given (--force is accepted
+ * as the older spelling).
  */
 import { randomBytes } from "node:crypto";
 import { parseArgs } from "node:util";
 
 import { config } from "dotenv";
+
+import { requireLocalOrAllowRemote } from "./db-guard";
 
 config({ path: ".env.local" });
 config();
@@ -30,17 +33,17 @@ async function main() {
       name: { type: "string" },
       password: { type: "string" },
       "reset-2fa": { type: "boolean", default: false },
+      "allow-remote": { type: "boolean", default: false },
       force: { type: "boolean", default: false },
     },
   });
   if (!values.email) throw new Error("--email is required");
-  if (process.env.NODE_ENV === "production" && !values.force) {
-    throw new Error("NODE_ENV=production: pass --force to create an admin on this database");
-  }
+  requireLocalOrAllowRemote("create-admin", "create or change an admin account", values.force ? [...process.argv, "--allow-remote"] : process.argv);
 
+  // `||`, not `??`: .env.example ships ADMIN_PASSWORD= (empty), which must mean "generate one".
   const generated = !values.password && !process.env.ADMIN_PASSWORD;
   const password =
-    values.password ?? process.env.ADMIN_PASSWORD ?? randomBytes(15).toString("base64url");
+    values.password || process.env.ADMIN_PASSWORD || randomBytes(15).toString("base64url");
 
   const { getDb } = await import("../src/server/db");
   const { upsertAdminUser } = await import("../src/server/auth/admin-user");

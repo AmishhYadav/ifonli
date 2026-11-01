@@ -36,8 +36,9 @@ describe("getVariantAvailability", () => {
     const v = f.variants.skull!; // 10 on hand
     await reserve(v, 3, 10); // counts
     await reserve(v, 4, -1); // expired: ignored
-    const order = await makeOrder();
     for (const status of ["converted", "released"] as const) {
+      // One order per row: (order, variant) is unique.
+      const order = await makeOrder();
       await db()
         .insert(stockReservations)
         .values({ orderId: order.id, variantId: v, qty: 2, expiresAt: new Date(Date.now() + 600_000), status });

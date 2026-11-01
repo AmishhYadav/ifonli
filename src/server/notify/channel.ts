@@ -21,7 +21,8 @@ export interface OutboundEmail {
 }
 
 export type SendResult =
-  | { ok: true; providerId: string }
+  /** `note` is kept on the outbox row (`last_error`) when the send counts as done for a reason worth remembering. */
+  | { ok: true; providerId: string; note?: string }
   /** `retryable: false` = the provider rejected the message itself (bad address, invalid key): retrying cannot help. */
   | { ok: false; error: string; retryable: boolean };
 

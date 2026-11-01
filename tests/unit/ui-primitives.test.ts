@@ -50,6 +50,17 @@ describe("Price", () => {
     expect(html(createElement(Price, { pricePaise: 34900 }))).not.toContain("From");
   });
 
+  it("says MRP in the tax line when the price equals the MRP (no strike-through to carry the word)", () => {
+    const same = html(createElement(Price, { pricePaise: 17900, mrpPaise: 17900, inclusiveOfTaxes: true }));
+    expect(same).toContain("MRP incl. of all taxes");
+    expect(same).not.toMatch(/<s[ >]/);
+    const discounted = html(createElement(Price, { pricePaise: 14900, mrpPaise: 17900, inclusiveOfTaxes: true }));
+    expect(discounted).toMatch(/<s[ >]/);
+    expect(discounted).not.toContain("MRP incl. of all taxes");
+    const cardLayout = html(createElement(Price, { pricePaise: 17900, mrpPaise: 17900 }));
+    expect(cardLayout).not.toContain("MRP incl.");
+  });
+
   it("never reports a discount without a real MRP above the price", () => {
     expect(discountPercent(100, 100)).toBe(0);
     expect(discountPercent(100, 50)).toBe(0);
@@ -82,7 +93,7 @@ const base: ProductCard = {
   primaryVibe: "cute",
   priceFromPaise: 34900,
   mrpFromPaise: 34900,
-  hasMultipleVariants: false,
+  hasPriceRange: false,
   inStock: true,
   lowStock: false,
   image: null,
@@ -106,7 +117,9 @@ describe("ProductCardView", () => {
   });
 
   it("prefixes From for variable prices and never strikes an equal MRP", () => {
-    expect(card({ hasMultipleVariants: true })).toContain("From");
+    expect(card({ hasPriceRange: true })).toContain("From");
+    // several variants at one price: the card is not a range, so no "From"
+    expect(card({ hasPriceRange: false, priceFromPaise: 17900, mrpFromPaise: 17900 })).not.toContain("From");
     expect(card({})).not.toContain("From");
     expect(card({})).not.toContain("<s ");
     expect(card({ mrpFromPaise: 44900 })).toContain("<s ");

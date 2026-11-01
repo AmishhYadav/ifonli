@@ -8,7 +8,7 @@ import { ProductGrid, ProductGridItem } from "@/components/store/ProductGrid";
 import { Button, EmptyState } from "@/components/ui";
 
 import { getWishlistItems, type WishlistItem } from "./actions";
-import { pruneWishlist } from "./store";
+import { getWishlist, pruneWishlist } from "./store";
 import { WishlistHeart } from "./WishlistHeart";
 import { useWishlistEntries } from "./useWishlist";
 
@@ -55,7 +55,10 @@ export function WishlistView({ emptyTitle, emptyBody }: WishlistViewProps) {
         return next;
       });
       if (result.missingIds.length > 0) {
-        pruneWishlist(new Set(ids.filter((id) => !result.missingIds.includes(id))));
+        // Keep everything saved NOW except the unknown ids: `ids` is from when the request started, and a
+        // heart added meanwhile (another tab, another card) would otherwise be pruned with it.
+        const gone = new Set(result.missingIds);
+        pruneWishlist(new Set(getWishlist().map((e) => e.id).filter((id) => !gone.has(id))));
       }
     });
     return () => {

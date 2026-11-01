@@ -13,6 +13,7 @@ import {
 } from "../support/commerce";
 import { sql } from "../support/db";
 import { VIBES, gotoVibe, type Vibe } from "../support/vibes";
+import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
 /**
  * WCAG 2.2 AA scan (axe-core, tags wcag2a/2aa/21a/21aa/22aa, every impact level) of every storefront page
@@ -42,7 +43,9 @@ let admin: AdminLogin;
 let productSlug = "";
 
 test.beforeAll(async ({ browser, baseURL }) => {
-  test.setTimeout(300_000);
+  // Shared fixtures: wait for any other spec that rewrites them (tests/support/fixture-lock.ts).
+  test.setTimeout(900_000);
+  await acquireFixtureLock();
   await cleanupQa();
   restore = await applyCommerce();
   const [p] = await sql<{ slug: string }[]>`
@@ -52,9 +55,13 @@ test.beforeAll(async ({ browser, baseURL }) => {
 });
 
 test.afterAll(async () => {
-  await cleanupQa();
-  await cleanupQaAdmins();
-  await restore();
+  try {
+    await cleanupQa();
+    await cleanupQaAdmins(admin ? [admin.email] : []);
+    await restore();
+  } finally {
+    await releaseFixtureLock();
+  }
 });
 
 async function settle(page: Page) {
@@ -284,6 +291,7 @@ const ADMIN_PAGES = [
   "/admin/settings",
   "/admin/users",
   "/admin/audit",
+  "/admin/pincodes",
   "/admin/reports",
   "/admin/insights",
 ];

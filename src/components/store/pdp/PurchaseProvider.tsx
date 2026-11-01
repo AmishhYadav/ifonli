@@ -1,10 +1,10 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
 
 import type { LiveVariantAvailability } from "@/server/services/queries/types";
 
-import { defaultVariantId, findVariant, type PdpModel, type PdpVariant } from "./product-model";
+import { defaultVariantId, findVariant, landingVariantId, type PdpModel, type PdpVariant } from "./product-model";
 
 interface PurchaseContextValue {
   model: PdpModel;
@@ -30,12 +30,26 @@ export function usePurchase(): PurchaseContextValue {
  * are unaffected.
  */
 export function PurchaseProvider({ model, children }: { model: PdpModel; children: ReactNode }) {
-  const [variantId, setVariantId] = useState<string | null>(() => defaultVariantId(model));
-  const [stock, setStock] = useState<ReadonlyMap<string, LiveVariantAvailability> | null>(null);
+  const [variantId, setChosenVariantId] = useState<string | null>(() => defaultVariantId(model));
+  const [stock, setStockState] = useState<ReadonlyMap<string, LiveVariantAvailability> | null>(null);
+  // Once the shopper picks a variant, live stock never moves the selection again.
+  const picked = useRef(false);
+
+  const setVariantId = useCallback((id: string) => {
+    picked.current = true;
+    setChosenVariantId(id);
+  }, []);
+  const setStock = useCallback(
+    (next: ReadonlyMap<string, LiveVariantAvailability>) => {
+      setStockState(next);
+      if (!picked.current) setChosenVariantId((current) => landingVariantId(model, next, current));
+    },
+    [model],
+  );
 
   const value = useMemo<PurchaseContextValue>(
     () => ({ model, variantId, variant: findVariant(model, variantId), setVariantId, stock, setStock }),
-    [model, variantId, stock],
+    [model, variantId, setVariantId, stock, setStock],
   );
   return <PurchaseContext value={value}>{children}</PurchaseContext>;
 }

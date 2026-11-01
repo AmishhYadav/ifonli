@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { DraftBanner } from "@/components/content/DraftBanner";
 import { FinalisingNotice } from "@/components/content/FinalisingNotice";
+import { formatPolicyDate } from "@/components/content/policy-date";
 import { PolicyProse } from "@/components/content/PolicyProse";
 import { PolicyToc } from "@/components/content/PolicyToc";
 import { POLICY_LINKS } from "@/components/store/footer/Footer";
@@ -42,8 +43,6 @@ export async function generateMetadata({
   };
 }
 
-const dateFormat = new Intl.DateTimeFormat("en-IN", { dateStyle: "long", timeZone: "UTC" });
-
 export default async function PolicyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   if (!isPolicySlug(slug)) notFound();
@@ -67,7 +66,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
           <p className="text-base text-ink-muted" data-testid="policy-meta">
             Version {policy.version}
             {policy.effectiveAt
-              ? ` · Effective ${dateFormat.format(new Date(policy.effectiveAt))}`
+              ? ` · Effective ${formatPolicyDate(policy.effectiveAt)}`
               : " · Not yet in force"}
           </p>
         ) : null}

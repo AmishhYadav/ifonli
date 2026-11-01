@@ -41,7 +41,7 @@ export const analyticsEvents = pgTable(
     index("analytics_events_session_idx").on(t.sessionId, t.ts),
     index("analytics_events_ts_idx").on(t.ts),
   ],
-);
+).enableRLS();
 
 /**
  * Hourly rollup of `analytics_events` (plus `order_items` for sales), one row per product per day
@@ -75,4 +75,4 @@ export const productEngagementDaily = pgTable(
       sql`${t.impressions} >= 0 AND ${t.pdpViews} >= 0 AND ${t.uniqueViewers} >= 0 AND ${t.reached75Pct} >= 0 AND ${t.addToCarts} >= 0 AND ${t.clicks} >= 0 AND ${t.purchases} >= 0 AND ${t.revenuePaise} >= 0`,
     ),
   ],
-);
+).enableRLS();

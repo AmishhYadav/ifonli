@@ -1,8 +1,8 @@
-import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
+import { createAdminAccount } from "./helpers/admin-account";
 import { totp } from "./helpers/totp";
 
 /**
@@ -96,6 +96,9 @@ test.describe("security: headers", () => {
       expect(full).toContain("default-src 'self'");
       expect(full).toContain("https://checkout.razorpay.com");
       expect(full).toContain("https://api.razorpay.com");
+      // A GA4 id saved in admin settings (no NEXT_PUBLIC_GA4_ID at build) must still be able to load.
+      expect(full).toContain("https://www.googletagmanager.com");
+      expect(full).toContain("https://www.google-analytics.com");
       expect(full).toContain("report-uri /api/csp-report");
       expect(h["reporting-endpoints"]).toContain("/api/csp-report");
     });
@@ -225,8 +228,9 @@ test.describe("security: no violations in a real browser", () => {
     await page.goto(`/products/${PRODUCT}?vibe=bold`);
     await settle(page);
     await expect(page.getByTestId("stock-status")).toHaveAttribute("data-stock", /.+/);
+    // Pick a variant that can be bought (the first one may be sold out after other runs).
     await page
-      .getByTestId("option-value")
+      .locator('[data-testid="option-value"]:not([data-sold-out])')
       .first()
       .click()
       .catch(() => {});
@@ -238,9 +242,15 @@ test.describe("security: no violations in a real browser", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     await page.goto("/checkout");
-    await expect(page.getByTestId("review")).toHaveAttribute("aria-busy", "false", {
-      timeout: 30_000,
-    });
+    // A production build whose launch checklist still has blockers (placeholder settings, as in CI's
+    // main build) shows the "not taking orders" notice instead of the form: that is what ships. CI runs
+    // this test again on the review build (gate off) so the form itself is covered too.
+    const review = page.getByTestId("review");
+    await expect(review.or(page.getByTestId("checkout-closed"))).toBeVisible({ timeout: 30_000 });
+    if (process.env.E2E_EXPECT_CHECKOUT_FORM) await expect(review).toBeVisible();
+    if (await review.isVisible()) {
+      await expect(review).toHaveAttribute("aria-busy", "false", { timeout: 30_000 });
+    }
     expect(violations).toEqual([]);
   });
 
@@ -387,22 +397,7 @@ test.describe("security: signed-in admin pages", () => {
     const stamp = Date.now();
     const email = `e2e-csp-admin-${stamp}@ifonli.local`;
     const password = `E2e-Csp-${stamp}!`;
-    execFileSync(
-      "pnpm",
-      [
-        "exec",
-        "tsx",
-        "--conditions=react-server",
-        "scripts/create-admin.ts",
-        "--email",
-        email,
-        "--role",
-        "owner",
-        "--password",
-        password,
-      ],
-      { stdio: "pipe" },
-    );
+    createAdminAccount(email, password, "owner");
 
     const violations = await trackViolations(page);
     await page.goto("/admin/login");

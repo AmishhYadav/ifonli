@@ -34,6 +34,7 @@ import {
   deleteImage,
   inspectImage,
   insertImageRecord,
+  registerUploadedImage,
   reorderImages,
   updateImageAlt,
 } from "@/server/services/admin/product-images";
@@ -648,6 +649,49 @@ describe("images", () => {
       /readable image/,
     );
     expect((await inspectImage(jpeg, "photo")).format).toBe("jpeg");
+  });
+
+  it("stores a re-encoded copy of an upload without EXIF/GPS, and removes uploads it cannot clean", async () => {
+    const s = await setup();
+    const p = await createProduct(db(), input(s), s.owner);
+    const original = await sharp({ create: { width: 800, height: 600, channels: 3, background: "#c00" } })
+      .withExif({ IFD0: { Copyright: "Secret Owner" }, IFD3: { GPSLatitudeRef: "N", GPSLatitude: "12/1 58/1 0/1" } })
+      .jpeg()
+      .toBuffer();
+    expect((await sharp(original).metadata()).exif).toBeDefined();
+
+    const objects = new Map<string, Buffer>();
+    const store = {
+      read: async (bucket: string, path: string) => objects.get(`${bucket}/${path}`)!,
+      write: async (bucket: string, path: string, body: Buffer) => void objects.set(`${bucket}/${path}`, body),
+      remove: async (bucket: string, paths: string[]) => paths.forEach((x) => objects.delete(`${bucket}/${x}`)),
+    };
+    const register = (name: string) =>
+      registerUploadedImage(
+        db(),
+        { productId: p.id, kind: "photo", dbPath: `products/${p.id}/${name}`, alt: "Skull charm" },
+        s.owner,
+        store,
+      );
+
+    objects.set(`products/${p.id}/a.jpg`, original);
+    const res = await register("a.jpg");
+    expect(res.image).toMatchObject({ width: 800, height: 600 });
+    const stored = objects.get(`products/${p.id}/a.jpg`)!;
+    expect((await sharp(stored).metadata()).exif).toBeUndefined();
+    expect(stored.toString("latin1")).not.toContain("Secret Owner");
+
+    objects.set(`products/${p.id}/b.jpg`, Buffer.from("not an image"));
+    await expect(register("b.jpg")).rejects.toThrow(/readable image/);
+    expect(objects.has(`products/${p.id}/b.jpg`)).toBe(false);
+
+    // If the cleaned copy cannot be stored, the original (with its EXIF) must not stay readable.
+    objects.set(`products/${p.id}/c.jpg`, original);
+    store.write = async () => {
+      throw new Error("storage down");
+    };
+    await expect(register("c.jpg")).rejects.toThrow(/storage down/);
+    expect(objects.has(`products/${p.id}/c.jpg`)).toBe(false);
   });
 
   it("adds, edits alt, reorders and deletes image rows; alt text is required", async () => {

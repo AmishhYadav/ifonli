@@ -86,6 +86,30 @@ describe("seed-content", () => {
   });
 });
 
+describe("seed-content never overwrites the owner's work", () => {
+  it("leaves a draft that was edited in admin alone, and --force never takes a published policy offline", async () => {
+    await seedPolicies(db(), [draftFile("v1")]);
+    // The owner edits the draft in admin (the history row the seed wrote is not touched by that).
+    await db().update(policies).set({ bodyMd: "owner draft\n" }).where(eq(policies.slug, "test-policy"));
+    expect(await seedPolicies(db(), [draftFile("v2")])).toMatchObject({ updated: 0, unchanged: 1 });
+    expect((await db().select().from(policies))[0]?.bodyMd).toBe("owner draft\n");
+
+    // Published by the owner; a forced reseed from a file that still says DRAFT keeps it published.
+    await db().update(policies).set({ published: true }).where(eq(policies.slug, "test-policy"));
+    expect(await seedPolicies(db(), [draftFile("v3")], { force: true })).toMatchObject({ updated: 1 });
+    const [row] = await db().select().from(policies);
+    expect(row).toMatchObject({ published: true, bodyMd: "v3\n" });
+  });
+
+  it("does not change existing FAQs without --force", async () => {
+    const item = { category: "delivery" as const, question: "How long?", answerMd: "Soon.", position: 1 };
+    await seedFaqs(db(), [item]);
+    await db().update(faqs).set({ answerMd: "Edited by owner.", published: false });
+    expect(await seedFaqs(db(), [item])).toEqual({ inserted: 0, updated: 0, unchanged: 1 });
+    expect((await db().select().from(faqs))[0]).toMatchObject({ answerMd: "Edited by owner.", published: false });
+  });
+});
+
 describe("policy publish gating", () => {
   const seedOne = async (body: string, published: boolean) => {
     await db().insert(policies).values({ slug: "shipping", title: "Shipping Policy", bodyMd: body, published });

@@ -6,7 +6,7 @@ import { revalidateStock } from "@/server/cache/revalidate";
 import { getDb } from "@/server/db";
 import { dispatchOutboxSoon } from "@/server/notify/dispatch";
 import { onOrderPlacedInTransaction } from "@/server/notify/order-hooks";
-import { findCartByToken, findUserCart } from "@/server/services/cart";
+import { resolveViewerCart } from "@/server/services/cart";
 import {
   getCheckoutQuote as buildCheckoutQuote,
   lookupPincodeForCheckout,
@@ -60,8 +60,7 @@ export async function getCheckoutQuote(input: {
     const parsed = checkoutQuoteSchema.parse(input ?? {});
     const [token, user] = await Promise.all([readCartToken(), getSessionUser()]);
     const db = getDb();
-    const row =
-      (await findCartByToken(db, token)) ?? (user ? await findUserCart(db, user.id) : null);
+    const row = await resolveViewerCart(db, token, user?.id);
     if (!row) {
       return {
         ok: false,
@@ -144,8 +143,7 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
       };
     }
 
-    const cartToken =
-      token ?? (user ? ((await findUserCart(db, user.id))?.token ?? null) : null);
+    const cartToken = (await resolveViewerCart(db, token, user?.id))?.token ?? null;
     if (!cartToken) {
       return {
         ok: false,

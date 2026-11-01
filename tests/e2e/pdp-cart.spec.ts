@@ -84,15 +84,45 @@ test.describe("product page", () => {
     const status = page.getByTestId("stock-status");
     const pink = page.getByTestId("option-value").filter({ hasText: "Pink" });
     const red = page.getByTestId("option-value").filter({ hasText: "Red" });
-    await expect(pink).toHaveAttribute("aria-pressed", "true");
-    await expect(status).toHaveAttribute("data-stock", "low");
-    await expect(status).toContainText(/Only \d+ left/);
+    // Pink is seeded with low stock; orders placed by other specs can sell it out, and then the page
+    // opens on the first variant that is in stock instead.
+    const pinkSoldOut = (await pink.getAttribute("data-sold-out")) === "true";
+    await expect(pinkSoldOut ? red : pink).toHaveAttribute("aria-pressed", "true");
     await red.click();
     await expect(red).toHaveAttribute("aria-pressed", "true");
     await expect(pink).toHaveAttribute("aria-pressed", "false");
     await expect(page.getByTestId("selected-variant")).toHaveText("Red");
     await expect(status).toHaveAttribute("data-stock", "in_stock");
     await expect(status).toContainText("In stock");
+    await pink.click();
+    await expect(pink).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("selected-variant")).toHaveText("Pink");
+    if (pinkSoldOut) {
+      await expect(status).toHaveAttribute("data-stock", "sold_out");
+    } else {
+      await expect(status).toHaveAttribute("data-stock", "low");
+      await expect(status).toContainText(/Only \d+ left/);
+    }
+  });
+
+  test("a sold-out default variant: the page opens on one that is in stock", async ({ page }) => {
+    const sql = postgres(DB_URL, { max: 1, onnotice: () => {} });
+    const rows = await sql<{ id: string; stock_on_hand: number }[]>`
+      select id, stock_on_hand from variants where sku = 'PH-CHARM-HEART-PINK'`.catch(() => []);
+    if (rows.length === 0) await sql.end({ timeout: 1 }).catch(() => {});
+    test.skip(rows.length === 0, "database not reachable or seeded Pink variant missing");
+    const pinkRow = rows[0]!;
+    await sql`update variants set stock_on_hand = 0 where id = ${pinkRow.id}`;
+    try {
+      await openProduct(page, "heart-charm");
+      const pink = page.getByTestId("option-value").filter({ hasText: "Pink" });
+      await expect(pink).toHaveAttribute("data-sold-out", "true");
+      await expect(pink).toHaveAttribute("aria-pressed", "false");
+      await expect(page.getByTestId("add-to-cart")).toBeEnabled();
+    } finally {
+      await sql`update variants set stock_on_hand = ${pinkRow.stock_on_hand} where id = ${pinkRow.id}`;
+      await sql.end();
+    }
   });
 
   test("a sold-out product says so and cannot be added", async ({ page }) => {
@@ -200,6 +230,48 @@ test.describe("cart", () => {
     await page.goto("/cart?vibe=gothic");
     await expect(page.getByText("Your bag is an empty crypt")).toBeVisible();
     await expect(page.getByRole("link", { name: "Funky" })).toHaveAttribute("href", "/vibes/funky");
+  });
+
+  test("the header badge shows the real count on a fresh page load (the Suspense fallback does not seed 0)", async ({ page }) => {
+    await addFromPdp(page, "star-charm");
+    await page.goto("/shop");
+    await expect(cartCount(page)).toHaveText("1");
+    await page.goto("/vibes/gothic");
+    await expect(cartCount(page)).toHaveText("1");
+  });
+
+  test("the cart drawer shows an error with Try again when the first load fails", async ({ page }) => {
+    await page.goto("/shop");
+    await settle(page);
+    // Server Actions are POSTs with a Next-Action header: fail them all, as if the connection dropped.
+    const fail = (route: import("@playwright/test").Route) =>
+      route.request().headers()["next-action"] ? route.abort() : route.continue();
+    await page.route("**/*", fail);
+    await page.getByTestId("cart-button").first().click();
+    const drawer = page.getByTestId("cart-drawer");
+    await expect(drawer.getByTestId("cart-drawer-error")).toContainText("couldn't reach the shop");
+    await expect(drawer.getByTestId("cart-drawer-loading")).toHaveCount(0);
+    await page.unroute("**/*", fail);
+    await drawer.getByRole("button", { name: "Try again" }).click();
+    await expect(drawer.getByTestId("cart-drawer-error")).toHaveCount(0);
+    await expect(drawer.getByText("Continue shopping")).toBeVisible();
+  });
+
+  test("the buy header: shop links on /cart and /track (no self-link), the secure header only on /checkout", async ({ page }) => {
+    await page.goto("/cart");
+    const header = page.locator("header").first();
+    await expect(header.getByRole("link", { name: "Shop", exact: true })).toBeVisible();
+    await expect(header.getByRole("link", { name: "Back to cart" })).toHaveCount(0);
+    await expect(header.getByRole("link", { name: /^Cart/ })).toHaveCount(0);
+    await expect(header.getByText("Secure checkout")).toHaveCount(0);
+
+    await page.goto("/track");
+    await expect(page.locator("header").first().getByRole("link", { name: "Track an order" })).toHaveCount(0);
+    await expect(page.locator("header").first().getByRole("link", { name: /^Cart/ })).toBeVisible();
+
+    await page.goto("/checkout");
+    await expect(page.locator("header").first().getByText("Secure checkout")).toBeVisible();
+    await expect(page.locator("header").first().getByRole("link", { name: "Back to cart" })).toBeVisible();
   });
 
   test("a quantity above what can be bought is capped with the server's message", async ({ page }) => {

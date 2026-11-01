@@ -1,5 +1,15 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  check,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { createdAt, pk, timestamps } from "./_common";
 import { user } from "./auth";
@@ -40,7 +50,7 @@ export const inventoryMovements = pgTable(
     index("inventory_movements_order_idx").on(t.orderId),
     check("inventory_movements_delta_nonzero", sql`${t.delta} <> 0`),
   ],
-);
+).enableRLS();
 
 /**
  * Available = stock_on_hand - SUM(qty) of reservations with status = 'active' AND expires_at > now().
@@ -63,7 +73,12 @@ export const stockReservations = pgTable(
   },
   (t) => [
     index("stock_reservations_variant_status_expires_idx").on(t.variantId, t.status, t.expiresAt),
-    index("stock_reservations_order_idx").on(t.orderId),
+    /**
+     * One reservation row per variant per order: `createFromCart` writes them once, one per cart line
+     * (`cart_items` is unique per variant), and later only changes `status` in place. Also serves
+     * lookups by order, so there is no separate order index.
+     */
+    uniqueIndex("stock_reservations_order_variant_uq").on(t.orderId, t.variantId),
     check("stock_reservations_qty_pos", sql`${t.qty} > 0`),
   ],
-);
+).enableRLS();

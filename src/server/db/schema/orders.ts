@@ -107,7 +107,7 @@ export const orders = pgTable(
       sql`${t.totalPaise} = ${t.subtotalPaise} - ${t.discountPaise} + ${t.shippingPaise} + ${t.codFeePaise}`,
     ),
   ],
-);
+).enableRLS();
 
 /** Immutable line snapshots: later catalogue edits never change a placed order. */
 export const orderItems = pgTable(
@@ -144,7 +144,7 @@ export const orderItems = pgTable(
       sql`${t.unitPricePaise} >= 0 AND ${t.mrpPaise} >= 0 AND ${t.discountAllocPaise} >= 0 AND ${t.lineTotalPaise} >= 0 AND ${t.taxPaise} >= 0`,
     ),
   ],
-);
+).enableRLS();
 
 export const shipments = pgTable(
   "shipments",
@@ -165,7 +165,7 @@ export const shipments = pgTable(
     ...timestamps(),
   },
   (t) => [index("shipments_order_idx").on(t.orderId), index("shipments_awb_idx").on(t.awb)],
-);
+).enableRLS();
 
 /** The customer-visible / internal timeline. Append-only. */
 export const orderEvents = pgTable(
@@ -184,7 +184,7 @@ export const orderEvents = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("order_events_order_idx").on(t.orderId, t.createdAt)],
-);
+).enableRLS();
 
 export const invoices = pgTable(
   "invoices",
@@ -197,14 +197,16 @@ export const invoices = pgTable(
     number: text("number").notNull().unique(),
     kind: invoiceKindEnum("kind").notNull(),
     pdfPath: text("pdf_path"),
+    /** Seller and tax data frozen at confirmation (`InvoiceSnapshot`); null on invoices from before it existed. */
+    snapshot: jsonb("snapshot"),
     ...timestamps(),
   },
   (t) => [uniqueIndex("invoices_order_kind_uq").on(t.orderId, t.kind)],
-);
+).enableRLS();
 
 /** Atomic per-financial-year invoice counter: `UPDATE ... SET last_number = last_number + 1 RETURNING`. */
 export const invoiceCounters = pgTable("invoice_counters", {
   financialYear: text("financial_year").primaryKey(), // e.g. "26-27"
   lastNumber: integer("last_number").notNull().default(0),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();

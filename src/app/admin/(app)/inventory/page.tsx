@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { InventoryImport } from "@/components/admin/inventory/InventoryImport";
 import { InventoryTable } from "@/components/admin/inventory/InventoryTable";
 import { PageHeader } from "@/components/admin/ui";
 import { can } from "@/server/auth/permissions";
@@ -29,11 +30,14 @@ export default async function InventoryPage({
         title="Inventory"
         description="On hand, reserved by open checkouts, and available to sell. Every change is written to the stock ledger."
       />
-      <InventoryTable
-        rows={rows}
-        filter={filter}
-        canAdjust={can(session.user.role, "inventory:adjust")}
-      />
+      <div className="space-y-6">
+        <InventoryTable
+          rows={rows}
+          filter={filter}
+          canAdjust={can(session.user.role, "inventory:adjust")}
+        />
+        {can(session.user.role, "inventory:import") ? <InventoryImport /> : null}
+      </div>
     </>
   );
 }

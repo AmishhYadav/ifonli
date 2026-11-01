@@ -14,7 +14,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-import { paise, pk, timestamps, tsvector } from "./_common";
+import { createdAt, paise, pk, timestamps, tsvector } from "./_common";
 
 export const productStatusEnum = pgEnum("product_status", ["draft", "active", "archived"]);
 export const imageKindEnum = pgEnum("image_kind", ["photo", "cutout"]);
@@ -30,7 +30,7 @@ export const vibes = pgTable("vibes", {
   seoDesc: text("seo_desc"),
   heroCopy: text("hero_copy"),
   ...timestamps(),
-});
+}).enableRLS();
 
 /** Charms, Hippers, 3D stickers, DIY accessories. Data, not code, so the owner can archive one. */
 export const productTypes = pgTable("product_types", {
@@ -43,7 +43,7 @@ export const productTypes = pgTable("product_types", {
   seoTitle: text("seo_title"),
   seoDesc: text("seo_desc"),
   ...timestamps(),
-});
+}).enableRLS();
 
 export const products = pgTable(
   "products",
@@ -86,7 +86,26 @@ export const products = pgTable(
       sql`${t.gstRateBp} IS NULL OR ${t.gstRateBp} BETWEEN 0 AND 10000`,
     ),
   ],
-);
+).enableRLS();
+
+/**
+ * Old product URLs after an admin changed a slug: `/products/{old_slug}` answers with a permanent
+ * redirect to the product's CURRENT slug. It points at the product (not at the new slug), so a chain
+ * (a -> b -> c) needs no maintenance: `a` follows the product to wherever it lives now. A live product
+ * slug always wins: creating or renaming a product onto a slug that is a redirect deletes that
+ * redirect (`services/admin/products.ts`).
+ */
+export const productSlugRedirects = pgTable(
+  "product_slug_redirects",
+  {
+    oldSlug: text("old_slug").primaryKey(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("product_slug_redirects_product_idx").on(t.productId)],
+).enableRLS();
 
 export const productVibes = pgTable(
   "product_vibes",
@@ -104,7 +123,7 @@ export const productVibes = pgTable(
     primaryKey({ columns: [t.productId, t.vibeId] }),
     index("product_vibes_vibe_rank_idx").on(t.vibeId, t.featuredRank),
   ],
-);
+).enableRLS();
 
 export const productOptions = pgTable(
   "product_options",
@@ -118,7 +137,7 @@ export const productOptions = pgTable(
     ...timestamps(),
   },
   (t) => [unique("product_options_product_name_uq").on(t.productId, t.name)],
-);
+).enableRLS();
 
 export const productOptionValues = pgTable(
   "product_option_values",
@@ -139,7 +158,7 @@ export const productOptionValues = pgTable(
       sql`${t.swatchHex} IS NULL OR ${t.swatchHex} ~ '^#[0-9A-Fa-f]{6}$'`,
     ),
   ],
-);
+).enableRLS();
 
 /** Every product has at least one variant; price and stock live here. */
 export const variants = pgTable(
@@ -177,7 +196,7 @@ export const variants = pgTable(
     ),
     check("variants_weight_nonneg", sql`${t.weightG} IS NULL OR ${t.weightG} >= 0`),
   ],
-);
+).enableRLS();
 
 export const productImages = pgTable(
   "product_images",
@@ -203,7 +222,7 @@ export const productImages = pgTable(
     index("product_images_variant_idx").on(t.variantId),
     check("product_images_alt_required", sql`length(btrim(${t.alt})) > 0`),
   ],
-);
+).enableRLS();
 
 /** Schema only in v1 (fixed kits are plain products/variants with their own stock). */
 export const bundleComponents = pgTable(
@@ -225,4 +244,4 @@ export const bundleComponents = pgTable(
     check("bundle_components_qty_pos", sql`${t.qty} > 0`),
     check("bundle_components_not_self", sql`${t.kitVariantId} <> ${t.componentVariantId}`),
   ],
-);
+).enableRLS();

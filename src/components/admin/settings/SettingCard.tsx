@@ -28,6 +28,8 @@ export interface SettingCardData {
   blocksLaunch: boolean;
   requiredForLaunch: boolean;
   locked: boolean;
+  /** Nothing reads this setting in this version: shown as such, never as a "Locked" decision. */
+  unused: boolean;
   /** Preformatted "Last changed by X on Y" or null. */
   updated: string | null;
   node: Node;
@@ -81,7 +83,9 @@ export function SettingCard({ setting, canEdit }: { setting: SettingCardData; ca
       <CardHeader>
         <CardTitle className="flex flex-wrap items-center gap-2">
           {setting.label}
-          {setting.locked ? (
+          {setting.unused ? (
+            <Badge tone="neutral">Not used in this version</Badge>
+          ) : setting.locked ? (
             <Badge tone="neutral">
               <Lock aria-hidden /> Locked
             </Badge>

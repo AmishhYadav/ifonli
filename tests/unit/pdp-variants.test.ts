@@ -6,6 +6,7 @@ import {
   formatCalendarDate,
   formatDeliveryWindow,
   imageIndexForVariant,
+  landingVariantId,
   optionValueStates,
   pickVariant,
   stockStatus,
@@ -53,6 +54,17 @@ describe("variant matrix", () => {
     expect(defaultVariantId(matrix)).toBe("pink-s");
     expect(variantForValues(matrix, ["l", "pink"])?.id).toBe("pink-l");
     expect(variantForValues(matrix, ["red", "l"])).toBeNull();
+  });
+
+  it("lands on the first in-stock variant when the default is sold out", () => {
+    const stock = (...inStock: string[]) =>
+      new Map(matrix.variants.map((x) => [x.id, { inStock: inStock.includes(x.id) }]));
+    expect(landingVariantId(matrix, stock("pink-s", "red-s"), "pink-s")).toBe("pink-s");
+    expect(landingVariantId(matrix, stock("red-s"), "pink-s")).toBe("red-s");
+    expect(landingVariantId(matrix, stock("pink-l", "red-s"), "pink-s")).toBe("pink-l");
+    // Nothing buyable, or no stock row for the current one: stay put.
+    expect(landingVariantId(matrix, stock(), "pink-s")).toBe("pink-s");
+    expect(landingVariantId(matrix, new Map(), "pink-s")).toBe("pink-s");
   });
 
   it("keeps the other option when the combination exists", () => {

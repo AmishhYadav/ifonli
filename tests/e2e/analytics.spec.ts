@@ -1,8 +1,8 @@
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { createAdminAccount } from "./helpers/admin-account";
 import { totp } from "./helpers/totp";
 
 /**
@@ -245,11 +245,7 @@ test.describe("reports", () => {
   let secret = "";
 
   test.beforeAll(() => {
-    execFileSync(
-      "pnpm",
-      ["exec", "tsx", "--conditions=react-server", "scripts/create-admin.ts", "--email", email, "--role", "owner", "--password", password],
-      { stdio: "pipe" },
-    );
+    createAdminAccount(email, password, "owner");
   });
 
   test("enrol two-factor, open Reports, export a CSV, open Insights", async ({ page, isMobile }) => {

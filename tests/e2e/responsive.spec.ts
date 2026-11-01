@@ -12,6 +12,7 @@ import {
 } from "../support/commerce";
 import { sql } from "../support/db";
 import { VIBES, gotoVibe } from "../support/vibes";
+import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
 /**
  * Mobile pass at 390 px (iPhone 14 class, touch): every page type, in every vibe, must
@@ -44,7 +45,9 @@ let admin: AdminLogin;
 let productSlug = "";
 
 test.beforeAll(async ({ browser, baseURL }) => {
-  test.setTimeout(300_000);
+  // Shared fixtures: wait for any other spec that rewrites them (tests/support/fixture-lock.ts).
+  test.setTimeout(900_000);
+  await acquireFixtureLock();
   await cleanupQa();
   restore = await applyCommerce();
   const [p] = await sql<{ slug: string }[]>`
@@ -54,9 +57,13 @@ test.beforeAll(async ({ browser, baseURL }) => {
 });
 
 test.afterAll(async () => {
-  await cleanupQa();
-  await cleanupQaAdmins();
-  await restore();
+  try {
+    await cleanupQa();
+    await cleanupQaAdmins(admin ? [admin.email] : []);
+    await restore();
+  } finally {
+    await releaseFixtureLock();
+  }
 });
 
 async function settle(page: Page) {
@@ -296,6 +303,7 @@ test.describe("admin at 390px", () => {
       "/admin/support",
       "/admin/content",
       "/admin/settings",
+      "/admin/pincodes",
       "/admin/reports",
     ]) {
       await page.goto(path);

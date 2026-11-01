@@ -1,3 +1,4 @@
+import { captureException } from "@/lib/monitoring/sentry";
 import { getDb } from "@/server/db";
 import { cronUnauthorized, isCronAuthorized } from "@/server/payments/cron-auth";
 import { runAnalyticsRollup } from "@/server/services/analytics/rollup";
@@ -16,7 +17,8 @@ export async function GET(req: Request): Promise<Response> {
     });
     return Response.json({ ok: true, ...result });
   } catch (e) {
-    console.error("analytics-rollup failed", e instanceof Error ? e.message : "unknown");
+    console.error("analytics-rollup failed", e instanceof Error ? e.name : "unknown");
+    await captureException(e, { source: "cron", route: "/api/cron/analytics-rollup" });
     return Response.json({ ok: false }, { status: 500 });
   }
 }

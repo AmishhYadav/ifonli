@@ -45,7 +45,7 @@ export function ProductCardView({
   wishlist,
   className,
 }: ProductCardViewProps) {
-  const { name, typeName, slug, inStock, lowStock, hasMultipleVariants, primaryVibe } = product;
+  const { name, typeName, slug, inStock, lowStock, hasPriceRange, primaryVibe } = product;
   const vibeName = primaryVibe && isVibe(primaryVibe) ? VIBE_NAMES[primaryVibe] : null;
   const soldOut = !inStock;
 
@@ -127,7 +127,7 @@ export function ProductCardView({
           className="mt-auto pt-2"
           pricePaise={product.priceFromPaise}
           mrpPaise={product.mrpFromPaise}
-          from={hasMultipleVariants}
+          from={hasPriceRange}
         />
       </div>
     </article>

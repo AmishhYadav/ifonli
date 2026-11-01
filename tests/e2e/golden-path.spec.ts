@@ -11,6 +11,7 @@ import {
   seedCart,
 } from "../support/commerce";
 import { sql } from "../support/db";
+import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
 /**
  * The golden paths, end to end through the real UI. The checkout, order and tracking specs cover each
@@ -37,16 +38,22 @@ let restore: () => Promise<void> = async () => {};
 let admin: AdminLogin;
 
 test.beforeAll(async ({ browser, baseURL }) => {
-  test.setTimeout(300_000);
+  // Shared fixtures: wait for any other spec that rewrites them (tests/support/fixture-lock.ts).
+  test.setTimeout(900_000);
+  await acquireFixtureLock();
   await cleanupQa();
   restore = await applyCommerce();
   admin = await createAdminSession(browser, baseURL!, "owner");
 });
 
 test.afterAll(async () => {
-  await cleanupQa();
-  await cleanupQaAdmins();
-  await restore();
+  try {
+    await cleanupQa();
+    await cleanupQaAdmins(admin ? [admin.email] : []);
+    await restore();
+  } finally {
+    await releaseFixtureLock();
+  }
 });
 
 const newEmail = () => `${QA_EMAIL_PREFIX}golden-${randomBytes(4).toString("hex")}@example.com`;

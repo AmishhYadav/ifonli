@@ -25,7 +25,11 @@ export interface ProductCard {
   priceFromPaise: number;
   /** MRP of that cheapest variant (>= priceFromPaise). */
   mrpFromPaise: number;
-  hasMultipleVariants: boolean;
+  /**
+   * The active variants do not all share one price, so `priceFromPaise` is a "From" price. Computed over
+   * the same variant set as `priceFromPaise` (every active variant, sold out or not).
+   */
+  hasPriceRange: boolean;
   /** At least one active variant has available stock (on hand minus live reservations). */
   inStock: boolean;
   /** In stock, but every active variant is at or below its low-stock threshold. */
@@ -147,7 +151,8 @@ export interface ProductDetail {
   }[];
   priceFromPaise: number;
   mrpFromPaise: number;
-  hasMultipleVariants: boolean;
+  /** See `ProductCard.hasPriceRange`. */
+  hasPriceRange: boolean;
 }
 
 export interface LiveVariantAvailability {

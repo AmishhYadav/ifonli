@@ -3,9 +3,10 @@
 import { useEffect, useState, useTransition } from "react";
 
 import { Badge, Button, Icon, QuantityStepper, useToast } from "@/components/ui";
-import { addItem, setCartOpen } from "@/components/store/cart/cart-store";
+import { addItem, getCartState, setCartOpen } from "@/components/store/cart/cart-store";
 import { useVibe } from "@/features/vibe/useVibe";
 import { track } from "@/lib/analytics/client";
+import { addedQuantity } from "@/lib/analytics/cart-events";
 import { COPY } from "@/features/vibe/copy";
 import type { LiveVariantAvailability } from "@/server/services/queries/types";
 
@@ -41,12 +42,18 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
     if (!variant || !canBuy) return;
     setMessage(null);
     startTransition(async () => {
+      // The line's quantity before the call (null when this page has not loaded the cart yet), so the event
+      // can report what the cart really took: stock and per-line caps may lower the requested quantity.
+      const known = getCartState().cart;
+      const before = known ? (known.lines.find((l) => l.variantId === variant.id)?.qty ?? 0) : null;
       const result = await addItem(variant.id, shownQty);
       if (!result.ok) {
         setMessage({ tone: "error", text: result.error.message });
         return;
       }
-      track("add_to_cart", { productId: model.productId, value: shownQty });
+      const after = result.data.cart.lines.find((l) => l.variantId === variant.id)?.qty ?? 0;
+      const added = addedQuantity(before, after, shownQty);
+      if (added > 0) track("add_to_cart", { productId: model.productId, value: added });
       const notice = result.data.notices.find((n) => !n.variantId || n.variantId === variant.id);
       if (notice) setMessage({ tone: "info", text: notice.message });
       toast({

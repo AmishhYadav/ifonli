@@ -45,7 +45,7 @@ export const banners = pgTable(
       sql`${t.startsAt} IS NULL OR ${t.endsAt} IS NULL OR ${t.endsAt} > ${t.startsAt}`,
     ),
   ],
-);
+).enableRLS();
 
 export const featuredSlots = pgTable(
   "featured_slots",
@@ -66,7 +66,7 @@ export const featuredSlots = pgTable(
     index("featured_slots_vibe_placement_rank_idx").on(t.vibeId, t.placement, t.rank),
     index("featured_slots_product_idx").on(t.productId),
   ],
-);
+).enableRLS();
 
 export const faqs = pgTable(
   "faqs",
@@ -80,7 +80,7 @@ export const faqs = pgTable(
     ...timestamps(),
   },
   (t) => [index("faqs_category_position_idx").on(t.category, t.position)],
-);
+).enableRLS();
 
 export const policies = pgTable("policies", {
   id: pk(),
@@ -92,7 +92,7 @@ export const policies = pgTable("policies", {
   effectiveAt: timestamp("effective_at", { withTimezone: true }),
   published: boolean("published").notNull().default(false),
   ...timestamps(),
-});
+}).enableRLS();
 
 /** Immutable history; a row is written whenever a policy version is published. */
 export const policyVersions = pgTable(
@@ -110,4 +110,4 @@ export const policyVersions = pgTable(
     createdAt: createdAt(),
   },
   (t) => [unique("policy_versions_policy_version_uq").on(t.policyId, t.version)],
-);
+).enableRLS();

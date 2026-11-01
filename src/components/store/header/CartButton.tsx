@@ -30,7 +30,7 @@ export async function CartButton({ className }: { className?: string }): Promise
   const policy = await getReturnPolicySummary();
   return (
     <>
-      <Suspense fallback={<CartTrigger initialCount={0} className={className} />}>
+      <Suspense fallback={<CartTrigger initialCount={null} className={className} />}>
         <LiveCartTrigger className={className} />
       </Suspense>
       <CartDrawer

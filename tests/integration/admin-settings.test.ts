@@ -169,8 +169,6 @@ describe("admin settings: saving each kind of value", () => {
     expect(await getSetting("cod_enabled")).toBe(true);
     await issuesOf("return_policy_type", "sometimes");
     await save("return_policy_type", "returns_window");
-    await issuesOf("serviceability_mode", "everywhere");
-    await save("serviceability_mode", "allowlist");
     await save("hero_enabled", false);
     expect(await getSetting("hero_enabled")).toBe(false);
   });
@@ -301,6 +299,12 @@ describe("admin settings: guard rails", () => {
     await setup();
     await expect(save("prices_include_gst", true)).rejects.toThrow(/locked/);
     await expect(save("backorders", false)).rejects.toThrow(/locked/);
+    // Settings nothing reads in this version cannot be edited either (the admin says "Not used").
+    await expect(save("custom_cursor_enabled", true)).rejects.toThrow(/locked/);
+    await expect(save("login_methods", ["email_otp"])).rejects.toThrow(/locked/);
+    await expect(save("guest_checkout_enabled", false)).rejects.toThrow(/locked/);
+    // All three serviceability modes behaved the same, so the mode is no longer a choice.
+    await expect(save("serviceability_mode", "allowlist")).rejects.toThrow(/locked/);
     await expect(save("nope", 1)).rejects.toBeInstanceOf(AdminInputError);
     await expect(save("__proto__", 1)).rejects.toBeInstanceOf(AdminInputError);
   });

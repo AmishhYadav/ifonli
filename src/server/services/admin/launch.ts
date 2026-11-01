@@ -65,6 +65,17 @@ type Env = Record<string, string | undefined>;
 
 const present = (v: string | undefined) => (v ?? "").trim().length > 0;
 
+/**
+ * True for a build made with `NEXT_PUBLIC_ENABLE_DEV_PAGES=1`. Next inlines that value at build time only
+ * for the literal `process.env.NEXT_PUBLIC_ENABLE_DEV_PAGES`, never through a variable, so the real
+ * environment must be read this way or a review build started without the flag looks like a normal one.
+ * An explicit `env` (tests) is read as given.
+ */
+export function devPagesEnabled(env: Env): boolean {
+  if (env === process.env) return process.env.NEXT_PUBLIC_ENABLE_DEV_PAGES === "1";
+  return env.NEXT_PUBLIC_ENABLE_DEV_PAGES === "1";
+}
+
 /** Environment checks (pure). Everything here is configured in the hosting dashboard, not in the admin. */
 export function checkEnvironment(env: Env): LaunchItem[] {
   const items: LaunchItem[] = [];
@@ -120,14 +131,6 @@ export function checkEnvironment(env: Env): LaunchItem[] {
       "Set BETTER_AUTH_SECRET to at least 32 random characters (openssl rand -hex 32).",
     );
   }
-  if (!present(env.ORDER_TOKEN_SECRET)) {
-    add(
-      "order-token",
-      "blocker",
-      "Order link secret is missing",
-      "Set ORDER_TOKEN_SECRET (openssl rand -hex 32).",
-    );
-  }
   if (!present(env.CRON_SECRET)) {
     add(
       "cron",
@@ -153,6 +156,24 @@ export function checkEnvironment(env: Env): LaunchItem[] {
       "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY so product and banner images can be uploaded.",
     );
   }
+  if (env.NODE_ENV === "production") {
+    if (env.CSP_MODE?.trim() !== "enforce") {
+      add(
+        "csp-mode",
+        "blocker",
+        "The content security policy is not enforced",
+        "Set CSP_MODE=enforce once the report-only period shows no violations. The default only reports.",
+      );
+    }
+    if (devPagesEnabled(env)) {
+      add(
+        "dev-pages",
+        "blocker",
+        "Review pages are switched on",
+        "NEXT_PUBLIC_ENABLE_DEV_PAGES=1 exposes /styleguide, /dev/*, the email preview and unpublished policies, and switches the order gate off. Remove it from the production environment.",
+      );
+    }
+  }
   if (!present(env.SENTRY_DSN)) {
     add(
       "sentry",
@@ -176,7 +197,15 @@ const ACTIVE_PRODUCT_SAMPLE = 8;
 
 export async function getLaunchReadiness(
   db: DbClient,
-  opts: { env?: Env; now?: Date } = {},
+  opts: {
+    env?: Env;
+    now?: Date;
+    /**
+     * Only work out the blockers: skips the content warnings (FAQ answers, hero sets), which are the
+     * costly part. The order gate uses this on every cold start of its cache.
+     */
+    blockersOnly?: boolean;
+  } = {},
 ): Promise<LaunchReadiness> {
   const env = opts.env ?? (process.env as Env);
   const now = opts.now ?? new Date();
@@ -309,7 +338,35 @@ export async function getLaunchReadiness(
     }
   }
 
-  // ---- content ----------------------------------------------------------------------------------
+  // ---- content (warnings only) -------------------------------------------------------------------
+  if (!opts.blockersOnly) await addContentWarnings(db, items, ctx, now);
+
+  // ---- environment ------------------------------------------------------------------------------
+  items.push(...checkEnvironment(env));
+
+  const blockers = items.filter((i) => i.severity === "blocker").length;
+  const warnings = items.length - blockers;
+  return {
+    ready: blockers === 0,
+    blockers,
+    warnings,
+    items,
+    categories: (Object.keys(LAUNCH_CATEGORY_LABELS) as LaunchCategory[]).map((id) => ({
+      id,
+      label: LAUNCH_CATEGORY_LABELS[id],
+      blockers: items.filter((i) => i.category === id && i.severity === "blocker").length,
+      warnings: items.filter((i) => i.category === id && i.severity === "warning").length,
+    })),
+    checkedAt: now,
+  };
+}
+
+async function addContentWarnings(
+  db: DbClient,
+  items: LaunchItem[],
+  ctx: Awaited<ReturnType<typeof loadTemplateContext>>,
+  now: Date,
+): Promise<void> {
   const faqRows = await db.select().from(faqs).where(eq(faqs.published, true));
   if (faqRows.length === 0) {
     items.push({
@@ -350,23 +407,4 @@ export async function getLaunchReadiness(
       });
     }
   }
-
-  // ---- environment ------------------------------------------------------------------------------
-  items.push(...checkEnvironment(env));
-
-  const blockers = items.filter((i) => i.severity === "blocker").length;
-  const warnings = items.length - blockers;
-  return {
-    ready: blockers === 0,
-    blockers,
-    warnings,
-    items,
-    categories: (Object.keys(LAUNCH_CATEGORY_LABELS) as LaunchCategory[]).map((id) => ({
-      id,
-      label: LAUNCH_CATEGORY_LABELS[id],
-      blockers: items.filter((i) => i.category === id && i.severity === "blocker").length,
-      warnings: items.filter((i) => i.category === id && i.severity === "warning").length,
-    })),
-    checkedAt: now,
-  };
 }

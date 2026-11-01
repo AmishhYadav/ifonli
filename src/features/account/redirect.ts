@@ -8,8 +8,8 @@ export const ACCOUNT_LOGIN = "/account/login";
 
 /**
  * A same-origin path to go to after signing in, or `fallback`. Rejects anything that could leave
- * the site (absolute URLs, `//host`, `/\host`, other schemes), control characters, and the login
- * page itself (which would loop).
+ * the site (absolute URLs, `//host` even once dot segments are collapsed, `/\host`, other schemes),
+ * control characters, and the login page itself (which would loop).
  */
 export function safeNextPath(raw: unknown, fallback: string = ACCOUNT_HOME): string {
   if (typeof raw !== "string") return fallback;
@@ -24,6 +24,9 @@ export function safeNextPath(raw: unknown, fallback: string = ACCOUNT_HOME): str
     return fallback;
   }
   if (url.origin !== "http://ifonli.invalid") return fallback;
+  // The URL parser collapses dot segments, so `/.//evil.com` and `/a/..//evil.com` come out as
+  // `//evil.com`, which a browser reads as another host. Judge the path that will be returned.
+  if (url.pathname.startsWith("//")) return fallback;
   if (url.pathname === ACCOUNT_LOGIN || url.pathname.startsWith(`${ACCOUNT_LOGIN}/`)) return fallback;
   return `${url.pathname}${url.search}`;
 }

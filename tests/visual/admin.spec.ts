@@ -42,7 +42,7 @@ test.beforeAll(async ({ browser, baseURL }) => {
 
 test.afterAll(async () => {
   await cleanupQa();
-  await cleanupQaAdmins();
+  await cleanupQaAdmins(admin ? [admin.email] : []);
   await restore();
 });
 

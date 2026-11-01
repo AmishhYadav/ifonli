@@ -182,18 +182,18 @@ describe("getCheckoutQuote: COD eligibility (plan 7.9)", () => {
     expect(prepaid.canPlaceOrder).toBe(true);
   });
 
-  it("allows an order up to the maximum (before the COD fee) and blocks above it", async () => {
-    // ghost x1 = 129 + 50 shipping = 179
-    await configureCommerce({ cod_max_order_value: 17900 });
+  it("allows an order up to the maximum (COD fee included, plan 7.9) and blocks above it", async () => {
+    // ghost x1 = 129 + 50 shipping = 179, plus the 40 COD fee = 219 payable
+    await configureCommerce({ cod_max_order_value: 21900 });
     const atMax = await quote(item(), { pincode: "400001", paymentMethod: "cod" });
     expect(atMax.payment.cod.available).toBe(true);
     expect(atMax.pricing.totalPaise).toBe(17900 + 4000);
 
-    await configureCommerce({ cod_max_order_value: 17899 });
+    await configureCommerce({ cod_max_order_value: 21899 });
     const over = await quote(item(), { pincode: "400001", paymentMethod: "cod" });
     expect(over.payment.cod).toMatchObject({
       available: false,
-      reason: "Cash on delivery is available for orders up to ₹178.99.",
+      reason: "Cash on delivery is available for orders up to ₹218.99.",
     });
     expect(over.payment.cod.totalPaise).toBe(17900 + 4000); // still shown for reference
   });

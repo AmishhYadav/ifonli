@@ -3,10 +3,9 @@ import "server-only";
 import { getDb } from "@/server/db";
 import {
   emptyCartView,
-  findCartByToken,
-  findUserCart,
   getCartItemCount,
   getCartView,
+  resolveViewerCart,
   type CartView,
 } from "@/server/services/cart";
 
@@ -20,8 +19,7 @@ import { getSessionUser, readCartToken } from "./request";
 export async function getCurrentCartView(): Promise<CartView> {
   const [token, user] = await Promise.all([readCartToken(), getSessionUser()]);
   const db = getDb();
-  const row =
-    (await findCartByToken(db, token)) ?? (user ? await findUserCart(db, user.id) : null);
+  const row = await resolveViewerCart(db, token, user?.id);
   return row ? getCartView(db, row.id, { email: user?.email }) : emptyCartView();
 }
 
@@ -29,7 +27,6 @@ export async function getCurrentCartView(): Promise<CartView> {
 export async function getCurrentCartCount(): Promise<number> {
   const [token, user] = await Promise.all([readCartToken(), getSessionUser()]);
   const db = getDb();
-  const row =
-    (await findCartByToken(db, token)) ?? (user ? await findUserCart(db, user.id) : null);
+  const row = await resolveViewerCart(db, token, user?.id);
   return row ? getCartItemCount(db, row.id) : 0;
 }

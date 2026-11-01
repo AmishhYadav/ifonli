@@ -11,6 +11,7 @@ import { formatDateRange } from "@/components/orders/format";
 import { OrderLines } from "@/components/orders/OrderLines";
 import { Button, Checkbox, Field, Icon, Input, Radio, RadioGroup, Select, Spinner } from "@/components/ui";
 import type { SavedAddress } from "@/features/account/schema";
+import { trackPaymentInfo, trackShippingInfo } from "@/features/analytics/checkout-events";
 import { getCheckoutQuote, lookupPincode, placeOrder } from "@/features/checkout/actions";
 import {
   PINCODE_PATTERN,
@@ -24,6 +25,7 @@ import type { CheckoutQuote, PincodeLookup, ShortageItem } from "@/features/chec
 import type { CartView } from "@/features/cart/types";
 import { formatINR } from "@/lib/money";
 
+import { ClosedCheckout } from "./ClosedCheckout";
 import { EmptyCheckout } from "./EmptyCheckout";
 import { PaymentStatusPanel } from "./PaymentStatusPanel";
 import { usePayment } from "./usePayment";
@@ -114,6 +116,15 @@ function idempotencyKeyFor(cartId: string | null, version: number): string {
     /* best effort */
   }
   return key;
+}
+
+/** Starts the next attempt under a new key (the previous one belonged to an order that did not go through). */
+function forgetIdempotencyKey() {
+  try {
+    sessionStorage.removeItem(KEY_STORAGE);
+  } catch {
+    /* storage unavailable: the next key is fresh anyway */
+  }
 }
 
 interface Totals {
@@ -286,6 +297,8 @@ export function CheckoutForm({
   const [codDropped, setCodDropped] = useState<string | null>(null);
   const [quoteNonce, setQuoteNonce] = useState(0);
   const [placed, setPlaced] = useState<{ ref: string; email: string } | null>(null);
+  /** The server says the shop is not taking orders (production launch gate). */
+  const [closed, setClosed] = useState(false);
   const quoteKey = `${pincode ?? ""}|${paymentMethod}|${email ?? ""}|${quoteNonce}`;
   const [answered, setAnswered] = useState<{
     key: string;
@@ -363,6 +376,9 @@ export function CheckoutForm({
       setFocusTick((t) => t + 1);
       return;
     }
+    // Funnel steps: valid address and a chosen payment method (checkout is one page, so both fire here).
+    trackShippingInfo();
+    trackPaymentInfo(values.paymentMethod);
     setSubmitting(true);
     const result = await placeOrder({
       ...values,
@@ -381,6 +397,14 @@ export function CheckoutForm({
       }
       if ("code" in error && (error.code === "cart_not_found" || error.code === "empty_cart")) {
         setAnswered({ key: quoteKey, quote: null, cartGone: true });
+      }
+      if ("code" in error && error.code === "store_closed") {
+        setClosed(true);
+        return;
+      }
+      // An attempt that could not start or has lapsed is over: the next submit is a new attempt.
+      if ("code" in error && (error.code === "payment_init_failed" || error.code === "checkout_expired")) {
+        forgetIdempotencyKey();
       }
       const hasItems = "items" in error && error.items && error.items.length > 0;
       if (hasItems) setQuoteNonce((n) => n + 1);
@@ -436,6 +460,7 @@ export function CheckoutForm({
   const locked = placed !== null || submitting;
   const blockers = (quote?.blockers ?? []).filter((b) => !(pincode === null && /pincode/i.test(b)));
 
+  if (closed) return <ClosedCheckout />;
   if (!placed && (answered?.cartGone || (quote && quote.cart.lines.length === 0)))
     return <EmptyCheckout />;
 

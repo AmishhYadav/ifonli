@@ -142,9 +142,10 @@ function TileSet({ vibe, tiles }: { vibe: Vibe; tiles: HeroTile[] }) {
  * `HeroEnhancer` (a small client component) mounts into `#hero-stage-root` and, only when the hero is in the
  * viewport, after idle, and the visitor allows motion, lazily loads the animated `HeroStage`, which lays
  * itself over the poster cells without moving anything (no layout shift). Pass `stage` to override (tests).
+ * The admin setting `hero_enabled` off means the enhancer is never mounted: the poster is the whole hero.
  */
 export async function HeroPoster({ stage }: { stage?: ReactNode }) {
-  const [sets, { cycle, defaultVibe }] = await Promise.all([
+  const [sets, { cycle, defaultVibe, heroEnabled }] = await Promise.all([
     getHeroTilesForAllVibes(TILES_PER_LIST * 2),
     getVibeSettings(),
   ]);
@@ -168,7 +169,7 @@ export async function HeroPoster({ stage }: { stage?: ReactNode }) {
           data-hero-stage=""
           className="pointer-events-none absolute inset-0"
         >
-          {stage ?? <HeroEnhancer tiles={stageTilesFor(sets)} />}
+          {stage ?? (heroEnabled ? <HeroEnhancer tiles={stageTilesFor(sets)} /> : null)}
         </div>
 
         {/* Text layer: always above the tiles, never animated away. */}

@@ -4,6 +4,9 @@ import { NotifyConfigError } from "@/server/notify/channel";
 import { processOutbox } from "@/server/notify/sender";
 import { cronUnauthorized, isCronAuthorized } from "@/server/payments/cron-auth";
 
+/** Seconds. `processOutbox` stops sending after 240 s so a slow provider never runs into the platform kill. */
+export const maxDuration = 300;
+
 /**
  * Every 5 minutes: sends due outbox rows (first tries missed by the after-response dispatch, and
  * retries with backoff). The backstop that makes delivery eventually happen.

@@ -49,7 +49,7 @@ export const settings = pgTable("settings", {
   isPlaceholder: boolean("is_placeholder").notNull().default(true),
   updatedBy: text("updated_by").references(() => user.id, { onDelete: "set null" }),
   ...timestamps(),
-});
+}).enableRLS();
 
 export const contactMessages = pgTable(
   "contact_messages",
@@ -65,7 +65,7 @@ export const contactMessages = pgTable(
     ...timestamps(),
   },
   (t) => [index("contact_messages_status_idx").on(t.status, t.createdAt)],
-);
+).enableRLS();
 
 export const supportCases = pgTable(
   "support_cases",
@@ -91,7 +91,7 @@ export const supportCases = pgTable(
     index("support_cases_order_idx").on(t.orderId),
     index("support_cases_status_idx").on(t.status, t.createdAt),
   ],
-);
+).enableRLS();
 
 /** Transactional outbox: rows are written in the same transaction as the state change. */
 export const notificationOutbox = pgTable(
@@ -118,7 +118,7 @@ export const notificationOutbox = pgTable(
     index("notification_outbox_order_idx").on(t.orderId),
     check("notification_outbox_attempts_nonneg", sql`${t.attempts} >= 0`),
   ],
-);
+).enableRLS();
 
 export const adminAuditLog = pgTable(
   "admin_audit_log",
@@ -137,7 +137,7 @@ export const adminAuditLog = pgTable(
     index("admin_audit_log_actor_idx").on(t.actorId, t.createdAt),
     index("admin_audit_log_created_idx").on(t.createdAt),
   ],
-);
+).enableRLS();
 
 /** Fixed-window Postgres rate limiter (OTP, coupon, track lookup, contact, checkout). */
 export const rateLimits = pgTable(
@@ -151,4 +151,4 @@ export const rateLimits = pgTable(
     primaryKey({ columns: [t.key, t.windowStart] }),
     index("rate_limits_window_idx").on(t.windowStart),
   ],
-);
+).enableRLS();

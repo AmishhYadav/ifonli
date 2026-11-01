@@ -265,11 +265,11 @@ export function CustomerCard({ detail, customerHref }: { detail: AdminOrderDetai
       <CardContent className="grid gap-3 text-[13px]">
         <div>
           <p className="font-medium text-admin-ink">{detail.customerName || "Guest"}</p>
-          <a href={`mailto:${order.email}`} className="block text-admin-primary hover:underline">
+          <a href={`mailto:${order.email}`} className="flex min-h-6 items-center text-admin-primary hover:underline">
             {order.email}
           </a>
           {order.phone ? (
-            <a href={`tel:${order.phone}`} className="block text-admin-ink-muted hover:underline">
+            <a href={`tel:${order.phone}`} className="flex min-h-6 items-center text-admin-ink-muted hover:underline">
               {order.phone}
             </a>
           ) : null}

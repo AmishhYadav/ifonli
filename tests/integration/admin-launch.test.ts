@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { POLICY_SLUGS } from "@/server/content/policies";
 import { getDb } from "@/server/db";
@@ -30,7 +30,7 @@ const LIVE_ENV = {
   RESEND_API_KEY: "re_123",
   EMAIL_FROM: "IfOnli <orders@ifonli.in>",
   BETTER_AUTH_SECRET: "x".repeat(40),
-  ORDER_TOKEN_SECRET: "o".repeat(40),
+  CSP_MODE: "enforce",
   CRON_SECRET: "c".repeat(40),
   NEXT_PUBLIC_SITE_URL: "https://ifonli.in",
   SUPABASE_URL: "https://abc.supabase.co",
@@ -67,7 +67,6 @@ async function fillAllSettings() {
     default_country_of_origin: "India",
     default_gst_rate_bp: 300,
     shipping_tax_rule: "dominant_line_rate",
-    serviceability_mode: "all_india",
     flat_fee: 4900,
     free_threshold: 99900,
     processing_days: 2,
@@ -329,12 +328,25 @@ describe("checkEnvironment", () => {
     expect(ids({ RESEND_API_KEY: undefined })).toEqual(["env:resend"]);
     expect(ids({ EMAIL_FROM: undefined })).toEqual(["env:email-from"]);
     expect(ids({ BETTER_AUTH_SECRET: "short" })).toEqual(["env:auth-secret"]);
-    expect(ids({ ORDER_TOKEN_SECRET: undefined })).toEqual(["env:order-token"]);
+    expect(ids({ CSP_MODE: undefined })).toEqual(["env:csp-mode"]);
+    expect(ids({ CSP_MODE: "report-only" })).toEqual(["env:csp-mode"]);
+    expect(ids({ NEXT_PUBLIC_ENABLE_DEV_PAGES: "1" })).toEqual(["env:dev-pages"]);
     expect(ids({ CRON_SECRET: undefined })).toEqual(["env:cron"]);
     expect(ids({ SUPABASE_SERVICE_ROLE_KEY: undefined })).toEqual(["env:storage"]);
     expect(ids({ NEXT_PUBLIC_SITE_URL: "http://localhost:3000" })).toEqual(["env:site-url"]);
     expect(ids({ NEXT_PUBLIC_SITE_URL: "http://ifonli.in" })).toEqual(["env:site-url"]);
     expect(ids({ NODE_ENV: "development" })).toEqual(["env:node-env"]);
+  });
+
+  it("reads the real environment for the review flag, but an explicit env as given", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_ENABLE_DEV_PAGES", "1");
+    try {
+      expect(checkEnvironment(process.env).map((i) => i.id)).toContain("env:dev-pages");
+      expect(checkEnvironment({ ...LIVE_ENV })).toEqual([]);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("no item ever echoes a secret value", () => {

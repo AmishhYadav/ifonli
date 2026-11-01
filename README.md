@@ -6,7 +6,7 @@ India-only (INR) D2C store for charms, Hippers, 3D stickers and DIY accessories,
 
 Every phase of the [implementation plan](docs/PLAN.md) is built: theme engine and hand button, catalogue and search, cart and checkout (Razorpay and cash on delivery), orders, refunds, invoices and notifications, customer accounts and privacy tools, the full admin (products, inventory, collections, orders, discounts, support, customers, content, FAQ, policies, settings and launch checklist, users, audit log, reports and insights), analytics and consent, the animated hero, and the Phase 8 QA pass (visual regression, accessibility, keyboard, mobile, copy review).
 
-What remains is owner and launch work, not code. In short: real products, photos and cutouts; the legal entity, GSTIN, support and grievance details; lawyer-reviewed policies; live Razorpay and Resend keys; domain and DNS; the live-mode smoke test; and sign-off. The shop refuses real orders until the **launch checklist** (Admin > Settings) is clear. See [docs/OWNER-INPUTS.md](docs/OWNER-INPUTS.md) for the full list and [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md) for what is honestly not finished.
+What remains is owner and launch work, not code. In short: real products, photos and cutouts; the legal entity, GSTIN, support and grievance details; lawyer-reviewed policies; live Razorpay and Resend keys; domain and DNS; the live-mode smoke test; and sign-off. In production the shop refuses real orders (prepaid and cash on delivery) until the **launch checklist** (Admin > Settings) has no blockers; the gate is off in development, in tests and in review builds made with `NEXT_PUBLIC_ENABLE_DEV_PAGES=1`. Step-by-step: [docs/LAUNCH-GUIDE.md](docs/LAUNCH-GUIDE.md). See [docs/OWNER-INPUTS.md](docs/OWNER-INPUTS.md) for the full list and [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md) for what is honestly not finished.
 
 ## Stack
 
@@ -41,7 +41,7 @@ pnpm dev                        # http://localhost:3000
 
 Notes:
 
-- `.env.example` already holds the local Supabase `DATABASE_URL`. Generate each secret (`BETTER_AUTH_SECRET`, `ORDER_TOKEN_SECRET`, `CRON_SECRET`) with `openssl rand -hex 32`.
+- `.env.example` already holds the local Supabase `DATABASE_URL`. Generate each secret (`BETTER_AUTH_SECRET`, `CRON_SECRET`) with `openssl rand -hex 32`.
 - Seeded names, prices, stock and copy are **placeholders**. Policies stay drafts until the owner publishes them; in development they render with a "DRAFT" banner.
 - Without Razorpay keys the checkout uses an in-memory **dev mock** of the payment dialog (development only; production refuses to start without real keys). Without a Resend key, emails (including sign-in codes) are written to `.dev-mail/` as `.html` and `.txt`.
 - Sign in to `/admin` with the account from `admin:create`; you are asked to enrol an authenticator app on first sign-in. Customers sign in with an emailed code.
@@ -70,6 +70,7 @@ Notes:
 | `pnpm db:import-reference` | Import states and the pincode directory |
 | `pnpm db:seed-products` | Seed the placeholder catalogue |
 | `pnpm db:seed-content` | Seed draft policies and the FAQ (`--force` overwrites published ones) |
+| `pnpm db:store-values` | Apply the college-project store values (settings, policies, vibe copy, real catalogue and images) from `content/store-values/` to the local database |
 | `pnpm admin:create` | Create or update a staff account (`--email x --role owner\|admin\|fulfilment`) |
 | `pnpm storage:setup` | Create the storage buckets |
 
@@ -98,6 +99,7 @@ PW_CHROMIUM_PATH=/path/to/chrome pnpm e2e --project=chromium-desktop
 - [docs/DECISIONS.md](docs/DECISIONS.md): decision log
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): system diagram, data flows, caching, auth
 - [docs/RUNBOOK.md](docs/RUNBOOK.md): env vars, deploy/rollback, migrations, key rotation, backups, rate limits, CSP switch
+- [docs/LAUNCH-GUIDE.md](docs/LAUNCH-GUIDE.md): the owner's step-by-step path from finished code to live orders
 - [docs/OWNER-INPUTS.md](docs/OWNER-INPUTS.md): what the owner still needs to supply, by phase
 - [docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md): task-oriented guide for the owner, admins and whoever packs parcels
 - [docs/TEST-REPORT.md](docs/TEST-REPORT.md): test suites, how to run them, results and coverage of the acceptance checks

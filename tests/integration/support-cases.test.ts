@@ -12,6 +12,7 @@ import {
   createSupportCase,
   prepareSupportPhotoUploads,
   reportableTypes,
+  sniffPhotoType,
   type SupportPhotoStorage,
 } from "@/server/services/support-cases";
 
@@ -26,7 +27,7 @@ let f: Fixture;
 
 /** In-memory photo storage: records what was handed out, "uploads" on demand. */
 function fakeStorage(opts: { configured?: boolean } = {}) {
-  const stored = new Map<string, { bytes: number; contentType: string }>();
+  const stored = new Map<string, { bytes: number; contentType: string; header?: Uint8Array }>();
   const storage: SupportPhotoStorage = {
     configured: () => opts.configured ?? true,
     createUpload: async (path) => ({ url: `https://storage.test/upload/${path}` }),
@@ -158,6 +159,38 @@ describe("createSupportCase", () => {
       expect(r).toMatchObject({ ok: false, code: "invalid" });
     }
     expect(await db().select().from(supportCases)).toHaveLength(0);
+  });
+
+  it("checks the file's own first bytes, not just the type the uploader claimed", async () => {
+    const placed = await order({ delivered: true });
+    const { storage, stored } = fakeStorage();
+    const base = { ref: placed.order.ref, access: token(placed), ip };
+    const description = "A description long enough.";
+    const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const html = new TextEncoder().encode("<html><script>x</script>");
+
+    const disguised = `support/${placed.order.orderId}/44444444-4444-4444-8444-444444444444.jpg`;
+    stored.set(disguised, { bytes: 24, contentType: "image/jpeg", header: html });
+    const wrongExt = `support/${placed.order.orderId}/55555555-5555-4555-8555-555555555555.png`;
+    stored.set(wrongExt, { bytes: 24, contentType: "image/jpeg", header: jpeg });
+    for (const bad of [disguised, wrongExt]) {
+      const r = await createSupportCase(db(), { ...base, raw: { type: "damaged", description, photoPaths: [bad] } }, { storage });
+      expect(r, bad).toMatchObject({ ok: false, code: "invalid" });
+    }
+
+    const genuine = `support/${placed.order.orderId}/66666666-6666-4666-8666-666666666666.jpg`;
+    stored.set(genuine, { bytes: 24, contentType: "image/jpeg", header: jpeg });
+    const ok = await createSupportCase(db(), { ...base, raw: { type: "damaged", description, photoPaths: [genuine] } }, { storage });
+    expect(ok.ok).toBe(true);
+  });
+
+  it("recognises JPEG, PNG and WebP by their first bytes only", () => {
+    const bytes = (...b: number[]) => Uint8Array.from([...b, ...Array(16 - b.length).fill(0)]);
+    expect(sniffPhotoType(bytes(0xff, 0xd8, 0xff))).toBe("image/jpeg");
+    expect(sniffPhotoType(bytes(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))).toBe("image/png");
+    expect(sniffPhotoType(bytes(0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50))).toBe("image/webp");
+    expect(sniffPhotoType(bytes(0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x41, 0x56, 0x45))).toBeNull(); // WAV
+    expect(sniffPhotoType(new TextEncoder().encode("GIF89a"))).toBeNull();
   });
 
   it("validates type and description, and caps the number of photos", async () => {

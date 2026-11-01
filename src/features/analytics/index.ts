@@ -14,5 +14,6 @@
  */
 export { track, flush } from "@/lib/analytics/client";
 export type { ClientEvent, TrackProps } from "@/lib/analytics/events";
+export { trackPaymentInfo, trackShippingInfo } from "./checkout-events";
 export { PdpTracker } from "./PdpTracker";
 export { SearchTracker } from "./SearchTracker";

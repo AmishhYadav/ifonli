@@ -60,7 +60,24 @@ export interface SupportPhotoStorage {
   /** A signed URL the browser PUTs the file to. */
   createUpload(path: string): Promise<{ url: string }>;
   /** Looks at what was really stored (size and type), so a client cannot claim a different file. */
-  inspect(path: string): Promise<{ bytes: number; contentType: string } | null>;
+  inspect(path: string): Promise<{
+    bytes: number;
+    contentType: string;
+    /** The first bytes of the file, to check it really is the image type it claims to be. */
+    header?: Uint8Array;
+  } | null>;
+}
+
+/**
+ * The image type the first bytes say a file is (JPEG, PNG or WebP), or null. A signed upload URL
+ * lets the browser choose the Content-Type, so the type alone proves nothing.
+ */
+export function sniffPhotoType(header: Uint8Array): SupportPhotoType | null {
+  const startsWith = (bytes: number[], at = 0) => bytes.every((b, i) => header[at + i] === b);
+  if (startsWith([0xff, 0xd8, 0xff])) return "image/jpeg";
+  if (startsWith([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "image/png";
+  if (startsWith([0x52, 0x49, 0x46, 0x46]) && startsWith([0x57, 0x45, 0x42, 0x50], 8)) return "image/webp";
+  return null;
 }
 
 const BUCKET = "private";
@@ -77,9 +94,12 @@ export const supabaseSupportPhotoStorage: SupportPhotoStorage = {
       const url = await createSignedReadUrl(BUCKET, path, 60);
       const res = await fetch(url, { method: "HEAD", cache: "no-store" });
       if (!res.ok) return null;
+      const head = await fetch(url, { headers: { Range: "bytes=0-15" }, cache: "no-store" });
+      const header = head.ok ? new Uint8Array((await head.arrayBuffer()).slice(0, 16)) : new Uint8Array();
       return {
         bytes: Number(res.headers.get("content-length") ?? "0"),
         contentType: (res.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase(),
+        header,
       };
     } catch (e) {
       if (e instanceof StorageError) return null;
@@ -284,11 +304,15 @@ export async function createSupportCase(
   if (photoPaths.length > 0) {
     const looked = await Promise.all(photoPaths.map((p) => storage.inspect(p)));
     const bad = looked.some(
-      (info) =>
+      (info, i) =>
         !info ||
         info.bytes <= 0 ||
         info.bytes > SUPPORT_PHOTO_MAX_BYTES ||
-        !(info.contentType in SUPPORT_PHOTO_TYPES),
+        !(info.contentType in SUPPORT_PHOTO_TYPES) ||
+        // What the bytes say must match the claimed type and the file extension in the path.
+        (info.header !== undefined &&
+          (sniffPhotoType(info.header) !== info.contentType ||
+            !photoPaths[i]!.endsWith(`.${SUPPORT_PHOTO_TYPES[info.contentType as SupportPhotoType]}`))),
     );
     if (bad) {
       const message = "One of the photos didn't finish uploading. Please add it again.";

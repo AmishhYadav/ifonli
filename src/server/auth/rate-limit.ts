@@ -1,6 +1,6 @@
 import "server-only";
 
-import { sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { getDb } from "@/server/db";
 import { rateLimits } from "@/server/db/schema";
@@ -43,4 +43,23 @@ export async function consumeRateLimit(
     remaining: Math.max(0, opts.limit - count),
     retryAfterSec,
   };
+}
+
+/**
+ * Reads a counter without adding to it: is this key already at its limit in the current window?
+ * Used to refuse an attempt up front when only failures are counted (see `consumeRateLimit` for
+ * the recording side), so a success never uses up the budget.
+ */
+export async function isRateLimited(
+  key: string,
+  opts: { limit: number; windowSec: number },
+  now: Date = new Date(),
+): Promise<boolean> {
+  const windowMs = opts.windowSec * 1000;
+  const windowStart = new Date(Math.floor(now.getTime() / windowMs) * windowMs);
+  const [row] = await getDb()
+    .select({ count: rateLimits.count })
+    .from(rateLimits)
+    .where(and(eq(rateLimits.key, key), eq(rateLimits.windowStart, windowStart)));
+  return (row?.count ?? 0) >= opts.limit;
 }

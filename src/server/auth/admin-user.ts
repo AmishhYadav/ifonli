@@ -17,6 +17,54 @@ export interface UpsertAdminInput {
   name?: string;
   /** Delete the TOTP secret and force re-enrolment at next login (lost authenticator). */
   resetTwoFactor?: boolean;
+  /**
+   * The password is a temporary one the person did not choose: they must set their own during
+   * first enrolment, and the temporary one stops working after `TEMP_PASSWORD_TTL_DAYS`.
+   */
+  requirePasswordChange?: boolean;
+}
+
+/** How long a temporary staff password can be used to sign in before an owner must issue a new one. */
+export const TEMP_PASSWORD_TTL_DAYS = 7;
+
+export type PasswordChangeState =
+  | { state: "none" }
+  | { state: "required"; deadline: Date }
+  | { state: "expired" };
+
+/**
+ * "Must change password": `user.password_change_deadline` holds the date after which the temporary
+ * password stops signing in; NULL means nothing is pending. (It used to be a marker row in Better
+ * Auth's `verification` table; migration 0005 moved existing ones over.) Only ever set for accounts
+ * that have not enrolled TOTP yet, so it cannot lock an active admin out.
+ */
+export async function markPasswordChangeRequired(
+  db: DbClient,
+  userId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  await db
+    .update(user)
+    .set({ passwordChangeDeadline: new Date(now.getTime() + TEMP_PASSWORD_TTL_DAYS * 24 * 3600 * 1000) })
+    .where(eq(user.id, userId));
+}
+
+export async function clearPasswordChangeRequired(db: DbClient, userId: string): Promise<void> {
+  await db.update(user).set({ passwordChangeDeadline: null }).where(eq(user.id, userId));
+}
+
+export async function getPasswordChangeState(
+  db: DbClient,
+  userId: string,
+  now: Date = new Date(),
+): Promise<PasswordChangeState> {
+  const [row] = await db
+    .select({ deadline: user.passwordChangeDeadline })
+    .from(user)
+    .where(eq(user.id, userId));
+  if (!row?.deadline) return { state: "none" };
+  if (row.deadline <= now) return { state: "expired" };
+  return { state: "required", deadline: row.deadline };
 }
 
 export interface UpsertAdminResult {
@@ -86,5 +134,7 @@ export async function upsertAdminUser(
   }
 
   if (input.resetTwoFactor) await db.delete(twoFactor).where(eq(twoFactor.userId, userId));
+  if (input.requirePasswordChange) await markPasswordChangeRequired(db, userId);
+  else await clearPasswordChangeRequired(db, userId);
   return { userId, created };
 }

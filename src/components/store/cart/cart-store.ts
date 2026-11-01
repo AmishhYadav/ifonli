@@ -121,8 +121,9 @@ export function hydrateCart(cart: CartView): void {
   setState({ cart, count: cart.itemCount, notices: dedupe(cart.notices) });
 }
 
+/** Loads the cart from the server. A failure is kept in the store so the drawer can offer a retry. */
 export async function refreshCart(): Promise<void> {
-  await run(() => getCart());
+  await run(() => getCart(), undefined, true);
 }
 
 /** What had focus when the drawer opened, so closing it can give focus back (the drawer has no Radix trigger). */

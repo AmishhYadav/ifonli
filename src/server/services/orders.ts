@@ -20,7 +20,6 @@ import {
   generateOrderRef,
   hashAccessToken,
   normalizeOrderRef,
-  verifyAccessToken,
   type CustomerStatusLabel,
   type FulfillmentStatus,
   type OrderStatus,
@@ -30,9 +29,11 @@ import {
 
 import { recordOrderPlaced, recordPurchase } from "./analytics/purchase";
 import { assessCheckout } from "./checkout";
-import { findCartByToken } from "./cart";
+import { cartUsableBy, findCartByToken } from "./cart";
 import { confirmRedemption, releaseRedemption, reserveRedemption } from "./coupons";
 import { composeIdempotencyKey, checkoutFingerprint } from "./commerce/idempotency";
+import { getOrderGate, STORE_CLOSED_MESSAGE } from "./commerce/launch-gate";
+import { addOrderTokenHash, orderTokenMatches } from "./commerce/order-token";
 import type { PaymentInitiator, RazorpayCheckoutPayload } from "./commerce/payment-hook";
 import { loadCommerceSettings } from "./commerce/settings";
 import { adjustStock, InsufficientStockError } from "./inventory";
@@ -57,7 +58,9 @@ export type OrderErrorCode =
   | "insufficient_stock"
   | "invalid_total"
   | "checkout_expired"
-  | "payment_init_failed";
+  | "payment_init_failed"
+  /** Production launch gate: the shop is not taking orders yet (launch checklist not clear). */
+  | "store_closed";
 
 export interface ShortageItem {
   variantId: string;
@@ -216,13 +219,15 @@ function toPlacedOrder(row: OrderRow, accessToken: string): PlacedOrder {
 }
 
 /**
- * Mints a fresh guest access token for an order, replacing the stored hash (a previously issued
- * raw token stops working: there is one valid token per order). The raw token cannot be recovered
- * from the hash, so a replayed submit and the confirmation email each need a fresh one.
+ * Mints another guest access token for an order. The raw token cannot be recovered from its hash, so
+ * a replayed submit (double click, lost response) needs a fresh one; the hash is ADDED to the stored
+ * ones (see `order-token.ts`), so a link or payment window opened from an earlier response keeps
+ * working.
  */
 export async function issueOrderAccessToken(db: DbClient, orderId: string): Promise<string> {
   const { token, hash } = createAccessToken();
-  await db.update(orders).set({ accessTokenHash: hash }).where(eq(orders.id, orderId));
+  const [row] = await db.select({ hashes: orders.accessTokenHash }).from(orders).where(eq(orders.id, orderId)).for("update");
+  await db.update(orders).set({ accessTokenHash: addOrderTokenHash(row?.hashes, hash) }).where(eq(orders.id, orderId));
   return token;
 }
 
@@ -318,6 +323,9 @@ export async function releaseExpiredReservations(
 /* createFromCart (plan 7.5)                                                                  */
 /* ------------------------------------------------------------------------------------------ */
 
+/** Upper bound on retries of one checkout (each expired attempt makes the next key); a runaway guard. */
+const MAX_CHECKOUT_ATTEMPTS = 50;
+
 type TxOutcome = { kind: "created" | "replay"; order: OrderRow; token: string; productIds: string[] };
 
 /**
@@ -362,11 +370,18 @@ export async function createFromCart(
   const form = parsed.data;
 
   const cartRow = await findCartByToken(db, input.cartToken);
-  if (!cartRow) {
+  // A cart that belongs to another account is not this visitor's (shared device, stale cookie).
+  if (!cartRow || !cartUsableBy(cartRow, input.userId)) {
     return {
       ok: false,
       error: { code: "cart_not_found", message: "We couldn't find your cart. Please refresh the page." },
     };
+  }
+
+  // Production launch gate (plan 14): no real orders until the launch checklist is clear.
+  const gate = await getOrderGate(db, { now });
+  if (!gate.open) {
+    return { ok: false, error: { code: "store_closed", message: STORE_CLOSED_MESSAGE } };
   }
 
   let outcome: TxOutcome;
@@ -438,7 +453,7 @@ async function runOrderTransaction(
     return fail({ code: "cart_not_found", message: "We couldn't find your cart. Please refresh the page." });
   }
   const address = form.shippingAddress;
-  const idempotencyKey = composeIdempotencyKey({
+  const baseKey = composeIdempotencyKey({
     cartId: cart.id,
     cartVersion: cart.version,
     clientKey: form.idempotencyKey,
@@ -450,15 +465,26 @@ async function runOrderTransaction(
     }),
   });
 
-  // 2. Idempotency: a repeat submit returns the existing order.
-  const [existing] = await tx.select().from(orders).where(eq(orders.idempotencyKey, idempotencyKey));
-  if (existing) {
-    if (existing.status === "expired" || existing.status === "cancelled") {
+  // 2. Idempotency: a repeat submit returns the existing order. An attempt that died unpaid (payment
+  //    could not start, or the reservation lapsed) is over, not a result to hand back: the same
+  //    submit again is a fresh attempt under the next key (`<key>~1`, `<key>~2`, ...), so the
+  //    customer can always try again, while a double click on a LIVE order still replays it.
+  let idempotencyKey = baseKey;
+  let existing: OrderRow | undefined;
+  for (let attempt = 1; attempt <= MAX_CHECKOUT_ATTEMPTS; attempt++) {
+    [existing] = await tx.select().from(orders).where(eq(orders.idempotencyKey, idempotencyKey));
+    const closed = existing && (existing.status === "expired" || existing.status === "cancelled");
+    if (!existing || !closed) break;
+    if (existing.paidAt) {
       return fail({
         code: "checkout_expired",
-        message: "This checkout expired. Please review your cart and place the order again.",
+        message: "This checkout is already complete. Please review your cart and place the order again.",
       });
     }
+    idempotencyKey = `${baseKey}~${attempt}`;
+    existing = undefined;
+  }
+  if (existing) {
     const token = await issueOrderAccessToken(tx, existing.id);
     return { kind: "replay", order: existing, token, productIds: [] };
   }
@@ -818,7 +844,7 @@ export async function getOrderForCustomer(
     .from(orders)
     .where(eq(orders.ref, normalizeOrderRef(ref)))
     .limit(1);
-  const ok = verifyAccessToken(token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
+  const ok = orderTokenMatches(token ?? "", order?.accessTokenHash ?? DUMMY_HASH);
   if (!order || !order.accessTokenHash || !ok) return null;
   return toCustomerOrderView(db, order);
 }

@@ -1,0 +1,96 @@
+{
+  "_note": "Store values for the IfOnli college-project build (2026-11-01). Not legally reviewed. Contact details marked SWAP must be replaced with real ones before the site is shared publicly. Money is in paise.",
+
+  "legal_name": "IfOnli Studio",
+  "brand_name": "IfOnli",
+  "registered_address": "2nd Floor, 14 Hill Road, Bandra West, Mumbai, Maharashtra 400050, India",
+  "state": "Maharashtra",
+  "gstin": null,
+  "support_email": "support@ifonli.in",
+  "support_phone": "+91 98765 43210",
+  "support_hours": "Mon–Sat, 10:00–18:00 IST",
+  "response_time": "24 hours on working days",
+  "grievance_officer": {
+    "name": "Amish Yadav",
+    "designation": "Founder and Grievance Officer",
+    "email": "grievance@ifonli.in",
+    "phone": "+91 98765 43210"
+  },
+  "default_manufacturer": {
+    "name": "IfOnli Studio",
+    "address": "2nd Floor, 14 Hill Road, Bandra West, Mumbai, Maharashtra 400050, India"
+  },
+  "default_country_of_origin": "India",
+
+  "default_gst_rate_bp": 1800,
+  "shipping_tax_rule": "dominant_line_rate",
+
+  "flat_fee": 4900,
+  "free_threshold": 49900,
+  "zone_overrides": {},
+  "processing_days": 2,
+  "delivery_estimates_by_zone": {
+    "metro_region": { "minDays": 2, "maxDays": 4 },
+    "rest_of_india": { "minDays": 3, "maxDays": 6 },
+    "north_east": { "minDays": 5, "maxDays": 9 },
+    "jk_ladakh": { "minDays": 6, "maxDays": 10 },
+    "islands": { "minDays": 7, "maxDays": 12 }
+  },
+  "delay_message": "",
+
+  "cod_enabled": true,
+  "cod_fee": 4000,
+  "cod_max_order_value": 500000,
+  "cod_excluded_pincodes": [],
+
+  "reservation_ttl_minutes": 15,
+  "default_low_stock_threshold": 5,
+  "max_qty_per_line": 10,
+
+  "cancellable_statuses": ["unfulfilled", "packed"],
+  "return_policy_type": "no_returns",
+  "returns_window_days": 0,
+  "damaged_claim_window_hours": 48,
+
+  "vibe_cycle": ["cute", "bold", "overthinking", "gothic", "funky"],
+  "default_vibe": "cute",
+  "hero_enabled": true,
+
+  "notification_channels": {
+    "order_confirmed": { "email": true, "whatsapp": false },
+    "cod_order_placed": { "email": true, "whatsapp": false },
+    "payment_failed": { "email": true, "whatsapp": false },
+    "shipped": { "email": true, "whatsapp": false },
+    "delivered": { "email": true, "whatsapp": false },
+    "cancelled": { "email": true, "whatsapp": false },
+    "refund_initiated": { "email": true, "whatsapp": false },
+    "refund_processed": { "email": true, "whatsapp": false },
+    "support_case_update": { "email": true, "whatsapp": false },
+    "contact_ack": { "email": true, "whatsapp": false }
+  },
+  "admin_alert_emails": ["orders@ifonli.in"],
+
+  "ga4_measurement_id": null,
+  "consent_required": true,
+  "event_retention_months": 13,
+
+  "policy.jurisdiction_city": "Mumbai",
+  "policy.processors": "**Razorpay** (online payments and refunds), our **courier partners** (delivery), **Resend** (order e-mails and sign-in codes), **Supabase** (database and image storage, Mumbai region) and **Vercel** (website hosting).",
+  "policy.hippers_definition": "**Hippers** are our clip-on accessories: snap clips, claw clips and bag hooks with a charm-like personality. Clip one into your hair, onto a tote strap, a belt loop or a zip pull, and move it to something else whenever your vibe changes. No tools, no piercing, nothing permanent.",
+  "policy.materials_note": "charms and Hippers are made from zinc alloy or stainless steel with enamel, resin or acrylic details. 3D stickers are layered vinyl with a clear domed resin top. DIY kits use glass, acrylic and polymer-clay beads with stainless-steel rings and findings. Keep pieces away from water, perfume and harsh cleaners so the finish lasts.",
+  "policy.handmade_note": "Many pieces are finished by hand, so small differences in colour, shape and finish from the photos are normal and are not defects.",
+  "policy.working_days": "Monday to Saturday",
+  "policy.courier_partners": "Delhivery and India Post (Speed Post)",
+  "policy.delivery_attempts": 3,
+  "policy.rto_handling": "we contact you by e-mail. For a prepaid order you can ask us to send it again (you pay the shipping again) or take a refund of the order value minus the original shipping fee. A cash-on-delivery order is cancelled, and nothing is charged.",
+  "policy.refund_initiation_days": 2,
+  "policy.refund_bank_days": "5 to 7 working days",
+  "policy.cod_refund_days": 3,
+  "policy.replacement_days": "3 working days",
+  "policy.return_conditions": "- The item is unused and in its original packaging, with all parts and tags.\n- You ask for the return from the Help page within the return window, with your order reference.\n- We check the item when it reaches us and start the refund once it passes the check.",
+  "policy.non_returnable_items": "- Opened DIY kits and loose beads\n- Hippers that have been worn in the hair (for hygiene)\n- 3D stickers that have been peeled off their backing\n- Items marked final sale",
+  "policy.return_shipping_rule": "for a change-of-mind return you send the parcel back to us with a tracked courier and pay the return shipping. For a damaged, defective or wrong item we arrange the pickup at no cost to you.",
+  "policy.shipping_fee_refund_rule": "refunded in full when the whole order is cancelled before dispatch, or when an item arrives damaged, defective or wrong. They are not refunded on other partial refunds.",
+  "policy.retention_order_records": "8 years from the end of the financial year in which the order was placed, because tax law requires it",
+  "policy.retention_period": "for as long as your account is open, and deleted within 30 days after you delete your account (support messages and photos are deleted 1 year after the case is closed)"
+}

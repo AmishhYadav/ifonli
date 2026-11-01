@@ -208,6 +208,20 @@ describe("CSP report summaries", () => {
     });
   });
 
+  it("strips line breaks and control characters so a report cannot forge log lines", () => {
+    const [report] = summariseCspReports({
+      "csp-report": {
+        "document-uri": "https://ifonli.in/a\r\n[csp] enforce fake-directive",
+        "effective-directive": "img-src\r\n[csp] forged",
+        "blocked-uri": "not a url\r\nsecond line\u2028third",
+        "source-file": "line\nbreak\u0000nul",
+      },
+    });
+    for (const value of [report!.directive, report!.blocked, report!.page, report!.source]) {
+      expect(value).not.toMatch(/[\u0000-\u001f\u007f\u2028\u2029]/);
+    }
+  });
+
   it("caps the number of reports and survives garbage", () => {
     expect(summariseCspReports("nope")).toEqual([]);
     expect(summariseCspReports(null)).toEqual([]);

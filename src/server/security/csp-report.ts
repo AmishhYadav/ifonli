@@ -20,8 +20,12 @@ export interface CspViolationSummary {
 
 const MAX_REPORTS = 10;
 
+/**
+ * A report field as short, single-line text. Reports come from anyone on the internet and end up in
+ * log lines, so control characters (CR/LF above all) are dropped: they could forge extra log entries.
+ */
 function str(value: unknown, max = 200): string {
-  return typeof value === "string" ? value.slice(0, max) : "";
+  return typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f\u2028\u2029]/g, "").slice(0, max) : "";
 }
 
 /** `https://host/path?x#y` -> `https://host/path`; non-URLs (keywords) pass through trimmed. */

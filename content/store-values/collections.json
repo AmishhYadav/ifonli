@@ -1,0 +1,66 @@
+{
+  "_note": "Customer-facing copy for the 5 vibes and 4 product types, applied by scripts/store-values/apply-settings-content.ts through the collections service. SEO titles stay under 52 characters because the site adds ' | IfOnli'; SEO descriptions stay under 155. The Hippers definition must agree with policy.hippers_definition in settings.json.",
+  "vibes": {
+    "cute": {
+      "name": "Cute",
+      "description": "Soft colours, tiny shapes and happy little details. Charms, Hippers and stickers for anyone whose bag, phone or hair clip should look like a good mood.",
+      "heroCopy": "Tiny things, big happy feelings.",
+      "seoTitle": "Cute charms, Hippers and 3D stickers",
+      "seoDesc": "Soft, sweet charms, Hippers, 3D stickers and DIY kits in pastel colours and tiny shapes. Cash on delivery available."
+    },
+    "bold": {
+      "name": "Bold",
+      "description": "Loud colours, chunky shapes and no apologies. Pieces for people who want their bag, jacket or hair clip to be noticed from across the room.",
+      "heroCopy": "Loud colours. Zero apologies.",
+      "seoTitle": "Bold charms, Hippers and 3D stickers",
+      "seoDesc": "Chunky, high-contrast charms, Hippers, 3D stickers and DIY kits for people who like to stand out. Cash on delivery available."
+    },
+    "overthinking": {
+      "name": "Overthinking",
+      "description": "For the one who rereads the message six times. Quiet jokes, worried little faces and charms that understand your 2 a.m. thoughts.",
+      "heroCopy": "Thought about it. Still want it.",
+      "seoTitle": "Overthinking charms, Hippers and stickers",
+      "seoDesc": "Charms, Hippers, 3D stickers and DIY kits with dry humour for people who think too much. Cash on delivery available."
+    },
+    "gothic": {
+      "name": "Gothic",
+      "description": "Dark enamel, silver tones and a little drama. Charms and clips for people who prefer moonlight to sunshine.",
+      "heroCopy": "Dress your things in shadow.",
+      "seoTitle": "Gothic charms, Hippers and 3D stickers",
+      "seoDesc": "Moody charms, Hippers, 3D stickers and DIY kits in black, silver and deep jewel tones. Cash on delivery available."
+    },
+    "funky": {
+      "name": "Funky",
+      "description": "Retro swirls, bright clashes and seventies energy. Playful pieces that turn a plain tote or phone case into a groove.",
+      "heroCopy": "Groovy little things, made to clash.",
+      "seoTitle": "Funky retro charms, Hippers and stickers",
+      "seoDesc": "Bright, retro-inspired charms, Hippers, 3D stickers and DIY kits with serious seventies energy. Cash on delivery available."
+    }
+  },
+  "types": {
+    "charms": {
+      "name": "Charms",
+      "definition": "Small decorative pieces that hang from your bag, keys, phone or zip. Made from zinc alloy or stainless steel with enamel, resin or acrylic details.",
+      "seoTitle": "Charms for bags, keys and phones",
+      "seoDesc": "Shop charms in every vibe: cute, bold, overthinking, gothic and funky. Enamel, resin and acrylic details on zinc alloy or steel."
+    },
+    "hippers": {
+      "name": "Hippers",
+      "definition": "Hippers are our clip-on accessories: snap clips, claw clips and bag hooks with a charm-like personality. Clip one into your hair, onto a tote strap, a belt loop or a zip pull, and move it to something else whenever your vibe changes. No tools, no piercing, nothing permanent.",
+      "seoTitle": "Hippers: clip-on accessories",
+      "seoDesc": "Hippers are clip-on snap clips, claw clips and bag hooks. Wear them in your hair or on a tote, belt loop or zip pull. No piercing."
+    },
+    "3d-stickers": {
+      "name": "3D Stickers",
+      "definition": "Layered vinyl stickers with a clear domed resin top, so they feel raised and glossy. Stick them on phone cases, laptops, bottles and notebooks.",
+      "seoTitle": "3D stickers with a glossy domed finish",
+      "seoDesc": "Layered vinyl 3D stickers with a clear domed resin top. Add them to phone cases, laptops, bottles and notebooks."
+    },
+    "diy-accessories": {
+      "name": "DIY Accessories",
+      "definition": "DIY kits with glass, acrylic and polymer-clay beads plus stainless-steel rings and findings, so you can make your own charms and accessories at home.",
+      "seoTitle": "DIY accessory kits with beads and findings",
+      "seoDesc": "Make your own charms and accessories with DIY kits of glass, acrylic and polymer-clay beads and stainless-steel findings."
+    }
+  }
+}

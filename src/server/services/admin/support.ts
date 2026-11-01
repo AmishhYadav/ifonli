@@ -29,7 +29,7 @@ import { addOrderEvent } from "@/server/services/order-events";
 import type { DbClient } from "@/server/services/queries/shared";
 import { createSignedReadUrl } from "@/server/storage";
 
-import { getAdminOrderDetail, label, refundOrder, type AdminOrderDetail } from "./orders";
+import { getAdminOrderDetail, label, refundOrder, withAdvisoryLock, type AdminOrderDetail } from "./orders";
 import { AdminInputError, type AdminActor } from "./products";
 import {
   ReplacementError,
@@ -1054,67 +1054,87 @@ export async function resolveSupportCase(
   if (input.resolution === "refund") assertCan(actor.role, "order:refund");
 
   if (input.resolution === "refund") {
-    const [c] = await db.select().from(supportCases).where(eq(supportCases.id, caseId)).limit(1);
-    if (!c) throw new SupportNotFoundError("case");
-    assertActive(c);
-    const refund = await refundOrder(
-      db,
-      c.orderId,
-      {
-        amountPaise: input.amountPaise,
-        reason: `Support case ${caseShortId(c.id)} (${label(c.type)})`,
-        reference: input.reference,
-      },
-      actor,
-      provider,
-    );
-    await db.transaction(async (tx) => {
-      const fresh = await lockCase(tx, caseId);
-      if (!isActiveCase(fresh.status)) {
-        throw new AdminInputError(
-          `The refund of ${formatINR(input.amountPaise)} was recorded on the order, but this case was ${label(fresh.status)} by someone else in the meantime. Check the order's refunds.`,
-        );
-      }
-      const order = await orderForCase(tx, fresh.orderId);
-      const isCod = order.paymentMethod === "cod";
-      const customerNote =
-        input.message ??
-        (isCod
-          ? `We have refunded ${formatINR(input.amountPaise)} to you${input.reference ? ` (reference ${input.reference})` : ""}. Sorry for the trouble.`
-          : `We have started a refund of ${formatINR(input.amountPaise)} to your original payment method. It can take a few days to reach you. Sorry for the trouble.`);
-      await closeCase(
-        tx,
-        fresh,
-        order,
-        {
-          status: "resolved",
-          resolution: "refund",
-          noteLine: `Refunded ${formatINR(input.amountPaise)} (refund ${refund.refundId.slice(0, 8)}, ${refund.status}).`,
-          customerNote,
-          internalNote: input.note,
-          audit: {
-            refundId: refund.refundId,
-            refundStatus: refund.status,
-            amountPaise: input.amountPaise,
-            providerError: refund.providerError,
-          },
-        },
-        actor,
-      );
-    });
-    return {
-      caseId,
-      productIds: refund.productIds,
-      refund: {
-        refundId: refund.refundId,
-        status: refund.status,
-        amountPaise: input.amountPaise,
-        providerError: refund.providerError,
-      },
-      replacement: null,
-    };
+    // One refund per case: a double click or a second admin waits here, then finds the case decided.
+    return withAdvisoryLock(db, `support-refund:${caseId}`, () => resolveWithRefund(db, caseId, input, actor, provider));
   }
 
+  return resolveWithReplacement(db, caseId, input, actor);
+}
+
+async function resolveWithRefund(
+  db: DbClient,
+  caseId: string,
+  input: Extract<z.infer<typeof resolveInputSchema>, { resolution: "refund" }>,
+  actor: AdminActor,
+  provider?: PaymentProvider,
+): Promise<ResolveCaseResult> {
+  const [c] = await db.select().from(supportCases).where(eq(supportCases.id, caseId)).limit(1);
+  if (!c) throw new SupportNotFoundError("case");
+  assertActive(c);
+  const refund = await refundOrder(
+    db,
+    c.orderId,
+    {
+      amountPaise: input.amountPaise,
+      reason: `Support case ${caseShortId(c.id)} (${label(c.type)})`,
+      reference: input.reference,
+    },
+    actor,
+    provider,
+  );
+  await db.transaction(async (tx) => {
+    const fresh = await lockCase(tx, caseId);
+    if (!isActiveCase(fresh.status)) {
+      throw new AdminInputError(
+        `The refund of ${formatINR(input.amountPaise)} was recorded on the order, but this case was ${label(fresh.status)} by someone else in the meantime. Check the order's refunds.`,
+      );
+    }
+    const order = await orderForCase(tx, fresh.orderId);
+    const isCod = order.paymentMethod === "cod";
+    const customerNote =
+      input.message ??
+      (isCod
+        ? `We have refunded ${formatINR(input.amountPaise)} to you${input.reference ? ` (reference ${input.reference})` : ""}. Sorry for the trouble.`
+        : `We have started a refund of ${formatINR(input.amountPaise)} to your original payment method. It can take a few days to reach you. Sorry for the trouble.`);
+    await closeCase(
+      tx,
+      fresh,
+      order,
+      {
+        status: "resolved",
+        resolution: "refund",
+        noteLine: `Refunded ${formatINR(input.amountPaise)} (refund ${refund.refundId.slice(0, 8)}, ${refund.status}).`,
+        customerNote,
+        internalNote: input.note,
+        audit: {
+          refundId: refund.refundId,
+          refundStatus: refund.status,
+          amountPaise: input.amountPaise,
+          providerError: refund.providerError,
+        },
+      },
+      actor,
+    );
+  });
+  return {
+    caseId,
+    productIds: refund.productIds,
+    refund: {
+      refundId: refund.refundId,
+      status: refund.status,
+      amountPaise: input.amountPaise,
+      providerError: refund.providerError,
+    },
+    replacement: null,
+  };
+}
+
+async function resolveWithReplacement(
+  db: DbClient,
+  caseId: string,
+  input: Extract<z.infer<typeof resolveInputSchema>, { resolution: "replacement" }>,
+  actor: AdminActor,
+): Promise<ResolveCaseResult> {
   return db.transaction(async (tx) => {
     const c = await lockCase(tx, caseId);
     assertActive(c);

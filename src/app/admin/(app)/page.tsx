@@ -12,6 +12,9 @@ import { requireAdmin } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { getDashboardStats, type DashboardAnomaly } from "@/server/services/admin/dashboard";
 
+/** Session-gated and dynamic: exempt from instant-navigation validation (see admin/layout.tsx). */
+export const instant = false;
+
 export const metadata: Metadata = { title: "Dashboard" };
 
 const ANOMALY_LABEL: Record<DashboardAnomaly["kind"], string> = {

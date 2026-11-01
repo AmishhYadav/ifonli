@@ -16,7 +16,7 @@ import {
   type AdminActor,
 } from "./products";
 import { altTextSchema } from "./product-schema";
-import { deleteStorageObjects, readPublicObject } from "./storage";
+import { deleteStorageObjects, readPublicObject, writeStorageObject } from "./storage";
 
 export type ImageKind = "photo" | "cutout";
 
@@ -76,6 +76,48 @@ export async function inspectImage(buffer: Buffer, kind: ImageKind): Promise<Ima
   }
   return { format, width, height, hasAlpha, warnings };
 }
+
+const CONTENT_TYPE: Record<string, string> = {
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  avif: "image/avif",
+};
+
+/**
+ * Re-encodes an upload so what gets stored is pixels only: EXIF (camera, GPS position, timestamps),
+ * XMP and embedded thumbnails are dropped, and the orientation tag is applied to the pixels first so
+ * the picture does not turn sideways. Same format as the upload (a cutout stays a PNG/WebP with its
+ * transparency); colours are converted to sRGB. Plan 13: uploads are re-encoded with sharp.
+ */
+export async function stripImageMetadata(buffer: Buffer, format: string): Promise<Buffer> {
+  const image = sharp(buffer, { animated: format === "webp" }).rotate();
+  switch (format) {
+    case "jpeg":
+      return image.jpeg({ quality: 92, mozjpeg: true }).toBuffer();
+    case "png":
+      return image.png({ compressionLevel: 9 }).toBuffer();
+    case "webp":
+      return image.webp({ quality: 92 }).toBuffer();
+    case "avif":
+      return image.avif({ quality: 70 }).toBuffer();
+    default:
+      throw new AdminInputError("That image format is not supported");
+  }
+}
+
+/** The storage operations `registerUploadedImage` needs; replaceable in tests. */
+export interface ImageObjectStore {
+  read(bucket: string, path: string): Promise<Buffer>;
+  write(bucket: string, path: string, body: Buffer, contentType: string): Promise<void>;
+  remove(bucket: string, paths: string[]): Promise<void>;
+}
+
+const supabaseObjectStore: ImageObjectStore = {
+  read: (bucket, path) => readPublicObject(bucket, path),
+  write: (bucket, path, body, contentType) => writeStorageObject(bucket, path, body, contentType),
+  remove: (bucket, paths) => deleteStorageObjects(bucket, paths),
+};
 
 const ALLOWED_EXT: Record<ImageKind, string[]> = {
   photo: ["jpg", "jpeg", "png", "webp", "avif"],
@@ -201,8 +243,9 @@ function toImageRow(r: typeof productImages.$inferSelect): ImageRow {
 }
 
 /**
- * Step 2 of an upload: reads the uploaded object back, validates it (deleting the object if it is
- * not acceptable) and records it with required alt text.
+ * Step 2 of an upload: reads the uploaded object back, validates it, replaces it with a re-encoded
+ * copy without EXIF/GPS data (deleting the object if it is not acceptable or cannot be cleaned) and
+ * records it with required alt text.
  */
 export async function registerUploadedImage(
   db: DbClient,
@@ -214,6 +257,7 @@ export async function registerUploadedImage(
     variantId?: string | null;
   },
   actor: AdminActor,
+  store: ImageObjectStore = supabaseObjectStore,
 ): Promise<ImageMutationResult> {
   assertCan(actor.role, "product:update");
   const bucket = BUCKET[input.kind];
@@ -225,9 +269,15 @@ export async function registerUploadedImage(
   altTextSchema.parse(input.alt);
   let inspection: ImageInspection;
   try {
-    inspection = await inspectImage(await readPublicObject(bucket, objectPath), input.kind);
+    const original = await store.read(bucket, objectPath);
+    const first = await inspectImage(original, input.kind);
+    const clean = await stripImageMetadata(original, first.format);
+    // The stored copy is the cleaned one; size and warnings are judged on it (rotation can swap them).
+    inspection = await inspectImage(clean, input.kind);
+    await store.write(bucket, objectPath, clean, CONTENT_TYPE[inspection.format] ?? "application/octet-stream");
   } catch (error) {
-    await deleteStorageObjects(bucket, [objectPath]).catch(() => undefined);
+    // Fail closed: an object that could not be checked and cleaned must not stay publicly readable.
+    await store.remove(bucket, [objectPath]).catch(() => undefined);
     throw error;
   }
   const image = await insertImageRecord(

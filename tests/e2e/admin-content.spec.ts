@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 
 import { expect, test, type Page } from "@playwright/test";
 
+import { createAdminAccount } from "./helpers/admin-account";
 import { totp } from "./helpers/totp";
 
 /**
@@ -19,7 +20,8 @@ import { totp } from "./helpers/totp";
 
 test.describe("admin content flows", () => {
   test.skip(!process.env.E2E_ADMIN_FLOW, "set E2E_ADMIN_FLOW=1 (needs the dev database)");
-  test.describe.configure({ mode: "serial" });
+  // Serial, and a longer budget: a sign-in may wait up to 30 s for a fresh authenticator step.
+  test.describe.configure({ mode: "serial", timeout: 120_000 });
 
   const stamp = Date.now();
   const owner = {
@@ -34,22 +36,7 @@ test.describe("admin content flows", () => {
   };
 
   function createAccount(email: string, password: string, role: "owner" | "admin") {
-    execFileSync(
-      "pnpm",
-      [
-        "exec",
-        "tsx",
-        "--conditions=react-server",
-        "scripts/create-admin.ts",
-        "--email",
-        email,
-        "--role",
-        role,
-        "--password",
-        password,
-      ],
-      { stdio: "pipe" },
-    );
+    createAdminAccount(email, password, role);
   }
 
   /** Waits for hydration: text typed into a controlled input before React attaches is thrown away. */
@@ -110,6 +97,16 @@ test.describe("admin content flows", () => {
     createAccount(admin.email, admin.password, "admin");
   });
 
+  // Later specs (content.spec) expect the seeded draft shipping policy and its text: put both back.
+  test.afterAll(() => {
+    execFileSync("pnpm", ["exec", "tsx", "tests/e2e/helpers/reset-content.ts"], { stdio: "pipe" });
+    execFileSync(
+      "pnpm",
+      ["exec", "tsx", "--conditions=react-server", "scripts/seed-content.ts", "--force"],
+      { stdio: "pipe" },
+    );
+  });
+
   test.beforeEach(({ isMobile }) => {
     test.skip(isMobile, "desktop only");
   });
@@ -168,7 +165,7 @@ test.describe("admin content flows", () => {
     const row = page.getByTestId("audit-row").first();
     await expect(row).toContainText("setting.update");
     await expect(row).toContainText(owner.email);
-    await row.getByText(/lines?$/).click();
+    await row.getByText(/^\d+ lines?/).click();
     await expect(row.getByTestId("audit-diff")).toContainText(hours);
     await expect(row.getByTestId("audit-diff")).toContainText('"isPlaceholder": true');
   });

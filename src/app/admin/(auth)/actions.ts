@@ -1,11 +1,16 @@
 "use server";
 
-import { APIError } from "better-auth/api";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import QRCode from "qrcode";
 import { z } from "zod";
 
+import {
+  MIN_ADMIN_PASSWORD_LENGTH,
+  clearPasswordChangeRequired,
+  getPasswordChangeState,
+} from "@/server/auth/admin-user";
+import { isAuthApiError } from "@/server/auth/api-error";
 import { getAuth } from "@/server/auth/auth";
 import { consumeRateLimit } from "@/server/auth/rate-limit";
 import { getClientIp, getSession, requireEnrolling } from "@/server/auth/session";
@@ -48,7 +53,7 @@ export async function signInAction(input: unknown): Promise<Result<{ next: "totp
     })) as { twoFactorRedirect?: boolean } | null;
     return { ok: true, data: { next: res?.twoFactorRedirect ? "totp" : "enroll" } };
   } catch (error) {
-    if (error instanceof APIError) return { ok: false, error: GENERIC_LOGIN_ERROR };
+    if (isAuthApiError(error)) return { ok: false, error: GENERIC_LOGIN_ERROR };
     throw error;
   }
 }
@@ -77,7 +82,7 @@ export async function verifyTotpAction(input: unknown): Promise<Result> {
     });
     return { ok: true, data: undefined };
   } catch (error) {
-    if (error instanceof APIError) {
+    if (isAuthApiError(error)) {
       return { ok: false, error: "That code is not valid or has expired. Try again." };
     }
     throw error;
@@ -91,18 +96,54 @@ export interface EnrollmentStart {
   backupCodes: string[];
 }
 
-/** Enrolment step 1: re-enter the password; returns the QR code, manual key and backup codes. */
+/**
+ * Enrolment step 1: re-enter the password; returns the QR code, manual key and backup codes.
+ * When the password is a temporary one (new account, owner reset), a new password is required here
+ * and replaces it (other sessions are signed out), so whoever was handed the temporary password
+ * cannot keep the account by enrolling first.
+ */
 export async function startEnrollmentAction(input: unknown): Promise<Result<EnrollmentStart>> {
-  await requireEnrolling();
-  const parsed = z.object({ password: z.string().min(1).max(200) }).safeParse(input);
+  const admin = await requireEnrolling();
+  const parsed = z
+    .object({
+      password: z.string().min(1).max(200),
+      newPassword: z.string().max(128).optional(),
+    })
+    .safeParse(input);
   if (!parsed.success) return { ok: false, error: "Enter your password." };
   if (await limited("admin-enroll", 8, 600)) return { ok: false, error: TOO_MANY };
+  const mustChange = (await getPasswordChangeState(getDb(), admin.user.id)).state === "required";
+  const { password, newPassword } = parsed.data;
+  if (mustChange) {
+    if (!newPassword || newPassword.length < MIN_ADMIN_PASSWORD_LENGTH) {
+      return { ok: false, error: `Choose a new password of at least ${MIN_ADMIN_PASSWORD_LENGTH} characters.` };
+    }
+    if (newPassword === password) {
+      return { ok: false, error: "The new password must be different from the temporary one." };
+    }
+  }
   try {
-    const res = await getAuth().api.enableTwoFactor({
-      body: { password: parsed.data.password, issuer: "IfOnli", method: "totp" },
+    const auth = getAuth();
+    const res = await auth.api.enableTwoFactor({
+      body: { password, issuer: "IfOnli", method: "totp" },
       headers: await headers(),
     });
     if (res.method !== "totp") return { ok: false, error: "Could not start two-factor setup." };
+    if (mustChange && newPassword) {
+      await auth.api.changePassword({
+        body: { currentPassword: password, newPassword, revokeOtherSessions: true },
+        headers: await headers(),
+      });
+      await clearPasswordChangeRequired(getDb(), admin.user.id);
+      await writeAudit(getDb(), {
+        actorId: admin.user.id,
+        action: "admin.password_changed",
+        entity: "user",
+        entityId: admin.user.id,
+        diff: { reason: "temporary_password_replaced" },
+        ip: await getClientIp(),
+      });
+    }
     const secret = new URL(res.totpURI).searchParams.get("secret") ?? "";
     return {
       ok: true,
@@ -113,7 +154,7 @@ export async function startEnrollmentAction(input: unknown): Promise<Result<Enro
       },
     };
   } catch (error) {
-    if (error instanceof APIError) return { ok: false, error: "Incorrect password." };
+    if (isAuthApiError(error)) return { ok: false, error: "Incorrect password." };
     throw error;
   }
 }
@@ -125,6 +166,9 @@ export async function finishEnrollmentAction(input: unknown): Promise<Result> {
   if (!parsed.success)
     return { ok: false, error: "Enter the 6-digit code from your authenticator app." };
   if (await limited("admin-enroll-verify", 10, 600)) return { ok: false, error: TOO_MANY };
+  if ((await getPasswordChangeState(getDb(), admin.user.id)).state === "required") {
+    return { ok: false, error: "Choose your new password first." };
+  }
   try {
     await getAuth().api.verifyTOTP({ body: { code: parsed.data.code }, headers: await headers() });
     await writeAudit(getDb(), {
@@ -136,7 +180,7 @@ export async function finishEnrollmentAction(input: unknown): Promise<Result> {
     });
     return { ok: true, data: undefined };
   } catch (error) {
-    if (error instanceof APIError)
+    if (isAuthApiError(error))
       return {
         ok: false,
         error: "That code is not valid. Check the time on your phone and try again.",
