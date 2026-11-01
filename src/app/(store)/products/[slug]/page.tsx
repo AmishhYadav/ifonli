@@ -129,7 +129,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
         <PurchaseProvider model={model}>
           <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-14">
-            <div className="lg:sticky lg:top-24 lg:self-start">
+            <div className="lg:sticky lg:top-[calc(var(--header-h,7.5rem)+1rem)] lg:self-start">
               <Gallery images={images} productName={product.name} primaryVibe={product.primaryVibe} />
             </div>
 
