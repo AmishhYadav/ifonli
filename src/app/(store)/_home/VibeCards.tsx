@@ -30,7 +30,7 @@ export async function VibeCards() {
       className="below-fold mx-auto mt-14 max-w-[1440px] scroll-mt-24 px-4 sm:px-6"
     >
       <VibeCopy k="home.vibesTitle" as="h2" className="font-display text-3xl display-fx sm:text-4xl" />
-      <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {vibes.map((v) => {
           const vibe = v.slug as Vibe;
           const covers = (tiles[vibe] ?? []).slice(0, 3);

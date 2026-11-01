@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { imageProps } from "@/server/services/media";
 import type { ProductCard as ProductCardData } from "@/server/services/queries/types";
 
+import { cardImageRef } from "./card-image";
 import { DEFAULT_CARD_SIZES, ProductCardView, type ResolvedImage } from "./ProductCardView";
 
 export interface ProductCardProps {
@@ -21,14 +22,14 @@ export interface ProductCardProps {
  * A path that cannot be resolved degrades to the placeholder tile instead of failing the whole page.
  */
 export function ProductCard({ product, sizes = DEFAULT_CARD_SIZES, ...rest }: ProductCardProps) {
+  const { ref, isCutout } = cardImageRef(product);
   let image: ResolvedImage | null = null;
-  if (product.image) {
+  if (ref) {
     try {
-      image = imageProps(product.image);
+      image = imageProps(ref);
     } catch (error) {
       console.error(`ProductCard: unusable image for "${product.slug}"`, error);
     }
   }
-  const isCutout = Boolean(product.image && product.cutout && product.image.path === product.cutout.path);
   return <ProductCardView product={product} image={image} isCutout={isCutout} sizes={sizes} {...rest} />;
 }
