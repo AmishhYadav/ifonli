@@ -117,6 +117,18 @@ export default async function SettingsPage({
           ) : (
             <div className="flex max-w-3xl flex-col gap-5">
               <h2 className="text-base font-semibold">{GROUP_LABELS[group]}</h2>
+              {group === "shipping" ? (
+                <p className="text-[13px] text-admin-ink-muted">
+                  Which pincodes we deliver to, and where COD is offered, is managed per pincode under{" "}
+                  <Link
+                    href="/admin/pincodes"
+                    className="font-medium text-admin-primary underline-offset-2 hover:underline"
+                  >
+                    Pincodes
+                  </Link>
+                  .
+                </p>
+              ) : null}
               {cards.map((c) => (
                 <SettingCard
                   // Remount with fresh values after every save.

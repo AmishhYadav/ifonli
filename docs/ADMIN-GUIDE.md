@@ -71,7 +71,18 @@ The shop ships with products whose SKUs start with `PH-` and placeholder picture
 
 - **Receive stock / correct a count**: press the adjust button on a row, enter a **change** (positive adds, negative removes), pick a **Reason** (**Restock** new stock arrived, **Return restock**, **Adjustment** count changed, **Correction** data fix) and add a note (required for Adjustment and Correction). Each adjustment is written to a stock ledger; nothing is overwritten.
 - Filters: **Low** and **Out of stock**. The low-stock level is a setting (section 12); a variant can override it.
-- **Export CSV** downloads the table for your records.
+- **Export CSV** downloads the table for your records. It is also the template for the import below.
+
+### 4.1 Import stock from a CSV
+
+For a stocktake or a big delivery, use **Import stock from a CSV** at the bottom of the Inventory page (owner and admin).
+
+1. Press **Export CSV**, open it in a spreadsheet and change the **On hand** column to the numbers you counted. Leave the other columns alone (they are ignored) and do not rename the **SKU** and **On hand** headers. A plain two-column file `sku,stock_on_hand` also works. **On hand** is the new total for the variant, not a change.
+2. Pick a **Reason** for the whole file: **Stock count** (the default), **Correction** (a data fix) or **Restock** (new stock arrived; it can only add, so a line that lowers stock is refused). Add an optional note. The file name and note go on every ledger row.
+3. Choose the file. You see how many variants change and the old and new number for each. Lines with a problem are listed with their line number: an unknown SKU, a SKU of an archived product, a missing, negative or non-whole number, or a SKU listed twice. A file with any problem line cannot be applied; fix it and upload it again. A yellow note means the new number is below what shoppers are paying for right now.
+4. Press **Apply**. Every change is saved together (all or nothing), each one as a line in the stock ledger, with one entry in the audit log (`stock.import`) that holds the counts and the file name.
+
+If stock moved between the preview and Apply (an order, or someone else's adjustment), nothing is saved and you are told which SKU moved. Upload the file again to see the new differences. A file holds up to 5,000 lines and about 600 KB.
 
 Stock is reduced when an order is confirmed (online: payment received; COD: placed), returned when an order is cancelled before dispatch (you choose "put the items back in stock" when you cancel as an admin), and held for 15 minutes (a setting) while a shopper pays.
 
@@ -227,7 +238,7 @@ Have a lawyer read the first published version of every policy (see KNOWN-ISSUES
 
 ## 12. Settings
 
-Owner only. **Settings** holds the business rules, grouped: **Store** (legal name, address, GSTIN, support email/phone/hours, grievance officer), **Pricing** (default GST rate...), **Shipping** (flat fee, free-shipping threshold, zone overrides, serviceability, processing days, delivery estimates), **COD** (on/off, fee, maximum order value, excluded pincodes), **Inventory** (low-stock level, reservation time, maximum per line), **Returns** (change-of-mind returns on/off and window, damaged-claim window), **Accounts**, **Vibes** (default vibe and cycle order), **Notifications**, **Analytics**, and **Policies** (refund timings and other values the policies quote).
+Owner only. **Settings** holds the business rules, grouped: **Store** (legal name, address, GSTIN, support email/phone/hours, grievance officer), **Pricing** (default GST rate...), **Shipping** (flat fee, free-shipping threshold, zone overrides, processing days, delivery estimates; which pincodes are served is managed on its own **Pincodes** screen, see below), **COD** (on/off, fee, maximum order value, excluded pincodes), **Inventory** (low-stock level, reservation time, maximum per line), **Returns** (change-of-mind returns on/off and window, damaged-claim window), **Accounts**, **Vibes** (default vibe and cycle order), **Notifications**, **Analytics**, and **Policies** (refund timings and other values the policies quote).
 
 - Every setting shows its description. A value marked **PLACEHOLDER** is a made-up starting value; the shop will not take real orders until the required ones are replaced.
 - Edit, **Save**. The change is live for new carts within a minute and is written to the audit log.
@@ -236,6 +247,17 @@ Owner only. **Settings** holds the business rules, grouped: **Store** (legal nam
 ### Launch checklist
 
 The panel at the top of **Settings** is the launch gate. It lists blockers (placeholder settings, placeholder products or images, policies not published or with unresolved values, production environment values such as live payment keys and email) and warnings (thin hero sets, optional services) with a link to fix each. "Ready" means no blockers. The environment items cannot be fixed in the admin: the person who deploys the site sets them in the hosting dashboard (see RUNBOOK).
+
+### Pincodes: where we deliver and where COD is offered
+
+**Pincodes** (left menu, under Admin) controls two switches per pincode: **Serviceable** and **COD allowed**. It follows Settings: only the owner can open and change it. A pincode that is not serviceable is refused at checkout (the product page also says we cannot deliver there); COD is a separate switch, so a pincode can be served with COD off. Changes are live for shoppers immediately and are recorded in the audit log. There is no allow-list or deny-list mode: there is one list, and the old "Serviceability mode" setting is locked and marked "Not used in this version".
+
+- **Find**: search by pincode (digits match the start) or district, and filter by state, zone, serviceable and COD. The list shows 50 per page.
+- **One pincode**: flip its switch. A short message confirms; if the save is refused the switch goes back.
+- **Many at once**: the filter above defines the set. Under **Change every pincode in this filter** pick **Mark not serviceable**, **Mark serviceable**, **Turn COD off** or **Allow COD**, then **Review change**. The dialog says how many pincodes match and how many will change; the action covers all of them, not just the page on screen. Examples: filter State = Kerala, then Mark not serviceable; filter Zone = Islands, then Turn COD off.
+- **Serve only some areas**: with no filter, mark everything not serviceable, then filter by the states or zones you serve and mark those serviceable. Or leave everything on and mark the places you do not serve.
+- **Upload a CSV**: columns `pincode,serviceable,cod_allowed` with yes or no (true, false, y, n, 1, 0 also work); an empty cell keeps that flag as it is. **Download CSV** gives the current filter in this format (plus district, state and zone, which the upload ignores), so you can edit it and upload it again. After choosing a file you see the counts, what will change, and every problem line (not a 6-digit pincode, not yes or no, repeated, or not in the directory). A file with any problem line cannot be applied. Only pincodes already in the directory can be changed; new pincodes arrive through the import script (see KNOWN-ISSUES K-6).
+- A bulk change or an upload writes one audit entry (`pincode.bulk_update`, `pincode.csv_import`) with the counts and the filter or file name, not one per pincode. A single switch writes `pincode.update`.
 
 ## 13. Users, audit log
 

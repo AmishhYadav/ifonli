@@ -291,6 +291,7 @@ const ADMIN_PAGES = [
   "/admin/settings",
   "/admin/users",
   "/admin/audit",
+  "/admin/pincodes",
   "/admin/reports",
   "/admin/insights",
 ];

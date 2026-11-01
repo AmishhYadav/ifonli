@@ -250,10 +250,13 @@ export const SETTINGS = {
     group: "shipping",
     label: "Serviceability mode",
     description:
-      "all_india: every pincode with serviceable=true; allowlist/denylist: managed pincode lists.",
+      "Not used in this version. There is one list: a pincode marked not serviceable is refused at checkout, whatever this says. Manage it under Pincodes (to serve only some areas, mark the rest not serviceable, in bulk by state).",
     schema: z.enum(["all_india", "allowlist", "denylist"]),
     placeholder: "all_india",
-    requiredForLaunch: true,
+    requiredForLaunch: false,
+    confirmed: true,
+    locked: true,
+    unused: true,
   }),
   flat_fee: define("flat_fee", {
     group: "shipping",

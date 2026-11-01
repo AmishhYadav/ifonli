@@ -102,7 +102,6 @@ export async function configureCommerce(
     flat_fee: 5000,
     free_threshold: 50000,
     zone_overrides: {},
-    serviceability_mode: "all_india",
     processing_days: 1,
     delivery_estimates_by_zone: {
       metro_region: { minDays: 2, maxDays: 4 },
