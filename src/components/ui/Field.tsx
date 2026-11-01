@@ -88,10 +88,9 @@ export function Field({ label, hint, error, required, hideLabel, className, chil
 }
 
 const controlClasses = [
-  "ui-control w-full min-h-11 rounded-input border-token bg-surface px-4 py-2.5 text-base text-ink",
+  "ui-control w-full min-h-11 rounded-input border-0 bg-field px-4 py-2.5 text-base text-ink",
   "placeholder:text-ink-muted",
-  "transition-[box-shadow,border-color] ease-vibe",
-  "aria-[invalid=true]:border-danger",
+  "transition-[box-shadow] ease-vibe",
   "disabled:cursor-not-allowed disabled:opacity-60",
 ].join(" ");
 

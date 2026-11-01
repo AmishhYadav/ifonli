@@ -109,7 +109,7 @@ export function Radio({ value, label, description, className, onChange, ref, ...
           ref={ref}
           type="radio"
           value={value}
-          className="peer absolute inset-0 m-0 size-full cursor-[inherit] appearance-none rounded-full border-token bg-surface transition-colors ease-vibe checked:border-accent"
+          className="peer absolute inset-0 m-0 size-full cursor-[inherit] appearance-none rounded-full border-token bg-field shadow-[inset_0_1px_2px_color-mix(in_srgb,var(--ink)_10%,transparent)] transition-colors ease-vibe hover:bg-surface-2 checked:border-accent"
           {...groupProps}
           {...rest}
         />

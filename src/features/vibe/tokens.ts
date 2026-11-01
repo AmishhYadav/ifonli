@@ -13,6 +13,8 @@ export const PALETTE_KEYS = [
   "bg",
   "surface",
   "surface-2",
+  /** Fill of text fields (Input, Textarea, Select): a touch off the surface it sits on; ink and placeholder must read on it. */
+  "field",
   "ink",
   "ink-muted",
   "accent",
@@ -109,6 +111,7 @@ export const base: ResolvedTokens = {
     bg: "#FFFFFF",
     surface: "#FFFFFF",
     "surface-2": "#F4F4F5",
+    field: "#F1F1F3",
     ink: "#18181B",
     "ink-muted": "#52525B",
     accent: "#3B4BD8",
@@ -168,6 +171,7 @@ export const vibes: Record<Vibe, VibeTokens> = {
       bg: "#E9FAF2",
       surface: "#F6FEFA",
       "surface-2": "#D8EFDC",
+      field: "#E0F3E9",
       ink: "#0C3D3F",
       "ink-muted": "#416E6B", // was #45726F: 4.45:1 on surface-2
       accent: "#1A7F6C", // was #339A83: 3.45:1 under white text
@@ -204,6 +208,7 @@ export const vibes: Record<Vibe, VibeTokens> = {
       bg: "#070707",
       surface: "#121212",
       "surface-2": "#1B1B1B",
+      field: "#242424",
       ink: "#F5F5F5",
       "ink-muted": "#9E9E9E",
       accent: "#E80A28", // was #EE0B2A: 4.45:1 under white text
@@ -240,6 +245,7 @@ export const vibes: Record<Vibe, VibeTokens> = {
       bg: "#0F0B15",
       surface: "#181322",
       "surface-2": "#241E2E",
+      field: "#2B2438",
       ink: "#E0DBEA",
       "ink-muted": "#928B9F",
       accent: "#CC272E",
@@ -277,6 +283,7 @@ export const vibes: Record<Vibe, VibeTokens> = {
       bg: "#F4F6C8",
       surface: "#FDFEE7",
       "surface-2": "#8FF4E0", // very minty on purpose: chips and tiles, not body text
+      field: "#E3FBF4", // pale mint, so a field reads against the lemon page and the cream surface
       ink: "#1C1A46",
       "ink-muted": "#4D5081",
       accent: "#BB4100", // was #DD5400: 3.9:1 under white text
@@ -349,6 +356,9 @@ export const COMMON_PAIRS: readonly ContrastPair[] = [
   text("ink-muted", "bg"),
   text("ink-muted", "surface"),
   text("ink-muted", "surface-2"),
+  text("ink", "field"),
+  text("ink-muted", "field"),
+  text("danger", "field"),
   text("on-accent", "accent"),
   text("ink", "accent-2"),
   text("price", "bg"),
