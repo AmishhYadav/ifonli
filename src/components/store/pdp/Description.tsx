@@ -16,7 +16,7 @@ export function Description({ markdown }: { markdown: string | null }) {
           "[&_h1]:text-xl [&_h1]:font-bold [&_h2]:text-lg [&_h2]:font-bold [&_h3]:font-bold " +
           "[&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-input " +
           "[&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mt-1 " +
-          "[&_blockquote]:border-l-4 [&_blockquote]:border-border [&_blockquote]:pl-4 [&_blockquote]:text-ink-muted " +
+          "[&_blockquote]:border-l-4 [&_blockquote]:border-accent/40 [&_blockquote]:pl-4 [&_blockquote]:text-ink-muted " +
           "[&_code]:rounded-input [&_code]:bg-surface-2 [&_code]:px-1"
         }
         dangerouslySetInnerHTML={{ __html: renderProductMarkdown(markdown) }}

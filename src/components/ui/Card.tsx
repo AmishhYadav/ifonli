@@ -3,7 +3,7 @@ import type { ElementType, HTMLAttributes } from "react";
 
 import { cn } from "@/lib/cn";
 
-const cardVariants = cva("rounded-card border-token bg-surface text-ink shadow-card", {
+const cardVariants = cva("rounded-card bg-surface text-ink shadow-card", {
   variants: {
     padding: { none: "", sm: "p-3", md: "p-4 sm:p-5", lg: "p-6 sm:p-8" },
     tone: { surface: "bg-surface", muted: "bg-surface-2" },

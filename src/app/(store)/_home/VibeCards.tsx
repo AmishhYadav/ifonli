@@ -6,8 +6,17 @@ import { VIBE_TAGLINES } from "@/components/store/vibe-taglines";
 import { Icon } from "@/components/ui/Icon";
 import { isVibe, type Vibe } from "@/features/vibe/config";
 import { VibeScope } from "@/features/vibe/VibeScope";
+import { cn } from "@/lib/cn";
 import { textOr } from "@/lib/seo";
 import { getCollections, getHeroTilesForAllVibes } from "@/server/cache/catalog";
+
+/** Static class names (Tailwind must see them whole): each card's cover sits on its own vibe's art gradient. */
+const ART: Record<Vibe, string> = {
+  cute: "art-cute",
+  funky: "art-funky",
+  bold: "art-bold",
+  gothic: "art-gothic",
+};
 
 /** Four collection cards, each wrapped in its own VibeScope (its own palette, shape, type and texture). */
 export async function VibeCards() {
@@ -32,25 +41,29 @@ export async function VibeCards() {
               <VibeScope
                 vibe={vibe}
                 as="article"
-                className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-card border-token p-5 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-1 has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus-ring"
+                className="group relative flex h-full flex-col overflow-hidden rounded-card bg-surface text-ink shadow-card transition-[transform,box-shadow] ease-vibe hover:-translate-y-1.5 hover:shadow-button has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus-ring"
               >
-                <TileFan tiles={covers} />
-                <h3 className="font-display text-3xl leading-tight display-fx">
-                  <Link
-                    href={`/vibes/${v.slug}`}
-                    className="outline-none after:absolute after:inset-0 after:content-['']"
-                  >
-                    {v.name}
-                  </Link>
-                </h3>
-                <p className="text-base text-ink-muted">{textOr(v.description, VIBE_TAGLINES[vibe])}</p>
-                <p className="mt-auto flex items-center justify-between pt-2 text-sm font-semibold">
-                  <span>{v.productCount} products</span>
-                  <Icon
-                    name="arrow-right"
-                    className="size-6 transition-transform ease-vibe group-hover:translate-x-1"
-                  />
-                </p>
+                <div className={cn("grid place-items-center px-5 py-7", ART[vibe])}>
+                  <TileFan tiles={covers} />
+                </div>
+                <div className="flex flex-1 flex-col gap-2.5 p-5">
+                  <h3 className="font-display text-3xl leading-tight display-fx">
+                    <Link
+                      href={`/vibes/${v.slug}`}
+                      className="outline-none after:absolute after:inset-0 after:content-['']"
+                    >
+                      {v.name}
+                    </Link>
+                  </h3>
+                  <p className="text-base text-ink-muted">{textOr(v.description, VIBE_TAGLINES[vibe])}</p>
+                  <p className="mt-auto flex items-center justify-between pt-2 text-sm font-semibold">
+                    <span>{v.productCount} products</span>
+                    <Icon
+                      name="arrow-right"
+                      className="size-6 transition-transform ease-vibe group-hover:translate-x-1"
+                    />
+                  </p>
+                </div>
               </VibeScope>
             </li>
           );

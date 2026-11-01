@@ -56,7 +56,7 @@ export function Price({
               {formatINR(mrpPaise)}
             </s>
             {percent > 0 ? (
-              <span className={cn("font-semibold text-sale", s.mrp)}>{percent}% off</span>
+              <span className={cn("font-semibold text-sale uppercase", s.mrp)}>{`(${percent}% off)`}</span>
             ) : null}
           </>
         ) : null}

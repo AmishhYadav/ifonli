@@ -8,7 +8,7 @@ export function FinalisingNotice({ supportEmail }: { supportEmail: StoreValue })
     <section
       aria-label="Policy status"
       data-testid="policy-finalising"
-      className="flex max-w-prose flex-col gap-3 rounded-card border-token bg-surface p-5 text-ink shadow-card sm:p-6"
+      className="flex max-w-prose flex-col gap-3 rounded-card bg-surface p-5 text-ink shadow-card sm:p-6"
     >
       <p className="flex items-start gap-2 font-display text-xl leading-tight">
         <Icon name="info" className="mt-1 size-5 flex-none" />

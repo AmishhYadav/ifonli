@@ -23,7 +23,7 @@ export function Checkbox({ label, description, className, ref, ...rest }: Checkb
         <input
           ref={ref}
           type="checkbox"
-          className="peer absolute inset-0 m-0 size-full cursor-[inherit] appearance-none rounded-input border-token bg-surface transition-colors ease-vibe checked:bg-accent aria-[invalid=true]:border-danger"
+          className="peer absolute inset-0 m-0 size-full cursor-[inherit] appearance-none rounded-md border-token bg-surface transition-colors ease-vibe checked:border-accent checked:bg-accent aria-[invalid=true]:border-danger"
           {...rest}
         />
         <Icon

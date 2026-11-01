@@ -26,7 +26,7 @@ export function OrderLines({
     <ul className={className ?? "flex flex-col gap-4"} data-testid="order-lines">
       {lines.map((line) => (
         <li key={line.key} className="flex items-start gap-3">
-          <span className="relative size-16 flex-none overflow-hidden rounded-card border border-border bg-surface-2">
+          <span className="relative size-16 flex-none overflow-hidden rounded-input art-none">
             {line.imageUrl ? (
               <Image src={line.imageUrl} alt="" fill sizes="64px" className="object-cover" />
             ) : (

@@ -16,7 +16,7 @@ function Banner({ banner }: { banner: ActiveBanner }) {
     }
   }
   const body = (
-    <div className="relative flex min-h-40 items-center gap-5 overflow-hidden rounded-card border-token bg-accent p-6 text-on-accent shadow-card sm:p-8">
+    <div className="relative flex min-h-40 items-center gap-5 overflow-hidden rounded-card bg-accent p-6 text-on-accent shadow-card sm:p-8">
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <h3 className="font-display text-2xl leading-tight sm:text-3xl">{banner.title}</h3>
         {banner.body ? <p className="text-base">{banner.body}</p> : null}

@@ -82,7 +82,7 @@ function TileList({
           <li
             key={`${tile.productId}-${index}`}
             className={cn(
-              "hero-tile relative aspect-square border-token shadow-card ease-vibe",
+              "hero-tile relative aspect-square shadow-card ease-vibe",
               backingOf(index),
               shapeOf(index),
               tileVisibility(position),
@@ -175,7 +175,7 @@ export async function HeroPoster({ stage }: { stage?: ReactNode }) {
         {/* Text layer: always above the tiles, never animated away. */}
         <div
           data-hero-card=""
-          className="relative z-10 order-3 mt-1 rounded-card border-token bg-surface p-6 text-ink shadow-card sm:p-8 lg:col-start-2 lg:row-start-1 lg:mt-0 lg:p-10"
+          className="relative z-10 order-3 mt-1 rounded-card bg-[color-mix(in_srgb,var(--surface)_80%,transparent)] p-6 text-ink shadow-card backdrop-blur-md sm:p-8 lg:col-start-2 lg:row-start-1 lg:mt-0 lg:p-10"
         >
           <VibeCopy
             k="hero.headline"

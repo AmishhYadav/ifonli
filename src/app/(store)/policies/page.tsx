@@ -54,7 +54,7 @@ export default async function PoliciesPage() {
             <li key={policy.slug}>
               <Link
                 href={`/policies/${policy.slug}`}
-                className="flex h-full min-h-24 flex-col gap-1.5 rounded-card border-token bg-surface p-4 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-0.5 sm:p-5"
+                className="flex h-full min-h-24 flex-col gap-1.5 rounded-card bg-surface p-4 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-0.5 sm:p-5"
               >
                 <span className="flex items-start justify-between gap-3">
                   <span className="font-display text-xl leading-tight">{policy.title}</span>

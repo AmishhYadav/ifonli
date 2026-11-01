@@ -194,7 +194,7 @@ export function ReportProblemDialog({
         ) : (
           <form id="report-problem-form" onSubmit={(e) => void submit(e)} noValidate className="flex flex-col gap-5">
             {windowEnded && claimWindowHours > 0 ? (
-              <p className="flex items-start gap-2 rounded-card border-token bg-surface-2 p-3 text-sm" data-testid="report-late-note">
+              <p className="flex items-start gap-2 rounded-card bg-surface-2 p-3 text-sm" data-testid="report-late-note">
                 <Icon name="info" className="mt-0.5 size-4 flex-none" />
                 It&apos;s been more than our usual {claimWindowHours} hours since delivery. Please tell us
                 anyway: we&apos;ll look at every report.

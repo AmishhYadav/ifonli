@@ -59,7 +59,7 @@ export function AmountBreakdown({
             </dd>
           </div>
         ) : null}
-        <div className={cn(row, "mt-1 border-t border-border pt-3")}>
+        <div className={cn(row, "mt-1 border-t border-hairline pt-3")}>
           <dt className="text-lg font-bold">Total payable</dt>
           <dd className="text-xl font-bold tabular-nums" data-testid="amount-total">
             {formatINR(totalPaise)}

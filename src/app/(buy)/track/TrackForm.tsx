@@ -117,7 +117,7 @@ export function TrackForm() {
       <form
         action={action}
         noValidate
-        className="flex flex-col gap-4 rounded-card border-token bg-surface p-4 shadow-card sm:p-5"
+        className="flex flex-col gap-4 rounded-card bg-surface p-4 shadow-card sm:p-5"
       >
         <Field label="Order reference" required error={state.fieldErrors?.ref}>
           <Input
@@ -166,7 +166,7 @@ export function TrackForm() {
         {state.status === "not_found" ||
         state.status === "rate_limited" ||
         state.status === "error" ? (
-          <p className="flex items-start gap-2 rounded-card border-token border-danger bg-surface p-4 text-base font-semibold text-danger">
+          <p className="flex items-start gap-2 rounded-card bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))] p-4 text-base font-semibold text-danger">
             <Icon name="alert-circle" className="mt-0.5 size-5 flex-none" />
             {state.message}
           </p>

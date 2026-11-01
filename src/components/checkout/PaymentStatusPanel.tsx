@@ -20,7 +20,7 @@ export interface PaymentStatusPanelProps {
 /** Reasons come from the payment provider and may lack a full stop. */
 const sentence = (text: string) => (/[.!?]$/.test(text.trim()) ? text.trim() : `${text.trim()}.`);
 
-const box = "flex flex-col gap-3 rounded-card border-token p-4";
+const box = "flex flex-col gap-3 rounded-card p-4 shadow-card";
 
 /**
  * What the customer sees around the payment popup: progress, "Payment not completed - Retry", "We're

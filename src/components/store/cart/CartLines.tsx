@@ -22,7 +22,7 @@ interface CartLinesProps {
 function LineImage({ line, size }: { line: CartViewLine; size: number }) {
   return (
     <span
-      className="relative block flex-none overflow-hidden rounded-input border border-border bg-surface-2"
+      className="art-none relative block flex-none overflow-hidden rounded-input"
       style={{ width: size, height: size }}
     >
       {line.image?.url ? (
@@ -54,7 +54,10 @@ export function CartLines({ cart, onQuantity, onRemove, layout }: CartLinesProps
       tabIndex={-1}
       aria-label="Items in your cart"
       data-testid="cart-lines"
-      className="flex flex-col divide-y divide-border outline-none"
+      className={cn(
+        "flex flex-col divide-y divide-hairline outline-none",
+        layout === "page" && "rounded-card bg-surface px-4 shadow-card sm:px-6",
+      )}
     >
       {cart.lines.map((line) => {
         const showVariant = line.variantTitle && line.variantTitle !== "Default";
@@ -63,7 +66,7 @@ export function CartLines({ cart, onQuantity, onRemove, layout }: CartLinesProps
             key={line.lineId}
             data-testid="cart-line"
             data-variant-id={line.variantId}
-            className={cn("flex gap-3 py-4 first:pt-0 last:pb-0", layout === "page" && "gap-4 sm:py-5")}
+            className={cn("flex gap-3 py-4 first:pt-0 last:pb-0", layout === "page" && "gap-4 py-5 first:pt-5 last:pb-5 sm:py-6 sm:first:pt-6 sm:last:pb-6")}
           >
             <Link href={`/products/${line.productSlug}`} aria-hidden="true" tabIndex={-1} className="flex-none">
               <LineImage line={line} size={size} />

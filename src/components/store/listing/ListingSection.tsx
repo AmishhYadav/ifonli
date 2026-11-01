@@ -149,7 +149,7 @@ function FilterChips({
           <Link
             href={chip.href}
             scroll={false}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-button border-token bg-surface-2 px-3.5 text-sm font-semibold text-ink"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-button bg-surface-2 px-4 text-sm font-semibold text-ink"
             aria-label={`Remove filter: ${chip.label}`}
           >
             {chip.label}
@@ -212,7 +212,7 @@ export async function ListingSection({
   return (
     <div className="mx-auto max-w-[1440px] px-4 pb-4 sm:px-6">
       {search ? <SearchTracker query={q!} results={total} /> : null}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline py-4">
         <p role="status" aria-live="polite" className="text-base font-semibold" data-testid="result-count">
           {total} {total === 1 ? "product" : "products"}
         </p>

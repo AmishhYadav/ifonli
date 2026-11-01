@@ -28,7 +28,7 @@ export function PolicyToc({ headings }: { headings: readonly Heading[] }) {
         {list}
       </nav>
       <nav aria-label="On this page" className="lg:hidden">
-        <details className="rounded-card border-token bg-surface">
+        <details className="rounded-card bg-surface shadow-card">
           <summary className="flex min-h-12 cursor-pointer items-center px-4 font-semibold text-ink">
             On this page
           </summary>

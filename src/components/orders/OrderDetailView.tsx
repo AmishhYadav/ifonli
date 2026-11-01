@@ -117,7 +117,7 @@ export function OrderDetailView({ order, extras, access, signedIn }: OrderDetail
           holdUntil={holdUntil}
         />
       ) : waiting ? (
-        <p className="flex items-start gap-2 rounded-card border-token bg-surface p-4 text-base" data-testid="pay-pending-note">
+        <p className="flex items-start gap-2 rounded-card bg-surface shadow-card p-4 text-base" data-testid="pay-pending-note">
           <Icon name="info" className="mt-0.5 size-5 flex-none" />
           <span>
             We&apos;re waiting for your payment of {formatINR(order.totalPaise)}.

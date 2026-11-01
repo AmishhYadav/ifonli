@@ -66,7 +66,7 @@ export async function NoResults({
             <li key={t.slug}>
               <Link
                 href={`/types/${t.slug}`}
-                className="inline-flex min-h-11 items-center rounded-button border-token bg-surface px-4 font-semibold text-ink"
+                className="inline-flex min-h-11 items-center rounded-button bg-surface-2 px-4 font-semibold text-ink transition-colors ease-vibe hover:bg-[color-mix(in_srgb,var(--surface-2),var(--ink)_9%)]"
               >
                 {t.name}
               </Link>

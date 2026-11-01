@@ -85,7 +85,7 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
         {status ? (
           <>
             {status.kind === "sold_out" ? (
-              <Badge tone="neutral" className="border-token bg-surface">
+              <Badge tone="neutral">
                 <Icon name="alert-circle" className="size-3.5" />
                 {status.label}
               </Badge>
@@ -106,7 +106,7 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
 
       <div
         className={
-          "flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-border " +
+          "flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-hairline " +
           "max-md:bg-bg max-md:px-4 max-md:pt-3 max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         }
         data-testid="add-to-cart-bar"
@@ -161,7 +161,7 @@ export function StockFallback() {
       <p aria-busy="true" className="min-h-7 text-base text-ink-muted" data-testid="stock-loading">
         Checking stock...
       </p>
-      <div className="flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-border max-md:bg-bg max-md:px-4 max-md:py-3">
+      <div className="flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-hairline max-md:bg-bg max-md:px-4 max-md:py-3">
         <Button size="lg" className="min-w-0 flex-1" disabled>
           Add to cart
         </Button>

@@ -58,13 +58,12 @@ export function DrawerContent({
         data-side={side}
         {...(description ? {} : { "aria-describedby": rest["aria-describedby"] })}
         className={cn(
-          "ui-drawer flex w-[min(26rem,calc(100vw-2.5rem))] flex-col border-token bg-surface text-ink shadow-card",
-          side === "right" ? "border-r-0" : "border-l-0",
+          "ui-drawer flex w-[min(26rem,calc(100vw-2.5rem))] flex-col bg-surface text-ink shadow-card",
           className,
         )}
         {...rest}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-border p-4">
+        <div className="flex items-start justify-between gap-4 border-b border-hairline p-4">
           <div className="flex min-w-0 flex-col gap-1">
             <DialogPrimitive.Title
               className={cn("font-display text-2xl leading-tight", hideTitle && "sr-only")}
@@ -82,7 +81,7 @@ export function DrawerContent({
           </DialogPrimitive.Close>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 text-base">{children}</div>
-        {footer ? <div className="flex flex-col gap-3 border-t border-border p-4">{footer}</div> : null}
+        {footer ? <div className="flex flex-col gap-3 border-t border-hairline p-4">{footer}</div> : null}
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );

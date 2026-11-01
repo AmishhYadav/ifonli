@@ -13,6 +13,15 @@ import { imageIndexForVariant, type PdpImage } from "./product-model";
 
 const GalleryZoom = dynamic(() => import("./GalleryZoom").then((m) => m.GalleryZoom), { ssr: false });
 
+/** Static class names: the tile sits on the product's own vibe gradient (neutral when it has none). */
+const ART: Record<string, string> = {
+  cute: "art-cute",
+  funky: "art-funky",
+  bold: "art-bold",
+  gothic: "art-gothic",
+};
+const artClass = (vibe: string | null | undefined) => (vibe ? ART[vibe] : undefined) ?? "art-none";
+
 const reducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -44,7 +53,17 @@ function Picture({
  * arrow keys on the strip, thumbnails, and a click-to-open zoom dialog. Every slide is the same square so
  * switching images never moves the page. A variant that has its own photo brings it into view.
  */
-export function Gallery({ images, productName }: { images: PdpImage[]; productName: string }) {
+export function Gallery({
+  images,
+  productName,
+  primaryVibe,
+}: {
+  images: PdpImage[];
+  productName: string;
+  /** The product's main vibe: picks the tile's art gradient. */
+  primaryVibe?: string | null;
+}) {
+  const art = artClass(primaryVibe);
   const { variantId } = usePurchase();
   const strip = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
@@ -103,7 +122,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
 
   if (count === 0) {
     return (
-      <div className="grid aspect-square w-full place-items-center rounded-card border-token bg-surface-2 text-ink-muted">
+      <div className={cn("grid aspect-square w-full place-items-center rounded-card text-ink-muted", art)}>
         <Icon name="image" className="size-16" />
         <span className="sr-only">No photo yet</span>
       </div>
@@ -112,7 +131,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
 
   const current = images[Math.min(index, count - 1)]!;
   const navButton =
-    "absolute top-1/2 z-10 -translate-y-1/2 border-token bg-surface/90 hover:bg-surface max-md:hidden";
+    "absolute top-1/2 z-10 -translate-y-1/2 bg-surface/80 shadow-card backdrop-blur-sm hover:bg-surface max-md:hidden";
 
   return (
     <section aria-label={`${productName} photos`} className="flex flex-col gap-3" data-testid="gallery">
@@ -125,7 +144,8 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
           tabIndex={0}
           onKeyDown={onKeyDown}
           className={cn(
-            "flex aspect-square w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card border-token bg-surface-2",
+            "flex aspect-square w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card",
+            art,
             "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           )}
         >
@@ -174,7 +194,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
             />
             <p
               aria-hidden="true"
-              className="pointer-events-none absolute right-2 bottom-2 rounded-button border-token bg-surface px-2.5 py-0.5 text-sm font-semibold tabular-nums"
+              className="pointer-events-none absolute right-3 bottom-3 rounded-button bg-surface/80 px-3 py-0.5 text-sm font-semibold tabular-nums backdrop-blur-sm"
             >
               {Math.min(index, count - 1) + 1} / {count}
             </p>
@@ -194,8 +214,11 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
                   aria-label={`Show photo ${i + 1} of ${count}`}
                   aria-current={active ? "true" : undefined}
                   className={cn(
-                    "relative block size-16 overflow-hidden rounded-input border-token bg-surface-2 sm:size-[4.5rem]",
-                    active ? "shadow-button" : "opacity-70 hover:opacity-100",
+                    "relative block size-16 overflow-hidden rounded-input transition-[opacity,box-shadow] ease-vibe sm:size-[4.5rem]",
+                    art,
+                    active
+                      ? "ring-2 ring-accent ring-offset-2 ring-offset-bg"
+                      : "opacity-70 hover:opacity-100",
                   )}
                 >
                   <Image

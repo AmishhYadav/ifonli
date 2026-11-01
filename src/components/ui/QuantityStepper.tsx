@@ -76,14 +76,14 @@ export function QuantityStepper({
   const atMin = current <= min;
   const atMax = current >= max;
   const stepButton =
-    "inline-flex size-11 flex-none items-center justify-center text-ink transition-colors ease-vibe hover:bg-surface-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:hover:bg-transparent";
+    "inline-flex size-11 flex-none items-center justify-center rounded-full text-ink transition-colors ease-vibe hover:bg-[color-mix(in_srgb,var(--surface-2),var(--ink)_10%)] focus-visible:outline-offset-[-3px] aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:hover:bg-transparent";
 
   return (
     <div
       role="group"
       aria-label={label}
       className={cn(
-        "inline-flex items-stretch overflow-hidden rounded-button border-token bg-surface text-ink",
+        "inline-flex items-stretch overflow-hidden rounded-button bg-surface-2 text-ink",
         disabled && "opacity-60",
         className,
       )}
@@ -116,7 +116,7 @@ export function QuantityStepper({
         onFocus={(event) => event.currentTarget.select()}
         onBlur={() => draft !== null && commit(draft === "" ? current : Number(draft))}
         onKeyDown={onKeyDown}
-        className="h-11 w-12 min-w-0 border-x border-border bg-transparent text-center text-base font-semibold tabular-nums"
+        className="h-11 w-12 min-w-0 rounded-full bg-transparent text-center text-base font-semibold tabular-nums focus-visible:outline-offset-[-3px]"
       />
       <button
         type="button"
