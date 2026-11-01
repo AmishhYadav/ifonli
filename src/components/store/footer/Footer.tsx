@@ -26,7 +26,7 @@ const linkClass =
 function Column({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-3 font-display text-lg">{title}</h2>
+      <h2 className="mb-3 font-label text-sm">{title}</h2>
       {children}
     </section>
   );

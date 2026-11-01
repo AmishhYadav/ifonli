@@ -32,10 +32,10 @@ export function AccordionTrigger({
   ...rest
 }: ComponentProps<typeof AccordionPrimitive.Trigger> & { children: ReactNode }) {
   return (
-    <AccordionPrimitive.Header className="m-0">
+    <AccordionPrimitive.Header className="m-0 font-body">
       <AccordionPrimitive.Trigger
         className={cn(
-          "group flex min-h-12 w-full items-center justify-between gap-4 px-5 py-3.5 text-left text-base font-semibold text-ink transition-colors ease-vibe hover:bg-surface-2",
+          "group flex min-h-12 font-body w-full items-center justify-between gap-4 px-5 py-3.5 text-left text-base font-semibold text-ink transition-colors ease-vibe hover:bg-surface-2",
           className,
         )}
         {...rest}
