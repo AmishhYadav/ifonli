@@ -5,7 +5,7 @@ import { VibeCopy } from "@/components/store/VibeCopy";
 import { Icon } from "@/components/ui/Icon";
 import { VIBE_NAMES, type Vibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
-import { getFeaturedForAllVibes } from "@/server/cache/catalog";
+import { getHomeFeaturedForAllVibes } from "@/server/cache/catalog";
 import { getVibeSettings } from "@/server/cache/settings";
 
 const FEATURED_SIZES = "(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 46vw";
@@ -16,7 +16,7 @@ const FEATURED_SIZES = "(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 46vw"
  */
 export async function FeaturedForVibe() {
   const [sets, { cycle, defaultVibe }] = await Promise.all([
-    getFeaturedForAllVibes(8),
+    getHomeFeaturedForAllVibes(8),
     getVibeSettings(),
   ]);
   const first = defaultVibe === "random" ? cycle[0] : defaultVibe;

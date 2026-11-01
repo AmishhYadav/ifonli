@@ -8,6 +8,7 @@ import {
   getCollections,
   getFeaturedForAllVibes,
   getHeroTilesForAllVibes,
+  getHomeFeaturedForAllVibes,
   getLiveAvailability,
   getProductBySlug,
   getRelatedProducts,
@@ -414,6 +415,20 @@ describe("featured sets", () => {
     expect(sets.gothic!.map((c) => c.name)).toEqual(["Ghost Sticker", "Skull Charm"]);
     // other vibes still get the fallback
     expect(sets.cute).toHaveLength(2);
+  });
+});
+
+describe("home featured sets (own-vibe products first)", () => {
+  it("puts a vibe's own products before products only tagged with it, and keeps tagged ones as padding when it has few", async () => {
+    const f = await seedCatalogFixture();
+    // Skull Charm belongs to gothic (rank 0) and is only tagged bold (rank 2); Spiky Charm is bold's own.
+    await addSlot(f.vibes.bold, "home_featured", f.products["skull-charm"]!, 0); // curated, but not bold's own
+    const sets = await getHomeFeaturedForAllVibes(db(), 8);
+    expect(sets.bold!.map((c) => c.name)).toEqual(["Spiky Charm", "Skull Charm"]);
+    expect(sets.bold![0]!.primaryVibe).toBe("bold");
+    expect(sets.gothic!.map((c) => c.primaryVibe)).toEqual(["gothic", "gothic"]);
+    // The limit applies after ordering, so a tagged product never displaces an own one.
+    expect((await getHomeFeaturedForAllVibes(db(), 1)).bold!.map((c) => c.name)).toEqual(["Spiky Charm"]);
   });
 });
 
