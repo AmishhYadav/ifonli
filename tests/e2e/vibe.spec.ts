@@ -51,17 +51,21 @@ test.beforeEach(async ({ page }) => {
 
 const htmlVibe = (page: Page) => page.locator("html").getAttribute("data-vibe");
 
-/** The label a sighted user sees: the one name span whose box exists (display != none). */
+/**
+ * What a sighted user sees of the button: the button shows only the hand (no text), so the visible hand variant
+ * (`[data-hand]` whose `[data-v]` wrapper has a box) is mapped back to the vibe's display name.
+ */
 const visibleName = (page: Page) =>
   page
     .locator(BUTTON)
     .first()
     .evaluate((button) => {
-      const names = [...button.querySelectorAll(":scope > span[data-v]")].filter(
-        (s) => !s.querySelector(".vibe-hand") && getComputedStyle(s).display !== "none",
+      const hands = [...button.querySelectorAll("[data-hand]")].filter(
+        (h) => getComputedStyle(h).display !== "none" && getComputedStyle(h.parentElement!).display !== "none",
       );
-      return names.map((s) => s.textContent);
-    });
+      return hands.map((h) => h.getAttribute("data-hand")!);
+    })
+    .then((ids) => ids.map((id) => NAMES[id as keyof typeof NAMES]));
 
 async function afterSwitch(page: Page, act: () => Promise<void>): Promise<VibeEvent> {
   const before = await page.evaluate(() => (window as unknown as TestWindow).__vibeEvents.length);
@@ -273,7 +277,7 @@ test.describe("touch", () => {
     });
     expect(await htmlVibe(page)).toBe("bold");
     const tip = await button.evaluate((el) => {
-      const tooltip = el.querySelector('[aria-hidden="true"].absolute');
+      const tooltip = el.querySelector(".hand-tip");
       const shown = [...(tooltip?.querySelectorAll("[data-v]") ?? [])].find(
         (s) => getComputedStyle(s).display !== "none",
       );
@@ -294,13 +298,13 @@ test.describe("touch", () => {
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
-  test("(g) switches instantly with no view transition and no flick", async ({ page }) => {
+  test("(g) switches instantly with no view transition and no flip", async ({ page }) => {
     await ready(page);
     const button = page.locator(BUTTON).first();
     const event = await afterSwitch(page, () => button.click());
     expect(event).toMatchObject({ from: "cute", to: "bold", usedViewTransition: false });
     expect(await htmlVibe(page)).toBe("bold");
-    await expect(button).not.toHaveAttribute("data-flick", "1");
+    await expect(button).not.toHaveAttribute("data-turn", /.*/); // the card-turn flip is off under reduced motion
     const hasViewTransitionAnimations = await page.evaluate(() =>
       document
         .getAnimations()
