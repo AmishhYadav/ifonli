@@ -149,17 +149,16 @@ test.describe("collections", () => {
     await expect(page.getByTestId("offline-notice")).toHaveCount(0);
   });
 
-  test('"Wear this vibe" on a vibe page switches the whole site', async ({ page }) => {
+  test("visiting a vibe page wears that vibe, and it stays when you leave", async ({ page }) => {
     await page.goto("/vibes/gothic?vibe=cute");
     await expect(page.getByRole("heading", { level: 1, name: "After the Dark" })).toBeVisible();
-    // The header band is scoped to After the Dark while the site stays Mochi.
-    await expect(page.locator('section[aria-label="After the Dark vibe"]')).toHaveAttribute("data-vibe", "gothic");
-    expect(await htmlVibe(page)).toBe("cute");
-    await page.getByTestId("wear-vibe").click();
     await expect.poll(() => htmlVibe(page)).toBe("gothic");
-    await expect(page.getByTestId("wear-vibe")).toHaveText(/You're wearing After the Dark/);
     // Vibe pages list only that vibe's products.
     await expect(page.getByTestId("result-count")).toHaveText("10 products");
+    // Leaving the page does not put the old vibe back.
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Shop all" }).click();
+    await expect(page).toHaveURL(/\/shop/);
+    expect(await htmlVibe(page)).toBe("gothic");
   });
 
   test("an unknown vibe or type renders the themed 404", async ({ page }) => {
@@ -241,7 +240,7 @@ test.describe("header", () => {
     await expect(primary.getByRole("link", { name: "Chaos Cabinet" })).toBeFocused();
   });
 
-  test("the nav pills are links to every vibe and type plus Shop all, and the current page is the filled one", async ({ page }) => {
+  test("the nav pills are links to every vibe and type plus Shop all; the current page is tinted", async ({ page }) => {
     await page.goto("/vibes/gothic");
     const primary = page.getByRole("navigation", { name: "Primary" });
     await expect(primary.getByRole("link")).toHaveCount(9); // 4 vibes + 4 types + Shop all
@@ -254,6 +253,50 @@ test.describe("header", () => {
     await expect(primary.getByRole("link", { name: "Shop all" })).toHaveAttribute("aria-current", "page");
     await page.goto("/home");
     await expect(primary.locator('[aria-current="page"]')).toHaveCount(0);
+  });
+
+  test("the pill of the current theme is the strong one on every page and follows the hand", async ({ page }) => {
+    const primary = page.getByRole("navigation", { name: "Primary" });
+    /** The accent fill is drawn only on the current theme's pill; page-active pills are a soft tint. */
+    const strong = async () =>
+      primary.getByRole("link").evaluateAll((links) => {
+        const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+        const probe = document.createElement("i");
+        probe.style.color = accent;
+        document.body.append(probe);
+        const rgb = getComputedStyle(probe).color;
+        probe.remove();
+        return links
+          .filter((a) => getComputedStyle(a.firstElementChild!).backgroundColor === rgb)
+          .map((a) => a.textContent);
+      });
+    await page.goto("/shop?vibe=bold");
+    await expect.poll(strong).toEqual(["Unapologetic"]);
+    await page.goto("/home?vibe=cute");
+    await expect.poll(strong).toEqual(["Mochi"]);
+    await page.locator("button[data-vibe-hand]").first().click();
+    await expect.poll(() => htmlVibe(page)).toBe("gothic");
+    await expect.poll(strong).toEqual(["After the Dark"]);
+  });
+
+  test("a vibe pill wears the vibe and opens its collection; the hand follows on a collection page", async ({ page }) => {
+    const primary = page.getByRole("navigation", { name: "Primary" });
+    await page.goto("/types/charms?vibe=cute");
+    await page.waitForLoadState("networkidle");
+    await primary.getByRole("link", { name: "Chaos Cabinet" }).click();
+    await expect(page).toHaveURL(/\/vibes\/funky/);
+    await expect.poll(() => htmlVibe(page)).toBe("funky");
+    await expect(primary.getByRole("link", { name: "Chaos Cabinet" })).toHaveAttribute("aria-current", "page");
+    // Hand on a collection page: the theme and the page both move to the next vibe (funky > bold).
+    await page.locator("button[data-vibe-hand]").first().click();
+    await expect(page).toHaveURL(/\/vibes\/bold/);
+    await expect.poll(() => htmlVibe(page)).toBe("bold");
+    // Elsewhere the hand only changes the theme.
+    await page.goto("/shop?vibe=cute");
+    await page.waitForLoadState("networkidle");
+    await page.locator("button[data-vibe-hand]").first().click();
+    await expect.poll(() => htmlVibe(page)).toBe("gothic");
+    await expect(page).toHaveURL(/\/shop/);
   });
 
   test("the hand button is top-left and keyboard-operable", async ({ page }) => {

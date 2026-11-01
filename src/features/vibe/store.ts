@@ -15,7 +15,11 @@ import {
   type Vibe,
 } from "./config";
 
-export type VibeSource = "hand" | "url" | "scope" | "init" | "api";
+/**
+ * Who changed the vibe: the hand, a nav pill / mobile-menu link (`nav`), arriving on a `/vibes/<slug>` page
+ * (`page`), a shared `?vibe=` link (`url`), a scope, the first-load restore (`init`) or code (`api`).
+ */
+export type VibeSource = "hand" | "nav" | "page" | "url" | "scope" | "init" | "api";
 
 export interface SetVibeOptions {
   source: VibeSource;

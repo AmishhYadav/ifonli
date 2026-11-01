@@ -1,0 +1,32 @@
+/*
+ * Nav pill states (src/components/store/header/NavPills.tsx). Two different things light a pill:
+ *
+ *  - the CURRENT THEME: the vibe pill whose slug matches html[data-vibe] is the one strong pill, on every page.
+ *    This is plain CSS on the attribute the head script sets before first paint, so it is right on the first
+ *    paint and flips with the theme without React state or a re-render.
+ *  - the CURRENT PAGE (aria-current="page"): a soft tint, so only the theme is strong.
+ *
+ * Colours come from the theme tokens (--accent, --surface, --on-accent, --ink); no raw colour values.
+ */
+
+.nav-pill-face {
+  color: var(--ink);
+}
+.nav-pill:hover .nav-pill-face {
+  background: var(--surface-2);
+}
+
+.nav-pill[aria-current="page"] .nav-pill-face {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--ink);
+  font-weight: 700;
+}
+
+:root[data-vibe="cute"] .nav-pill[data-nav-vibe="cute"] .nav-pill-face,
+:root[data-vibe="funky"] .nav-pill[data-nav-vibe="funky"] .nav-pill-face,
+:root[data-vibe="bold"] .nav-pill[data-nav-vibe="bold"] .nav-pill-face,
+:root[data-vibe="gothic"] .nav-pill[data-nav-vibe="gothic"] .nav-pill-face {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}

@@ -72,6 +72,26 @@ test.describe("product page", () => {
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/products\/heart-charm$/);
   });
 
+  test("Back returns to the listing the visitor came from, or goes to the type listing on a direct visit", async ({ page }) => {
+    await page.goto("/types/charms");
+    await page.waitForLoadState("networkidle");
+    await page.locator('a[href^="/products/"]').first().click();
+    await expect(page).toHaveURL(/\/products\//);
+    const back = page.getByRole("link", { name: "Back to products" });
+    await expect(back).toBeVisible();
+    await expect(back).toHaveText("Back");
+    await back.click();
+    await expect(page).toHaveURL(/\/types\/charms/);
+
+    // A fresh page (no previous page of the store) falls back to the product's type listing.
+    const fresh = await page.context().newPage();
+    await fresh.goto("/products/heart-charm");
+    await fresh.waitForLoadState("networkidle");
+    await fresh.getByRole("link", { name: "Back to products" }).click();
+    await expect(fresh).toHaveURL(/\/types\/charms/);
+    await fresh.close();
+  });
+
   test("an unknown product is a 404", async ({ page }) => {
     const response = await page.goto("/products/definitely-not-a-product");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

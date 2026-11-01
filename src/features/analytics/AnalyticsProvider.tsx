@@ -56,8 +56,8 @@ export function AnalyticsProvider() {
 
     const onVibe = (e: Event) => {
       const detail = (e as CustomEvent<VibeChangeDetail>).detail;
-      // Restoring the saved vibe or following a shared ?vibe= link is not the visitor switching.
-      if (!detail || detail.source === "init" || detail.source === "url") return;
+      // Restoring the saved vibe, following a shared ?vibe= link or landing on a vibe page is not the visitor switching.
+      if (!detail || detail.source === "init" || detail.source === "url" || detail.source === "page") return;
       track("vibe_switch", { vibe: detail.to, meta: { from: detail.from, source: detail.source } });
     };
     window.addEventListener(VIBE_CHANGE_EVENT, onVibe);
