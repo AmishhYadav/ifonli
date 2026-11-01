@@ -120,8 +120,12 @@
   transition: opacity 200ms var(--motion-ease, ease-out);
 }
 
+/*
+ * "turn me" sits on the hand's own bottom edge (over the palm), inside the hand's box, so it never reaches the
+ * nav pills below. It is a mouse affordance: hidden where there is no hover.
+ */
 .hand-pill {
-  top: calc(100% - 6px);
+  bottom: 2px;
   padding: 2px 8px;
   background: var(--accent);
   color: var(--on-accent);
@@ -142,6 +146,11 @@
 @media (hover: hover) {
   .hand-btn:hover .hand-pill {
     opacity: 1;
+  }
+}
+@media (hover: none) {
+  .hand-pill {
+    display: none;
   }
 }
 .hand-btn:focus-visible .hand-pill,

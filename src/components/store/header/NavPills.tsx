@@ -4,11 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 
+import "@/styles/nav-pills.css";
+
+import type { Vibe } from "@/features/vibe/config";
+import { VibeLink } from "@/features/vibe/VibeLink";
 import { cn } from "@/lib/cn";
 
 export interface PillLink {
   href: string;
   label: string;
+  /** Set on the four theme pills: the vibe this pill wears when clicked. */
+  vibe?: Vibe;
 }
 
 interface NavPillsProps {
@@ -19,30 +25,39 @@ interface NavPillsProps {
 
 /**
  * One pill. The link itself is a 44px-tall transparent target; the visible pill (32px) is the span inside, so
- * hover, focus and the active colour are soft shapes while the tap area stays full size.
+ * hover, focus and the active colours are soft shapes while the tap area stays full size. The strong "this is
+ * the current theme" colour and the soft "this is the current page" tint are both CSS (styles/nav-pills.css):
+ * `data-nav-vibe` is matched against `html[data-vibe]`, `aria-current` marks the page.
  */
 function Pill({ link, active, spaced }: { link: PillLink; active: boolean; spaced?: boolean }) {
+  const className = cn(
+    "nav-pill group relative inline-flex min-h-11 items-center rounded-full outline-none",
+    // The focus ring is drawn on a pseudo-element the size of the pill (not the 44px target).
+    "after:pointer-events-none after:absolute after:inset-x-0 after:inset-y-[6px] after:rounded-full after:content-['']",
+    "focus-visible:after:outline-3 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus-ring",
+  );
+  const face = (
+    <span className="nav-pill-face rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ease-vibe">
+      {link.label}
+    </span>
+  );
   return (
     <li className={cn("flex-none", spaced && "ml-3 sm:ml-4")}>
-      <Link
-        href={link.href}
-        aria-current={active ? "page" : undefined}
-        className={cn(
-          "group relative inline-flex min-h-11 items-center rounded-full outline-none",
-          // The focus ring is drawn on a pseudo-element the size of the pill (not the 44px target).
-          "after:pointer-events-none after:absolute after:inset-x-0 after:inset-y-[6px] after:rounded-full after:content-['']",
-          "focus-visible:after:outline-3 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus-ring",
-        )}
-      >
-        <span
-          className={cn(
-            "rounded-full px-4 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors ease-vibe",
-            active ? "bg-accent text-on-accent" : "text-ink group-hover:bg-surface-2",
-          )}
+      {link.vibe ? (
+        <VibeLink
+          vibe={link.vibe}
+          href={link.href}
+          data-nav-vibe={link.vibe}
+          aria-current={active ? "page" : undefined}
+          className={className}
         >
-          {link.label}
-        </span>
-      </Link>
+          {face}
+        </VibeLink>
+      ) : (
+        <Link href={link.href} aria-current={active ? "page" : undefined} className={className}>
+          {face}
+        </Link>
+      )}
     </li>
   );
 }

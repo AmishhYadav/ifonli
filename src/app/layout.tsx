@@ -6,6 +6,7 @@ import { ToastProvider } from "@/components/ui/Toast";
 import { BODY_FONT_FILE, DEFAULT_VIBE, DEFAULT_VIBE_CYCLE } from "@/features/vibe/config";
 import { VibeFilters } from "@/features/vibe/VibeFilters";
 import { VibeHeadScript } from "@/features/vibe/VibeHeadScript";
+import { InAppHistoryTracker } from "@/features/navigation/InAppHistoryTracker";
 import { VibeUrlSync } from "@/features/vibe/VibeUrlSync";
 import { siteUrl } from "@/lib/seo";
 import { getVibeSettings, type VibeSettings } from "@/server/cache/settings";
@@ -58,6 +59,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <div id="vibe-live" role="status" aria-live="polite" className="sr-only" />
         <Suspense fallback={null}>
           <VibeUrlSync />
+          <InAppHistoryTracker />
         </Suspense>
       </body>
     </html>

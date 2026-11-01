@@ -1,32 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import "@/styles/motion.css";
 
-import {
-  DEFAULT_VIBE_CYCLE,
-  DISPLAY_FONT_LOAD,
-  VIBES,
-  VIBE_NAMES,
-  nextVibe,
-  type Vibe,
-} from "./config";
-import { getVibe, setVibe } from "./store";
+import { DEFAULT_VIBE_CYCLE, VIBES, VIBE_NAMES, nextVibe, type Vibe } from "./config";
+import { getVibe, subscribe } from "./store";
+import { currentOrPendingVibe, prefersReducedMotion, switchVibeTo, warmVibeFont, whenIdle } from "./switch";
 import { useVibe } from "./useVibe";
 
-const FONT_WAIT_MS = 120;
 const LONG_PRESS_MS = 500;
 const TIP_HOLD_MS = 1600;
-
-const warmed = new Set<Vibe>();
-
-/** Idle-time warm-up of a vibe's display font (so the NEXT switch needs no network). */
-function warm(vibe: Vibe): void {
-  if (warmed.has(vibe)) return;
-  warmed.add(vibe);
-  document.fonts?.load(DISPLAY_FONT_LOAD[vibe]).catch(() => {});
-}
+const warm = warmVibeFont;
 
 /** The charms that hang at the five fingertips. A vibe without an entry (a renamed or new one) uses the first set. */
 const CHARMS: Partial<Record<string, readonly string[]>> = {
@@ -111,22 +97,6 @@ function HandVariant({ vibe }: { vibe: Vibe }) {
   );
 }
 
-function whenIdle(callback: () => void): void {
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(callback, { timeout: 1500 });
-  } else {
-    window.setTimeout(callback, 600);
-  }
-}
-
-function fontReady(vibe: Vibe): Promise<unknown> {
-  if (!document.fonts) return Promise.resolve();
-  return Promise.race([
-    document.fonts.load(DISPLAY_FONT_LOAD[vibe]).catch(() => {}),
-    new Promise((resolve) => window.setTimeout(resolve, FONT_WAIT_MS)),
-  ]);
-}
-
 interface Props {
   /** Cycle order (later phases pass settings.vibe_cycle). */
   cycle?: readonly Vibe[];
@@ -136,15 +106,18 @@ interface Props {
 /**
  * The vibe switcher: a hand with swinging charms, top-left. One hand variant per vibe is in the markup
  * (`<span data-v>` wrappers); CSS shows the active one (flags in tokens/*.css), so the right hand is on
- * the first paint, before hydration. A click re-plays the "card turn" by alternating `data-turn` on the
- * button (see styles/motion.css); nothing sets it on load, so there is no flip at page load. Plan section 8.4.
+ * the first paint, before hydration. The "card turn" replays whenever the vibe changes after hydration, from
+ * any source (this hand, a nav pill, a vibe page), by alternating `data-turn` on the button (see
+ * styles/motion.css); nothing sets it on load, so there is no flip at page load, and never under reduced
+ * motion. A click switches the site (shared `switchVibeTo`) and, on a `/vibes/<slug>` page, also opens the
+ * next vibe's collection so the page follows the theme. Plan section 8.4.
  */
 export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props) {
   const { vibe } = useVibe();
   const next = nextVibe(vibe, cycle);
   const [tipOpen, setTipOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const target = useRef<Vibe | null>(null);
+  const router = useRouter();
   const pressTimer = useRef<number>(0);
   const tipTimer = useRef<number>(0);
   const longPressed = useRef(false);
@@ -166,51 +139,32 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
     [],
   );
 
-  const switchVibe = useCallback(async () => {
-    const startedAt = performance.now();
-    performance.mark("vibe-switch-start");
-    const from = target.current ?? getVibe();
-    const to = nextVibe(from, cycle);
-    target.current = to;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    await fontReady(to);
-
-    // Restart the card-turn on the hand that is about to appear: alternate two identically-keyed animations.
-    const turn = () => {
+  // Flip the hand whenever the vibe changes after hydration, whoever changed it.
+  useEffect(() => {
+    let last = getVibe();
+    return subscribe(() => {
+      const now = getVibe();
+      if (now === last) return;
+      last = now;
       const button = buttonRef.current;
-      if (button && !reduced) button.dataset.turn = button.dataset.turn === "a" ? "b" : "a";
-    };
-
-    let release: () => void = () => {};
-    const settled = new Promise<void>((resolve) => {
-      release = resolve;
+      if (button && !prefersReducedMotion()) button.dataset.turn = button.dataset.turn === "a" ? "b" : "a";
     });
-    const canTransition = !reduced && typeof document.startViewTransition === "function";
+  }, []);
 
-    if (canTransition) {
-      const transition = document.startViewTransition(() => {
-        turn();
-        setVibe(to, { source: "hand", startedAt, settled, usedViewTransition: true });
-      });
-      transition.finished.then(release, release);
-    } else {
-      turn();
-      setVibe(to, { source: "hand", startedAt, settled, usedViewTransition: false });
-      release();
-    }
-
-    settled.then(() => {
-      if (target.current === to) target.current = null;
-      performance.mark("vibe-switch-end");
-      whenIdle(() => warm(nextVibe(to, cycle)));
+  const switchVibe = useCallback(() => {
+    const to = nextVibe(currentOrPendingVibe(), cycle);
+    // On a collection page the page follows the theme (the demo): open the next vibe's collection too.
+    const onVibePage = /^\/vibes\/[^/]+/.test(window.location.pathname);
+    void switchVibeTo(to, "hand", {
+      navigate: onVibePage ? () => router.push(`/vibes/${to}`) : undefined,
+      onSettled: () => whenIdle(() => warm(nextVibe(to, cycle))),
     });
-  }, [cycle]);
+  }, [cycle, router]);
 
   const clearPress = () => window.clearTimeout(pressTimer.current);
 
   // The visitor is about to click: make sure the vibe this click goes to is warm (a no-op once it is).
-  const warmNext = () => warm(nextVibe(target.current ?? getVibe(), cycle));
+  const warmNext = () => warm(nextVibe(currentOrPendingVibe(), cycle));
 
   const hideTipSoon = () => {
     window.clearTimeout(tipTimer.current);
@@ -230,7 +184,7 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
           longPressed.current = false;
           return;
         }
-        void switchVibe();
+        switchVibe();
       }}
       onPointerEnter={warmNext}
       onFocus={warmNext}

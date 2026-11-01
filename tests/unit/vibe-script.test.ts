@@ -6,6 +6,7 @@ import { resolveTokens } from "@/features/vibe/tokens";
 
 interface Env {
   search?: string;
+  pathname?: string;
   cookie?: string;
   storage?: string | null;
   storageThrows?: boolean;
@@ -32,7 +33,7 @@ function run(script: string, env: Env = {}) {
       store[k] = v;
     },
   };
-  const location = { search: env.search ?? "", protocol: "https:" };
+  const location = { search: env.search ?? "", pathname: env.pathname ?? "/home", protocol: "https:" };
   const realRandom = Math.random;
   if (env.random !== undefined) Math.random = () => env.random!;
   try {
@@ -73,6 +74,20 @@ describe("head script", () => {
       /^ifonli_vibe=gothic;max-age=31536000;path=\/;SameSite=Lax;Secure$/,
     );
     expect(r.store.ifonli_vibe).toBe("gothic");
+  });
+
+  it("a /vibes/<slug> path wins over ?vibe=, cookie and storage, and is persisted", () => {
+    const r = run(script, {
+      pathname: "/vibes/funky",
+      search: "?vibe=gothic",
+      cookie: "ifonli_vibe=bold",
+      storage: "cute",
+    });
+    expect(r.vibe).toBe("funky");
+    expect(r.store.ifonli_vibe).toBe("funky");
+    expect(r.doc.cookie).toMatch(/^ifonli_vibe=funky;/);
+    // An unknown slug is ignored; the visitor's own vibe stays.
+    expect(run(script, { pathname: "/vibes/nope", cookie: "ifonli_vibe=bold" }).vibe).toBe("bold");
   });
 
   it("cookie wins over localStorage", () => {

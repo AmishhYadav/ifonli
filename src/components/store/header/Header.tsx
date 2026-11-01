@@ -1,6 +1,6 @@
 import { HandButton } from "@/features/vibe/HandButton";
 import { SearchSheet, type SearchShortcut } from "@/features/search/SearchSheet";
-import { isVibe } from "@/features/vibe/config";
+import { isVibe, type Vibe } from "@/features/vibe/config";
 import { getCollections } from "@/server/cache/catalog";
 import { getVibeSettings } from "@/server/cache/settings";
 
@@ -14,7 +14,7 @@ import { NavPills } from "./NavPills";
 /**
  * Storefront header, sticky and soft (translucent, a hairline underline, no hard edge). Row 1: the hand
  * button and the wordmark on the left; search, account, wishlist and bag on the right (on a phone: search,
- * bag, menu). Row 2: pills for the four vibes, the types and Shop all, with the current page filled in.
+ * bag, menu). Row 2: pills for the four vibes, the types and Shop all, with the current theme filled in (strong) and the current page tinted (soft).
  */
 export async function Header() {
   const [{ cycle }, collections] = await Promise.all([getVibeSettings(), getCollections()]);
@@ -53,7 +53,7 @@ export async function Header() {
       </div>
 
       <NavPills
-        vibes={vibeLinks.map(({ href, label }) => ({ href, label }))}
+        vibes={vibes.map((v) => ({ href: `/vibes/${v.slug}`, label: v.name, vibe: v.slug as Vibe }))}
         types={typeLinks.map(({ href, label }) => ({ href, label }))}
         shop={{ href: "/shop", label: "Shop all" }}
       />

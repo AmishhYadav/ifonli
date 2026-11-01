@@ -9,6 +9,7 @@ import { ReturnNote } from "@/components/store/cart/ReturnNote";
 import { JsonLd } from "@/components/store/JsonLd";
 import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
 import { buildPdpImages, buildPdpModel } from "@/components/store/pdp/build-model";
+import { BackButton } from "@/components/store/pdp/BackButton";
 import { DeliveryEstimate } from "@/components/store/pdp/DeliveryEstimate";
 import { Description } from "@/components/store/pdp/Description";
 import { Gallery } from "@/components/store/pdp/Gallery";
@@ -122,7 +123,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
       <PdpTracker productId={product.id} />
       <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-4 sm:px-6">
-        <Breadcrumbs crumbs={crumbs} />
+        <BackButton fallbackHref={`/types/${product.type.slug}`} />
+        <div className="mt-1">
+          <Breadcrumbs crumbs={crumbs} />
+        </div>
         <PurchaseProvider model={model}>
           <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-14">
             <div className="lg:sticky lg:top-24 lg:self-start">
