@@ -15,6 +15,7 @@ import {
   variants,
   vibes,
 } from "@/server/db/schema";
+import { hasPriceRange } from "@/lib/money";
 import { clampQtyWithReason } from "@/server/domain";
 
 import {
@@ -163,7 +164,7 @@ export async function getProductBySlug(db: DbClient, slug: string): Promise<Prod
   const defaultMfr = settingsRead.default_manufacturer;
   const country = p.countryOfOrigin?.trim();
 
-  const cheapest = variantRows.slice().sort((a, b) => a.pricePaise - b.pricePaise)[0]!;
+  const cheapest = variantRows.slice().sort((a, b) => a.pricePaise - b.pricePaise || a.position - b.position)[0]!;
   const kindOrder = { photo: 0, cutout: 1 } as const;
 
   return {
@@ -233,7 +234,7 @@ export async function getProductBySlug(db: DbClient, slug: string): Promise<Prod
       })),
     priceFromPaise: cheapest.pricePaise,
     mrpFromPaise: cheapest.mrpPaise,
-    hasMultipleVariants: variantRows.length > 1,
+    hasPriceRange: hasPriceRange(variantRows.map((v) => v.pricePaise)),
   };
 }
 

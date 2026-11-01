@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 
+import { hasPriceRange } from "@/lib/money";
 import {
   productImages,
   productTypes,
@@ -188,7 +189,7 @@ export async function loadCatalogIndex(
       primaryVibe: memberships[0]?.vibe.slug ?? null,
       priceFromPaise: cheapest.pricePaise,
       mrpFromPaise: cheapest.mrpPaise,
-      hasMultipleVariants: pVariants.length > 1,
+      hasPriceRange: hasPriceRange(pVariants.map((v) => v.pricePaise)),
       inStock,
       lowStock: inStock && allLow,
       image: toImageRef(photo ?? cutout),
@@ -212,7 +213,7 @@ export function toCard(p: IndexedProduct): ProductCard {
     primaryVibe: p.primaryVibe,
     priceFromPaise: p.priceFromPaise,
     mrpFromPaise: p.mrpFromPaise,
-    hasMultipleVariants: p.hasMultipleVariants,
+    hasPriceRange: p.hasPriceRange,
     inStock: p.inStock,
     lowStock: p.lowStock,
     image: p.image,

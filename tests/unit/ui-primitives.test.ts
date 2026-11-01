@@ -93,7 +93,7 @@ const base: ProductCard = {
   primaryVibe: "cute",
   priceFromPaise: 34900,
   mrpFromPaise: 34900,
-  hasMultipleVariants: false,
+  hasPriceRange: false,
   inStock: true,
   lowStock: false,
   image: null,
@@ -117,7 +117,9 @@ describe("ProductCardView", () => {
   });
 
   it("prefixes From for variable prices and never strikes an equal MRP", () => {
-    expect(card({ hasMultipleVariants: true })).toContain("From");
+    expect(card({ hasPriceRange: true })).toContain("From");
+    // several variants at one price: the card is not a range, so no "From"
+    expect(card({ hasPriceRange: false, priceFromPaise: 17900, mrpFromPaise: 17900 })).not.toContain("From");
     expect(card({})).not.toContain("From");
     expect(card({})).not.toContain("<s ");
     expect(card({ mrpFromPaise: 44900 })).toContain("<s ");

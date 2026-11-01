@@ -56,3 +56,12 @@ export function sumPaise(values: ReadonlyArray<number>): number {
   }
   return total;
 }
+
+/**
+ * True when the prices differ, i.e. a product card/summary must say "From" because the shown price is
+ * only the cheapest of several. Same-price variants (e.g. colour options) are NOT a range.
+ */
+export function hasPriceRange(pricesPaise: readonly number[]): boolean {
+  const first = pricesPaise[0];
+  return first !== undefined && pricesPaise.some((p) => p !== first);
+}

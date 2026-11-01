@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatINR, paiseToRupees, rupeesToPaise, sumPaise } from "@/lib/money";
+import { formatINR, hasPriceRange, paiseToRupees, rupeesToPaise, sumPaise } from "@/lib/money";
 
 describe("formatINR", () => {
   it("shows no decimals for whole rupees", () => {
@@ -51,5 +51,24 @@ describe("sumPaise", () => {
 
   it("rejects non-integer paise", () => {
     expect(() => sumPaise([1.5])).toThrow(RangeError);
+  });
+});
+
+describe("hasPriceRange", () => {
+  it("is false for a single variant", () => {
+    expect(hasPriceRange([17900])).toBe(false);
+  });
+
+  it("is false when several variants share one price (colour options)", () => {
+    expect(hasPriceRange([17900, 17900, 17900])).toBe(false);
+  });
+
+  it("is true when the variant prices differ, whatever the order", () => {
+    expect(hasPriceRange([14900, 17900])).toBe(true);
+    expect(hasPriceRange([17900, 14900, 17900])).toBe(true);
+  });
+
+  it("is false for no variants", () => {
+    expect(hasPriceRange([])).toBe(false);
   });
 });
