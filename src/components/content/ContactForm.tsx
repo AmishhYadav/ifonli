@@ -49,7 +49,7 @@ export function ContactForm() {
       <div
         role="status"
         data-testid="contact-sent"
-        className="flex flex-col gap-3 rounded-card border-token bg-surface p-5 text-ink shadow-card sm:p-6"
+        className="flex flex-col gap-3 rounded-card bg-surface p-5 text-ink shadow-card sm:p-6"
       >
         <h3
           ref={sentRef}
@@ -83,14 +83,14 @@ export function ContactForm() {
       action={action}
       noValidate
       data-testid="contact-form"
-      className="flex flex-col gap-4 rounded-card border-token bg-surface p-4 shadow-card sm:p-5"
+      className="flex flex-col gap-4 rounded-card bg-surface p-4 shadow-card sm:p-5"
     >
       {state.status === "rate_limited" || state.status === "error" ? (
         <p
           ref={alertRef}
           tabIndex={-1}
           role="alert"
-          className="flex items-start gap-2 rounded-input border-token border-danger p-3 text-base font-semibold text-danger outline-none"
+          className="flex items-start gap-2 rounded-input bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))] p-3 text-base font-semibold text-danger outline-none"
         >
           <Icon name="alert-circle" className="mt-0.5 size-5 flex-none" />
           {state.message}

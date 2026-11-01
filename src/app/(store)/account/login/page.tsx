@@ -35,7 +35,7 @@ async function LoginContent({
   if (await getSession()) {
     // A staff session: the customer area is not for staff accounts.
     return (
-      <div className="flex flex-col gap-4 rounded-card border-token bg-surface p-5">
+      <div className="flex flex-col gap-4 rounded-card bg-surface shadow-card p-5">
         <p className="text-base">
           You&apos;re signed in with a staff account, which can&apos;t be used for shopping accounts.
         </p>

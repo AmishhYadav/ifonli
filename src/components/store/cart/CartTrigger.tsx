@@ -66,7 +66,7 @@ export function CartTrigger({ initialCount, className }: { initialCount: number 
           ref={badge}
           aria-hidden="true"
           data-testid="cart-count"
-          className="absolute top-1 right-0.5 grid min-w-5 place-items-center rounded-full border-token bg-accent px-1 text-xs leading-5 font-bold text-on-accent tabular-nums"
+          className="absolute top-1 right-0.5 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-xs leading-5 font-bold text-on-accent tabular-nums"
         >
           {shown > 99 ? "99+" : shown}
         </span>

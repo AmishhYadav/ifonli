@@ -28,7 +28,7 @@ export function LegalBlock({ product, store }: { product: ProductDetail; store: 
       <h2 id="legal-heading" className="font-display text-xl display-fx">
         Product details
       </h2>
-      <dl className="mt-2 divide-y divide-border border-y border-border">
+      <dl className="mt-2 divide-y divide-hairline border-t border-hairline">
         {legal.netQuantity ? <Row label="Net quantity">{legal.netQuantity}</Row> : null}
         {legal.dimensions ? <Row label="Dimensions">{legal.dimensions}</Row> : null}
         <Row label="Country of origin">{mark(legal.countryOfOrigin, legal.countryOfOriginIsPlaceholder)}</Row>

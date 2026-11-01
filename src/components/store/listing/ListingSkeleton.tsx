@@ -6,7 +6,7 @@ import { ProductGridSkeleton } from "../ProductGrid";
 export function ListingSkeleton() {
   return (
     <div className="mx-auto max-w-[1440px] px-4 pb-4 sm:px-6" aria-busy="true">
-      <div className="flex items-center justify-between gap-3 border-b border-border py-4">
+      <div className="flex items-center justify-between gap-3 border-b border-hairline py-4">
         <Skeleton shape="text" className="h-6 w-28" />
         <Skeleton shape="block" className="h-11 w-52" />
       </div>

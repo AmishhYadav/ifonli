@@ -63,7 +63,7 @@ export function GalleryZoom({
           tabIndex={0}
           role="group"
           aria-label="Photo, scroll to pan when zoomed in"
-          className="max-h-[65dvh] overflow-auto rounded-card border border-border bg-surface-2"
+          className="max-h-[65dvh] overflow-auto rounded-card bg-surface-2"
         >
           {children}
         </div>

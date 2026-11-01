@@ -36,7 +36,7 @@ export function LoginForm({ initialEmail, next }: { initialEmail: string; next: 
     <form
       action={action}
       noValidate
-      className="flex flex-col gap-4 rounded-card border-token bg-surface p-4 shadow-card sm:p-6"
+      className="flex flex-col gap-4 rounded-card bg-surface p-4 shadow-card sm:p-6"
       data-testid="login-form"
     >
       <input type="hidden" name="next" value={state.next} />

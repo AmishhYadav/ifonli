@@ -56,7 +56,7 @@ export function ConsentManager({ ga4Id, consentRequired }: ConsentManagerProps) 
     <section
       aria-labelledby="consent-heading"
       data-testid="consent-banner"
-      className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-card border-token bg-surface p-4 text-ink shadow-card sm:p-5"
+      className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-card bg-surface p-4 text-ink shadow-card sm:p-5"
     >
       <h2 id="consent-heading" ref={headingRef} tabIndex={-1} className="font-display text-xl outline-none">
         Cookies and analytics

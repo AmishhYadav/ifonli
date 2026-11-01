@@ -624,7 +624,7 @@ export function CheckoutForm({
             </p>
           ) : (
             <div
-              className="flex items-start gap-3 rounded-card border-token bg-surface p-4"
+              className="flex items-start gap-3 rounded-card bg-surface shadow-card p-4"
               data-testid="shipping-option"
             >
               <Icon name="truck" className="mt-0.5 size-6 flex-none" />
@@ -687,7 +687,7 @@ export function CheckoutForm({
 
       <section
         aria-labelledby="checkout-review"
-        className="flex min-w-0 flex-col gap-5 rounded-card border-token bg-surface p-4 shadow-card sm:p-5 lg:sticky lg:top-6"
+        className="flex min-w-0 flex-col gap-5 rounded-card bg-surface p-4 shadow-card sm:p-5 lg:sticky lg:top-6"
         data-testid="review"
         aria-busy={!quoteFresh}
       >
@@ -790,7 +790,7 @@ export function CheckoutForm({
             ref={summaryRef}
             tabIndex={-1}
             role="alert"
-            className="flex flex-col gap-2 rounded-card border-token border-danger bg-surface p-3 text-sm outline-none"
+            className="flex flex-col gap-2 rounded-card bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))] p-3 text-sm outline-none"
             data-testid="error-summary"
           >
             {problem ? (

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const columnClasses = "min-w-0 rounded-card border border-border p-4 sm:p-5";
+const columnClasses = "min-w-0 rounded-card border border-hairline p-4 sm:p-5";
 
 export default function StyleguidePage() {
   assertDevPagesEnabled();

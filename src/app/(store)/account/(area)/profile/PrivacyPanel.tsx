@@ -49,7 +49,7 @@ export function PrivacyPanel() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-border pt-5">
+        <div className="flex flex-col gap-2 border-t border-hairline pt-5">
           <h3 className="text-base font-semibold">Delete my account</h3>
           <p className="text-base text-ink-muted">
             This removes your sign-in, saved addresses, wishlist and profile. We keep your past orders and

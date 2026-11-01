@@ -55,9 +55,11 @@ export function VariantPicker() {
                     if (next) setVariantId(next.id);
                   }}
                   className={cn(
-                    "inline-flex min-h-11 items-center gap-2 rounded-button border-token px-3.5 text-base font-semibold",
+                    "inline-flex min-h-11 items-center gap-2 rounded-button px-4 text-base font-semibold",
                     "transition-[background-color,box-shadow,transform] ease-vibe",
-                    v.selected ? "bg-accent text-on-accent shadow-button" : "bg-surface text-ink hover:bg-surface-2",
+                    v.selected
+                      ? "bg-accent text-on-accent shadow-button"
+                      : "bg-surface-2 text-ink hover:-translate-y-px hover:bg-[color-mix(in_srgb,var(--surface-2),var(--ink)_9%)]",
                     v.disabled && "cursor-not-allowed opacity-40 line-through",
                     soldOut && !v.selected && "text-ink-muted",
                   )}
@@ -66,7 +68,7 @@ export function VariantPicker() {
                     <span
                       aria-hidden="true"
                       style={{ "--swatch": v.swatchHex } as CSSProperties}
-                      className="size-5 flex-none rounded-full border border-ink/40 bg-(--swatch)"
+                      className="size-5 flex-none rounded-full bg-(--swatch) shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_25%,transparent)]"
                     />
                   ) : null}
                   <span className={cn(soldOut && "line-through decoration-1")}>{v.value}</span>

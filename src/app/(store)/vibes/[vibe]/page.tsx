@@ -77,7 +77,7 @@ export default async function VibePage({
           vibe={vibe.vibe}
           as="section"
           aria-label={`${vibe.name} vibe`}
-          className="mt-4 flex flex-col gap-4 overflow-hidden rounded-card border-token p-6 text-ink shadow-card sm:p-10"
+          className="mt-4 flex flex-col gap-4 overflow-hidden rounded-card p-6 text-ink shadow-card sm:p-10"
         >
           <TileFan tiles={covers} size="lg" className="pointer-events-none absolute top-1/2 right-10 hidden -translate-y-1/2 lg:flex" />
           <p className="text-sm font-bold tracking-widest text-ink-muted uppercase">Vibe</p>

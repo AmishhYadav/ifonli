@@ -65,7 +65,7 @@ export default async function HelpPage() {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="flex h-full min-h-20 items-start gap-3 rounded-card border-token bg-surface p-4 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-0.5"
+              className="flex h-full min-h-20 items-start gap-3 rounded-card bg-surface p-4 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-0.5"
             >
               <Icon name={link.icon} className="mt-0.5 size-6 flex-none" />
               <span className="flex flex-col">
@@ -85,7 +85,7 @@ export default async function HelpPage() {
           {hasDraftAnswers ? (
             <p
               data-testid="faq-draft-note"
-              className="mb-5 rounded-input border-token border-warning bg-surface p-3 text-base"
+              className="mb-5 rounded-input bg-[color-mix(in_srgb,var(--warning)_10%,var(--surface))] p-3 text-base"
             >
               <strong>Draft preview.</strong> Answers with highlighted values are hidden in production until
               the settings behind them are filled in.
@@ -100,7 +100,7 @@ export default async function HelpPage() {
           Still need help?
         </h2>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
-          <div className="flex flex-col gap-4 rounded-card border-token bg-surface p-5 text-base shadow-card">
+          <div className="flex flex-col gap-4 rounded-card bg-surface p-5 text-base shadow-card">
             <p className="font-display text-xl leading-tight">Talk to us</p>
             <p className="flex items-start gap-2">
               <Icon name="mail" className="mt-1 size-4 flex-none" />
