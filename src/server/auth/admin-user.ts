@@ -4,7 +4,7 @@ import { hashPassword } from "better-auth/crypto";
 import { and, eq } from "drizzle-orm";
 
 import type { DbClient } from "@/server/services/queries/shared";
-import { account, twoFactor, user, verification } from "@/server/db/schema";
+import { account, twoFactor, user } from "@/server/db/schema";
 
 import { ADMIN_ROLES } from "./permissions";
 
@@ -26,9 +26,6 @@ export interface UpsertAdminInput {
 
 /** How long a temporary staff password can be used to sign in before an owner must issue a new one. */
 export const TEMP_PASSWORD_TTL_DAYS = 7;
-const PASSWORD_CHANGE_PREFIX = "must-change-password:";
-/** Far enough away that Better Auth's own expiry sweep (and our daily cleanup) never removes the marker. */
-const MARKER_LIFETIME_MS = 10 * 365 * 24 * 3600 * 1000;
 
 export type PasswordChangeState =
   | { state: "none" }
@@ -36,28 +33,24 @@ export type PasswordChangeState =
   | { state: "expired" };
 
 /**
- * "Must change password" without a schema change: a row in Better Auth's generic `verification`
- * table, identifier `must-change-password:<userId>`, whose `value` is the deadline (ISO date).
- * The row's own `expires_at` is set far in the future on purpose so the expiry sweeps keep it.
- * Only ever set for accounts that have not enrolled TOTP yet, so it cannot lock an active admin out.
+ * "Must change password": `user.password_change_deadline` holds the date after which the temporary
+ * password stops signing in; NULL means nothing is pending. (It used to be a marker row in Better
+ * Auth's `verification` table; migration 0005 moved existing ones over.) Only ever set for accounts
+ * that have not enrolled TOTP yet, so it cannot lock an active admin out.
  */
 export async function markPasswordChangeRequired(
   db: DbClient,
   userId: string,
   now: Date = new Date(),
 ): Promise<void> {
-  const identifier = `${PASSWORD_CHANGE_PREFIX}${userId}`;
-  await db.delete(verification).where(eq(verification.identifier, identifier));
-  await db.insert(verification).values({
-    id: crypto.randomUUID(),
-    identifier,
-    value: new Date(now.getTime() + TEMP_PASSWORD_TTL_DAYS * 24 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(now.getTime() + MARKER_LIFETIME_MS),
-  });
+  await db
+    .update(user)
+    .set({ passwordChangeDeadline: new Date(now.getTime() + TEMP_PASSWORD_TTL_DAYS * 24 * 3600 * 1000) })
+    .where(eq(user.id, userId));
 }
 
 export async function clearPasswordChangeRequired(db: DbClient, userId: string): Promise<void> {
-  await db.delete(verification).where(eq(verification.identifier, `${PASSWORD_CHANGE_PREFIX}${userId}`));
+  await db.update(user).set({ passwordChangeDeadline: null }).where(eq(user.id, userId));
 }
 
 export async function getPasswordChangeState(
@@ -66,14 +59,12 @@ export async function getPasswordChangeState(
   now: Date = new Date(),
 ): Promise<PasswordChangeState> {
   const [row] = await db
-    .select({ value: verification.value })
-    .from(verification)
-    .where(eq(verification.identifier, `${PASSWORD_CHANGE_PREFIX}${userId}`));
-  if (!row) return { state: "none" };
-  const deadline = new Date(row.value);
-  // A marker we cannot read is treated as expired: the safe side for a temporary credential.
-  if (Number.isNaN(deadline.getTime()) || deadline <= now) return { state: "expired" };
-  return { state: "required", deadline };
+    .select({ deadline: user.passwordChangeDeadline })
+    .from(user)
+    .where(eq(user.id, userId));
+  if (!row?.deadline) return { state: "none" };
+  if (row.deadline <= now) return { state: "expired" };
+  return { state: "required", deadline: row.deadline };
 }
 
 export interface UpsertAdminResult {

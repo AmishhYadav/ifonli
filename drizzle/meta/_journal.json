@@ -36,6 +36,13 @@
       "when": 1793452519183,
       "tag": "0004_invoice_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793510802946,
+      "tag": "0005_db_hardening",
+      "breakpoints": true
     }
   ]
 }

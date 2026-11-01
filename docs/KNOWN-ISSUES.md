@@ -45,7 +45,6 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 | S-1 | Low | **Support photos of a deleted account are removed after the database commit.** If storage is down at that moment the objects stay (random names, no longer linked to anyone) and a log line says how many; there is no sweep for orphans yet. |
 | S-2 | Low | **A stranger can still burn a code, not the account.** Better Auth locks each sign-in code after 5 wrong tries, so someone who knows an address and keeps guessing can force the real customer to ask for a new code (the customer's own wrong-code budget and send budget are separate, and only wrong codes count). |
 | S-3 | Low | **Staff password guessing is limited per email and IP, not by a stored lockout.** 8 attempts per 10 minutes per email can briefly lock a known staff address out of the sign-in form. Two-factor has Better Auth's own per-account lockout (10 failures, 15 minutes). |
-| S-4 | Low | **The "must change password" marker lives in the `verification` table** (no migration allowed in this pass). A dedicated column would be cleaner; the behaviour is covered by tests. |
 | S-5 | Low | **Lighthouse is still not a gate** (home scores 0.57-0.77 on the CI runner against a 0.85 budget). Reports are uploaded as the `lighthouse` artifact (`lhci-results/`). |
 
 ## Fixed during this pass

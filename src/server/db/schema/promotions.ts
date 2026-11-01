@@ -71,7 +71,7 @@ export const coupons = pgTable(
       sql`(${t.usageLimit} IS NULL OR ${t.usageLimit} > 0) AND (${t.perCustomerLimit} IS NULL OR ${t.perCustomerLimit} > 0)`,
     ),
   ],
-);
+).enableRLS();
 
 export const couponRedemptions = pgTable(
   "coupon_redemptions",
@@ -92,4 +92,4 @@ export const couponRedemptions = pgTable(
     index("coupon_redemptions_coupon_status_idx").on(t.couponId, t.status),
     index("coupon_redemptions_coupon_email_idx").on(t.couponId, sql`lower(${t.email})`),
   ],
-);
+).enableRLS();

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { ProductCard, ProductGrid, ProductGridItem } from "@/components/store";
@@ -23,7 +23,12 @@ import { PdpTracker } from "@/features/analytics";
 import { isVibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { breadcrumbJsonLd, textOr, type Crumb } from "@/lib/seo";
-import { getAllProductSlugsForSitemap, getProductBySlug, getRelatedProducts } from "@/server/cache/catalog";
+import {
+  getAllProductSlugsForSitemap,
+  getProductBySlug,
+  getProductSlugRedirect,
+  getRelatedProducts,
+} from "@/server/cache/catalog";
 import { getStoreInfo } from "@/server/cache/settings";
 import { resolveImageUrl } from "@/server/services/media";
 
@@ -42,8 +47,10 @@ export async function generateStaticParams() {
   return slugs.slice(0, PRERENDERED).map(({ slug }) => ({ slug }));
 }
 
+const isValidSlug = (slug: string) => slug.length <= 120 && SLUG_RE.test(slug);
+
 async function findProduct(slug: string) {
-  if (slug.length > 120 || !SLUG_RE.test(slug)) return null;
+  if (!isValidSlug(slug)) return null;
   return getProductBySlug(slug);
 }
 
@@ -84,8 +91,15 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  const product = await findProduct((await params).slug);
-  if (!product) notFound();
+  const { slug } = await params;
+  const product = await findProduct(slug);
+  if (!product) {
+    // An admin renamed the product: send old links (and search engines) to the current URL. A slug
+    // that is neither a product nor a redirect is an ordinary 404. Both happen before anything streams.
+    const target = isValidSlug(slug) ? await getProductSlugRedirect(slug) : null;
+    if (target) permanentRedirect(`/products/${target.slug}`);
+    notFound();
+  }
 
   const [related, store, returns] = await Promise.all([
     getRelatedProducts(product.id, 8),

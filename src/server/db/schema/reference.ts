@@ -15,7 +15,7 @@ export const states = pgTable("states", {
   /** Shipping zone (see data/reference/zones.json). */
   zone: text("zone"),
   ...timestamps(),
-});
+}).enableRLS();
 
 /** India Post pincode directory (data.gov.in, GODL-India) plus serviceability/COD flags. */
 export const pincodes = pgTable(
@@ -35,4 +35,4 @@ export const pincodes = pgTable(
     index("pincodes_state_idx").on(t.stateCode),
     check("pincodes_format", sql`${t.pincode} ~ '^[0-9]{6}$'`),
   ],
-);
+).enableRLS();

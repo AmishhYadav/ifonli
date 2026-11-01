@@ -1,5 +1,15 @@
 import { sql } from "drizzle-orm";
-import { check, index, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  check,
+  index,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { paise, pk, timestamps } from "./_common";
 import { user } from "./auth";
@@ -37,9 +47,18 @@ export const payments = pgTable(
   },
   (t) => [
     index("payments_order_idx").on(t.orderId),
+    /**
+     * At most one payment per order is the one that PAID it. Extra captured rows are legitimate (a
+     * second charge, a capture after the stock sold out, a capture on a closed order, an amount
+     * mismatch) but `refuseCapture` always stamps those with `raw.disposition` and refunds them, so
+     * only the order-paying capture has `status = 'captured'` without a disposition.
+     */
+    uniqueIndex("payments_one_paying_capture_uq")
+      .on(t.orderId)
+      .where(sql`${t.status} = 'captured' AND ${t.raw} ->> 'disposition' IS NULL`),
     check("payments_amount_pos", sql`${t.amountPaise} > 0`),
   ],
-);
+).enableRLS();
 
 export const refunds = pgTable(
   "refunds",
@@ -64,7 +83,7 @@ export const refunds = pgTable(
     index("refunds_payment_idx").on(t.paymentId),
     check("refunds_amount_pos", sql`${t.amountPaise} > 0`),
   ],
-);
+).enableRLS();
 
 /** Webhook idempotency ledger. `provider_event_id` is the x-razorpay-event-id header. */
 export const webhookEvents = pgTable(
@@ -80,4 +99,4 @@ export const webhookEvents = pgTable(
     ...timestamps(),
   },
   (t) => [index("webhook_events_type_idx").on(t.type, t.createdAt)],
-);
+).enableRLS();

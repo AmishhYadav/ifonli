@@ -61,6 +61,22 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
   return product;
 }
 
+/**
+ * Redirect target for a slug that is not (or no longer) a product. Tagged with the old slug (an admin
+ * rename or a new product claiming it expires it, see `catalogInvalidationTags`) and, once a target
+ * exists, with that product, so a second rename (a -> b -> c) refreshes `a`'s answer too.
+ */
+export async function getProductSlugRedirect(
+  oldSlug: string,
+): Promise<{ slug: string; productId: string } | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(productSlugTag(oldSlug));
+  const target = await catalog.getProductSlugRedirect(getDb(), oldSlug);
+  if (target) cacheTag(productTag(target.productId));
+  return target;
+}
+
 export async function getCollections(): Promise<Collections> {
   "use cache";
   cacheLife("hours");

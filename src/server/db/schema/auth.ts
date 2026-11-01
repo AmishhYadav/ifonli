@@ -25,7 +25,13 @@ export const user = pgTable("user", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires", { withTimezone: true }),
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
-});
+  /**
+   * Set while the account still has a temporary staff password: the date after which that password
+   * stops signing in. NULL = nothing to change. Not a Better Auth field (the library ignores it);
+   * only `src/server/auth/admin-user.ts` reads and writes it.
+   */
+  passwordChangeDeadline: timestamp("password_change_deadline", { withTimezone: true }),
+}).enableRLS();
 
 export const session = pgTable(
   "session",
@@ -45,7 +51,7 @@ export const session = pgTable(
     impersonatedBy: text("impersonated_by"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
-);
+).enableRLS();
 
 export const account = pgTable(
   "account",
@@ -69,7 +75,7 @@ export const account = pgTable(
       .notNull(),
   },
   (table) => [index("account_userId_idx").on(table.userId)],
-);
+).enableRLS();
 
 export const verification = pgTable(
   "verification",
@@ -85,7 +91,7 @@ export const verification = pgTable(
       .notNull(),
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)],
-);
+).enableRLS();
 
 export const twoFactor = pgTable(
   "two_factor",
@@ -104,7 +110,7 @@ export const twoFactor = pgTable(
     index("twoFactor_secret_idx").on(table.secret),
     index("twoFactor_userId_idx").on(table.userId),
   ],
-);
+).enableRLS();
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),

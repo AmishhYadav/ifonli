@@ -36,6 +36,7 @@ const EXPECTED_TABLES = [
   "product_images",
   "product_option_values",
   "product_options",
+  "product_slug_redirects",
   "product_types",
   "product_vibes",
   "products",

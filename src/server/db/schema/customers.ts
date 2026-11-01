@@ -26,7 +26,7 @@ export const customerProfiles = pgTable("customer_profiles", {
   /** DPDP: soft-delete marker while retention obligations run. */
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   ...timestamps(),
-});
+}).enableRLS();
 
 export const addresses = pgTable(
   "addresses",
@@ -53,7 +53,7 @@ export const addresses = pgTable(
       .on(t.userId)
       .where(sql`${t.isDefault}`),
   ],
-);
+).enableRLS();
 
 export const wishlistItems = pgTable(
   "wishlist_items",
@@ -70,4 +70,4 @@ export const wishlistItems = pgTable(
     primaryKey({ columns: [t.userId, t.productId] }),
     index("wishlist_items_product_idx").on(t.productId),
   ],
-);
+).enableRLS();

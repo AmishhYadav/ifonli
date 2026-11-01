@@ -222,9 +222,9 @@ describe("temporary staff passwords", () => {
 
     // Past the deadline the temporary password no longer signs in, with the usual generic error.
     await getDb()
-      .update(verification)
-      .set({ value: new Date(Date.now() - 1000).toISOString() })
-      .where(eq(verification.identifier, `must-change-password:${created.id}`));
+      .update(user)
+      .set({ passwordChangeDeadline: new Date(Date.now() - 1000) })
+      .where(eq(user.id, created.id));
     expect(await state(created.id)).toEqual({ state: "expired" });
     await expect(signIn()).rejects.toMatchObject({ statusCode: 401, message: "Invalid email or password" });
   });
@@ -274,18 +274,21 @@ describe("temporary staff passwords", () => {
     ).resolves.toMatchObject({ twoFactorRedirect: true });
   });
 
-  it("the daily sweep of expired verification rows leaves the marker alone", async () => {
+  it("the marker is a column on the user (about a week out), not a row the verification sweep could remove", async () => {
     await seedActor();
     const created = await createStaffUser(
       getDb(),
       { name: "New Hire", email: "hire@example.com", role: "admin" },
       ownerActor,
     );
-    const [row] = await getDb()
-      .select()
-      .from(verification)
-      .where(eq(verification.identifier, `must-change-password:${created.id}`));
-    expect(row!.expiresAt.getTime()).toBeGreaterThan(Date.now() + 365 * 24 * 3600 * 1000);
+    const [row] = await getDb().select().from(user).where(eq(user.id, created.id));
+    const week = 7 * 24 * 3600 * 1000;
+    expect(Math.abs(row!.passwordChangeDeadline!.getTime() - (Date.now() + week))).toBeLessThan(60_000);
+    expect(await getDb().select().from(verification)).toHaveLength(0);
+    // Clearing it (the script upsert, or a completed change) leaves NULL.
+    await upsertAdminUser(getDb(), { email: "hire@example.com", role: "admin", password: PASSWORD });
+    const [after] = await getDb().select().from(user).where(eq(user.id, created.id));
+    expect(after!.passwordChangeDeadline).toBeNull();
   });
 
   it("owner resets: only someone still to enrol is asked for a new password; script upserts clear it", async () => {

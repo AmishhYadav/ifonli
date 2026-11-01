@@ -20,7 +20,7 @@ export const carts = pgTable(
     ...timestamps(),
   },
   (t) => [index("carts_user_idx").on(t.userId), index("carts_expires_idx").on(t.expiresAt)],
-);
+).enableRLS();
 
 export const cartItems = pgTable(
   "cart_items",
@@ -40,4 +40,4 @@ export const cartItems = pgTable(
     index("cart_items_variant_idx").on(t.variantId),
     check("cart_items_qty_pos", sql`${t.qty} > 0`),
   ],
-);
+).enableRLS();
