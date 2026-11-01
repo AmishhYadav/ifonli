@@ -169,7 +169,7 @@ export function validateCoupon(coupon: CouponRecord, ctx: CouponContext): Coupon
 
   const eligible = ctx.lines.filter((l) => isLineEligible(coupon.scope, l));
   if (eligible.length === 0) {
-    return reject("no_eligible_items", "This code doesn't apply to the items in your cart.");
+    return reject("no_eligible_items", "This code doesn't apply to the items in your bag.");
   }
 
   const cartSubtotal = ctx.lines.reduce((s, l) => s + l.unitPricePaise * l.qty, 0);

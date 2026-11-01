@@ -64,7 +64,7 @@ export function Specimen({ column }: { column: (typeof VIBES)[number] | "buy" })
           <IconButton icon="search" label="Search" />
         </div>
         <Button fullWidth iconStart="bag">
-          Add to cart (full width)
+          Add to bag (full width)
         </Button>
       </Block>
 

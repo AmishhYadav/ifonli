@@ -14,7 +14,7 @@
   {
     "category": "delivery",
     "question": "How much is shipping?",
-    "answerMd": "Shipping is {{settings.flat_fee}} per order. It is free on orders of {{settings.free_threshold}} or more, after discounts. You see the shipping fee in your cart before you check out, and prices already include GST. There are no extra charges added after you place your order.",
+    "answerMd": "Shipping is {{settings.flat_fee}} per order. It is free on orders of {{settings.free_threshold}} or more, after discounts. You see the shipping fee in your bag before you check out, and prices already include GST. There are no extra charges added after you place your order.",
     "position": 3
   },
   {
@@ -56,7 +56,7 @@
   {
     "category": "payment",
     "question": "Do the prices include GST?",
-    "answerMd": "Yes. All prices on the site are in rupees and include all taxes, including GST. Your cart and checkout show how much GST is included. We never add tax on top.",
+    "answerMd": "Yes. All prices on the site are in rupees and include all taxes, including GST. Your bag and checkout show how much GST is included. We never add tax on top.",
     "position": 3
   },
   {
@@ -74,7 +74,7 @@
   {
     "category": "payment",
     "question": "My coupon code is not working. Why?",
-    "answerMd": "Coupons have rules, for example dates, a minimum order value, or which products they apply to. When you apply a code, the message tells you why it did not work and what to do, for example \"add a little more to your cart\". Only one coupon can be used per order. If the message is unclear, contact {{settings.support_email}} with the code and we will look.",
+    "answerMd": "Coupons have rules, for example dates, a minimum order value, or which products they apply to. When you apply a code, the message tells you why it did not work and what to do, for example \"add a little more to your bag\". Only one coupon can be used per order. If the message is unclear, contact {{settings.support_email}} with the code and we will look.",
     "position": 6
   },
   {
@@ -85,7 +85,7 @@
   },
   {
     "category": "payment",
-    "question": "Why does my cart show a hold on items while I pay?",
+    "question": "Why does my bag show a hold on items while I pay?",
     "answerMd": "To stop items selling out while you pay, we hold them for about {{settings.reservation_ttl_minutes}} minutes at checkout. If you do not complete payment in that time, the hold ends. Nothing is charged unless your payment succeeds.",
     "position": 8
   },

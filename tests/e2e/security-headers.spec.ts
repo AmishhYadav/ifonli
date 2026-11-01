@@ -236,7 +236,7 @@ test.describe("security: no violations in a real browser", () => {
       .click()
       .catch(() => {});
     await page.getByTestId("add-to-cart").click();
-    await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
 
     await page.goto("/cart");
     await settle(page);
@@ -365,7 +365,7 @@ test.describe("security: dev mock payment dialog", () => {
     await page.goto(`/products/${PRODUCT}`);
     await settle(page);
     await page.getByTestId("add-to-cart").click();
-    await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
     await page.goto("/checkout");
     await expect(page.getByTestId("review")).toHaveAttribute("aria-busy", "false", {
       timeout: 30_000,

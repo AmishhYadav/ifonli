@@ -148,7 +148,7 @@ describe("validateCoupon: rejections in order", () => {
   it("no_eligible_items", () => {
     const r = reject(coupon({ scope: { types: ["hippers"] } }), ctx());
     expect(r.code).toBe("no_eligible_items");
-    expect(r.message).toBe("This code doesn't apply to the items in your cart.");
+    expect(r.message).toBe("This code doesn't apply to the items in your bag.");
     expect(reject(coupon(), ctx({ lines: [] })).code).toBe("no_eligible_items");
   });
 

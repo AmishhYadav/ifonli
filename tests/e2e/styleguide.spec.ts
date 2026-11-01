@@ -96,7 +96,7 @@ test("buy-scope dialog keeps the buy scope", async ({ page }) => {
 });
 
 test("drawer traps focus, locks scroll and closes with Escape", async ({ page }) => {
-  const trigger = col(page, "gothic").getByRole("button", { name: "Open cart drawer" });
+  const trigger = col(page, "gothic").getByRole("button", { name: "Open bag drawer" });
   await trigger.click();
   const drawer = page.getByRole("dialog", { name: "Your bag" });
   await expect(drawer).toBeVisible();
@@ -136,18 +136,18 @@ test("toast is announced in a polite live region, has an action and auto-dismiss
   const region = page.getByRole("region", { name: "Notifications" });
   const live = region.getByRole("status");
   await expect(live).toHaveAttribute("aria-live", "polite");
-  await col(page, "cute").getByRole("button", { name: "Added-to-cart toast" }).click();
-  await expect(live).toContainText("Added to cart");
-  await expect(live.getByRole("link", { name: "View cart" })).toBeVisible();
+  await col(page, "cute").getByRole("button", { name: "Added-to-bag toast" }).click();
+  await expect(live).toContainText("Added to bag");
+  await expect(live.getByRole("link", { name: "View bag" })).toBeVisible();
   // duration is 2.5s in the demo
-  await expect(live).not.toContainText("Added to cart", { timeout: 6000 });
+  await expect(live).not.toContainText("Added to bag", { timeout: 6000 });
 });
 
 test("toast pauses while hovered", async ({ page, isMobile }) => {
   test.skip(isMobile, "hover is a pointer-only interaction");
   const live = page.getByRole("region", { name: "Notifications" }).getByRole("status");
-  await col(page, "cute").getByRole("button", { name: "Added-to-cart toast" }).click();
-  const toast = live.getByText("Added to cart");
+  await col(page, "cute").getByRole("button", { name: "Added-to-bag toast" }).click();
+  const toast = live.getByText("Added to bag");
   await expect(toast).toBeVisible();
   await toast.hover();
   await page.waitForTimeout(3500);

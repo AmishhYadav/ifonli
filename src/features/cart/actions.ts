@@ -63,7 +63,7 @@ async function mutate(
         ok: false,
         error: {
           code: "rate_limited",
-          message: "Too many cart changes in a short time. Please wait a moment and try again.",
+          message: "Too many bag changes in a short time. Please wait a moment and try again.",
           retryAfterSeconds: limit.retryAfterSeconds,
         },
       };

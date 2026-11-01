@@ -374,7 +374,7 @@ export async function createFromCart(
   if (!cartRow || !cartUsableBy(cartRow, input.userId)) {
     return {
       ok: false,
-      error: { code: "cart_not_found", message: "We couldn't find your cart. Please refresh the page." },
+      error: { code: "cart_not_found", message: "We couldn't find your bag. Please refresh the page." },
     };
   }
 
@@ -450,7 +450,7 @@ async function runOrderTransaction(
   // 1. Lock the cart (cart mutations lock the same row first), then read it.
   const [cart] = await tx.select().from(carts).where(eq(carts.id, cartId)).for("update");
   if (!cart) {
-    return fail({ code: "cart_not_found", message: "We couldn't find your cart. Please refresh the page." });
+    return fail({ code: "cart_not_found", message: "We couldn't find your bag. Please refresh the page." });
   }
   const address = form.shippingAddress;
   const baseKey = composeIdempotencyKey({
@@ -478,7 +478,7 @@ async function runOrderTransaction(
     if (existing.paidAt) {
       return fail({
         code: "checkout_expired",
-        message: "This checkout is already complete. Please review your cart and place the order again.",
+        message: "This checkout is already complete. Please review your bag and place the order again.",
       });
     }
     idempotencyKey = `${baseKey}~${attempt}`;
@@ -495,7 +495,7 @@ async function runOrderTransaction(
     .where(eq(cartItems.cartId, cart.id))
     .orderBy(asc(cartItems.variantId));
   if (items.length === 0) {
-    return fail({ code: "empty_cart", message: "Your cart is empty. Add something first." });
+    return fail({ code: "empty_cart", message: "Your bag is empty. Add something first." });
   }
 
   // 3. Release this cart's earlier pending orders (locking them before the variants, the same
@@ -524,7 +524,7 @@ async function runOrderTransaction(
     const snap = snaps.get(item.variantId);
     const st = stock.get(item.variantId);
     if (!snap || !st || !snap.purchasable) {
-      const name = snap ? displayName(snap) : "An item in your cart";
+      const name = snap ? displayName(snap) : "An item in your bag";
       shortages.push({
         variantId: item.variantId,
         name,
@@ -561,14 +561,14 @@ async function runOrderTransaction(
         requested: item.qty,
         available: st.available,
         reason: "insufficient",
-        message: `Only ${st.available} left of ${name} (you have ${item.qty} in your cart).`,
+        message: `Only ${st.available} left of ${name} (you have ${item.qty} in your bag).`,
       });
     }
   }
   if (shortages.length > 0) {
     return fail({
       code: "insufficient_stock",
-      message: "Some items in your cart aren't available in the quantity you chose. Please review your cart.",
+      message: "Some items in your bag aren't available in the quantity you chose. Please review your bag.",
       items: shortages,
     });
   }
@@ -707,7 +707,7 @@ async function runOrderTransaction(
         const name = displayName(snaps.get(e.variantId)!);
         return fail({
           code: "insufficient_stock",
-          message: "Some items in your cart aren't available in the quantity you chose.",
+          message: "Some items in your bag aren't available in the quantity you chose.",
           items: [
             {
               variantId: e.variantId,

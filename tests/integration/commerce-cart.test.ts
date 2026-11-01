@@ -251,7 +251,7 @@ describe("getCartView", () => {
       {
         code: "removed_unavailable",
         variantId: f.variants.cat,
-        message: "Cat Sticker is no longer available, so we removed it from your cart.",
+        message: "Cat Sticker is no longer available, so we removed it from your bag.",
       },
     ]);
     expect(await itemsOf(cart.id)).toEqual({ [f.variants.ghost!]: 1 });
@@ -263,7 +263,7 @@ describe("getCartView", () => {
     const view = await getCartView(db(), cart.id);
     expect(view.lines).toEqual([]);
     expect(view.notices[0]).toMatchObject({ code: "removed_sold_out" });
-    expect(view.notices[0]!.message).toBe("Cat Sticker just sold out, so we removed it from your cart.");
+    expect(view.notices[0]!.message).toBe("Cat Sticker just sold out, so we removed it from your bag.");
     expect(view.canCheckout).toBe(false);
     expect(view.pricing.totalPaise).toBe(0);
   });

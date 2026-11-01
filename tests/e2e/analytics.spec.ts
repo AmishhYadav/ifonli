@@ -130,7 +130,7 @@ test.describe("storefront events", () => {
     const add = page.getByTestId("add-to-cart");
     if (await add.isEnabled()) {
       await add.click();
-      await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
       await flushBeacons(page);
       await expect
         .poll(seen(rec, () => rec.events.some((e) => e.event === "add_to_cart" && e.productId === productId && e.value === 1)))

@@ -151,7 +151,7 @@ export function setCartOpen(open: boolean): void {
 export function addItem(variantId: string, qty: number) {
   return run(
     () => addToCart({ variantId, qty }),
-    (data) => `Added to cart. ${summaryAnnouncement(data.cart)}`,
+    (data) => `Added to bag. ${summaryAnnouncement(data.cart)}`,
   );
 }
 
@@ -162,7 +162,7 @@ export function setItemQuantity(variantId: string, qty: number) {
 export function removeItem(variantId: string) {
   return run(
     () => removeCartItem({ variantId }),
-    (data) => `Removed from cart. ${summaryAnnouncement(data.cart)}`,
+    (data) => `Removed from bag. ${summaryAnnouncement(data.cart)}`,
     true,
   );
 }
