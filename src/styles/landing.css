@@ -116,6 +116,23 @@ html[data-vibe="funky"] .landing {
   background: var(--surface-2);
 }
 
+/*
+ * The bar floats over the chapters while they scroll under it. Where the browser can blur, the pills are frosted
+ * glass: the content behind them softens to colour, so the overlap reads as intended and the pill text stays
+ * legible. Without backdrop-filter they stay the solid surface above.
+ */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .l-pill {
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+  }
+  .l-top__skip:hover,
+  .l-top__logo:hover {
+    background: color-mix(in srgb, var(--surface-2) 82%, transparent);
+  }
+}
+
 /* ---------------------------------------------------------------- background */
 
 .l-bg {
