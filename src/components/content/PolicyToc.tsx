@@ -23,7 +23,7 @@ export function PolicyToc({ headings }: { headings: readonly Heading[] }) {
   );
   return (
     <>
-      <nav aria-label="Contents" className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
+      <nav aria-label="Contents" className="hidden lg:sticky lg:top-[calc(var(--header-h,7.5rem)+1rem)] lg:block lg:self-start">
         <p className="mb-2 px-2 text-sm font-bold tracking-widest text-ink-muted uppercase">On this page</p>
         {list}
       </nav>

@@ -3,6 +3,14 @@
  * Values come from tokens; nothing here knows a vibe by name.
  */
 
+/*
+ * In-page links (#vibes, the policy contents, ...) land their target below the sticky header. HeaderOffset measures
+ * the header into --header-h; the rem value is the no-JS / pre-measure fallback (about the tallest header).
+ */
+html {
+  scroll-padding-top: calc(var(--header-h, 7.5rem) + 1rem);
+}
+
 /* Hero poster tiles lift on hover/focus; the lift is a no-op under reduced motion (vibe.css). */
 .hero-tile {
   transition-property: transform;

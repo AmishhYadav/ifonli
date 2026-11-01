@@ -19,7 +19,6 @@
   font-weight: var(--display-weight);
   letter-spacing: var(--display-tracking);
   line-height: 1.2;
-  scroll-margin-top: 6rem;
   text-wrap: balance;
 }
 .policy-prose h2 {
