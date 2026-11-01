@@ -389,7 +389,7 @@ function otpIdentifiers(email: string): string[] {
 }
 
 /** Deletes support photos from the private bucket; skipped when storage is not configured (local dev). */
-async function removeSupportPhotos(paths: string[]): Promise<void> {
+export async function removeSupportPhotos(paths: string[]): Promise<void> {
   if (!(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   for (let i = 0; i < paths.length; i += 100) await removeObjects("private", paths.slice(i, i + 100));
 }

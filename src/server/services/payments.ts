@@ -6,6 +6,7 @@ import { formatINR } from "@/lib/money";
 import {
   couponRedemptions,
   coupons,
+  notificationOutbox,
   orderItems,
   orders,
   payments,
@@ -559,6 +560,13 @@ export interface PaymentFailureInput {
  * `payment_status` become `failed`, a timeline event is written, and the order stays
  * `pending_payment` so the customer can retry on the same provider order. Ignored once the order is
  * paid (a stale failure of an earlier attempt must not undo a success). Idempotent.
+ *
+ * The customer also gets ONE `payment_failed` e-mail per order, queued in this transaction and only
+ * while the order is still `pending_payment` (never for a paid, cancelled or expired order). A later
+ * failed retry of the same order adds a timeline event but no second e-mail: the first one already
+ * points to the order page, and a customer who keeps failing should not be mailed for every try. The
+ * order row lock taken below serialises concurrent failures, so the "already queued?" check is safe;
+ * a webhook replay never gets this far (`webhook_events` dedupe, then the same-payment guard).
  */
 export async function recordPaymentFailure(
   db: DbClient,
@@ -600,6 +608,24 @@ export async function recordPaymentFailure(
       note: `Payment attempt failed${input.errorCode ? ` (${input.errorCode})` : ""}. You can retry.`,
       visible: true,
     });
+    if (order.status === "pending_payment") await queuePaymentFailedEmail(tx, order);
     return { recorded: true, orderId: order.id };
+  });
+}
+
+/** Queues the `payment_failed` e-mail unless this order already has one (see `recordPaymentFailure`). */
+async function queuePaymentFailedEmail(tx: DbClient, order: typeof orders.$inferSelect): Promise<void> {
+  const [queued] = await tx
+    .select({ id: notificationOutbox.id })
+    .from(notificationOutbox)
+    .where(and(eq(notificationOutbox.orderId, order.id), eq(notificationOutbox.template, "payment_failed")))
+    .limit(1);
+  if (queued) return;
+  // No guest token in the payload (only its hash is stored): the e-mail links to /track, like the others.
+  await enqueueCustomerNotification(tx, {
+    orderId: order.id,
+    template: "payment_failed",
+    to: order.email,
+    payload: { ref: order.ref, orderId: order.id },
   });
 }

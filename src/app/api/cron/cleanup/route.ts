@@ -3,7 +3,13 @@ import { getDb } from "@/server/db";
 import { cleanupHousekeeping } from "@/server/payments/cleanup";
 import { cronUnauthorized, isCronAuthorized } from "@/server/payments/cron-auth";
 
-/** Daily housekeeping: expired carts, old processed webhook events, stale rate-limit windows, delivered e-mails older than 90 days, expired sessions and sign-in codes. */
+export const maxDuration = 120;
+
+/**
+ * Daily housekeeping: expired carts, old processed webhook events, stale rate-limit windows, delivered
+ * e-mails, expired sessions and sign-in codes, and the personal-data retention steps
+ * (`services/retention.ts`: closed contact messages, closed support cases, orphaned support photos).
+ */
 export async function GET(req: Request): Promise<Response> {
   if (!isCronAuthorized(req)) return cronUnauthorized();
   try {

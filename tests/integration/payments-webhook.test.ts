@@ -16,6 +16,9 @@ import { MockPaymentProvider } from "@/server/payments/mock";
 import { setPaymentProvider } from "@/server/payments/registry";
 import { handleVerifyRequest } from "@/server/payments/verify";
 import { handleRazorpayWebhook } from "@/server/payments/webhook";
+import { renderTemplate } from "@/server/notify/templates";
+
+import { fixtureContext } from "../../emails/fixtures";
 
 import { seedCatalogFixture, type Fixture } from "./catalog-fixture";
 import { configureCommerce, placePrepaidOrder, seedCommerceReference, verifyBody } from "./helpers/factories";
@@ -190,6 +193,53 @@ describe("payment.failed", () => {
     expect(v.status).toBe(200);
     expect(await orderRow(placed.order.orderId)).toMatchObject({ status: "confirmed", paymentStatus: "paid" });
     expect((await db().select().from(payments))[0]).toMatchObject({ status: "captured", providerPaymentId: paid.id });
+  });
+
+  it("queues one payment_failed e-mail per order, to the customer, and a webhook replay adds none", async () => {
+    const placed = await placePrepaidOrder(provider, [{ variantId: f.variants.skull!, qty: 1 }]);
+    const failed = provider.simulatePayment(placed.payment.razorpayOrderId, { status: "failed" });
+    const w = provider.buildWebhook("payment.failed", { payment: failed });
+    await hook(w);
+    await hook(w); // replay of the same event
+
+    const mails = (await db().select().from(notificationOutbox)).filter((o) => o.template === "payment_failed");
+    expect(mails).toHaveLength(1);
+    expect(mails[0]).toMatchObject({ orderId: placed.order.orderId, channel: "email", status: "pending" });
+    expect(mails[0]!.to).toBe((await orderRow(placed.order.orderId)).email);
+    expect(mails[0]!.payload).toMatchObject({ ref: placed.order.ref, orderId: placed.order.orderId });
+    // it renders with the payload that was queued
+    const r = await renderTemplate("payment_failed", mails[0]!.payload, fixtureContext());
+    expect(r.subject).toBe(`Payment not completed for order ${placed.order.ref}`);
+    expect(r.html).toContain("https://ifonli.example.test/track");
+
+    // a second failed attempt (new payment id, same order) is recorded but not mailed again
+    const failedAgain = provider.simulatePayment(placed.payment.razorpayOrderId, { status: "failed" });
+    await hook(provider.buildWebhook("payment.failed", { payment: failedAgain }));
+    const events = await db().select().from(orderEvents).where(eq(orderEvents.orderId, placed.order.orderId));
+    expect(events.filter((e) => e.type === "payment_failed")).toHaveLength(2);
+    expect((await db().select().from(notificationOutbox)).filter((o) => o.template === "payment_failed")).toHaveLength(1);
+  });
+
+  it("sends no payment_failed e-mail for a paid, cancelled or expired order", async () => {
+    const paidOrder = await placePrepaidOrder(provider, [{ variantId: f.variants.skull!, qty: 1 }]);
+    const paid = provider.simulatePayment(paidOrder.payment.razorpayOrderId);
+    await hook(provider.buildWebhook("payment.captured", { payment: paid }));
+    await hook(
+      provider.buildWebhook("payment.failed", {
+        payment: provider.simulatePayment(paidOrder.payment.razorpayOrderId, { status: "failed" }),
+      }),
+    );
+
+    for (const status of ["cancelled", "expired"] as const) {
+      const placed = await placePrepaidOrder(provider, [{ variantId: f.variants.skull!, qty: 1 }]);
+      await db().update(orders).set({ status }).where(eq(orders.id, placed.order.orderId));
+      await hook(
+        provider.buildWebhook("payment.failed", {
+          payment: provider.simulatePayment(placed.payment.razorpayOrderId, { status: "failed" }),
+        }),
+      );
+    }
+    expect((await db().select().from(notificationOutbox)).filter((o) => o.template === "payment_failed")).toHaveLength(0);
   });
 
   it("ignores a stale failure that arrives after the order was paid", async () => {

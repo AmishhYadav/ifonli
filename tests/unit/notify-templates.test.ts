@@ -83,6 +83,14 @@ describe("template registry", () => {
     expect(r.html).toContain(ref);
   });
 
+  it("payment_failed tells the customer nothing was taken and points to the tracker without a token", async () => {
+    const r = await renderTemplate("payment_failed", { ref, orderId: "0b8c5c1e-6f4a-4f3b-9d7e-1a2b3c4d5e6f" }, fixtureContext());
+    expect(r.subject).toBe(`Payment not completed for order ${ref}`);
+    expect(r.text).toContain(ref);
+    expect(r.text).toContain("try again");
+    expect(r.html).toContain("https://ifonli.example.test/track");
+  });
+
   it("an order mail still renders when the order row is gone", async () => {
     const ctx = { ...fixtureContext(), order: undefined };
     const r = await renderTemplate("order_confirmed", FIXTURE_PAYLOADS.order_confirmed, ctx);
