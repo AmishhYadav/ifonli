@@ -22,12 +22,12 @@ export async function TypeLinks() {
             <Link
               href={`/types/${t.slug}`}
               className={cn(
-                "group flex min-h-32 flex-col justify-between gap-6 rounded-card border-token bg-surface p-4 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-1 sm:p-6",
+                "group flex min-h-32 flex-col justify-between gap-6 rounded-card bg-surface p-5 text-ink shadow-card transition-[transform,box-shadow] ease-vibe hover:-translate-y-1 hover:shadow-button sm:p-6",
               )}
             >
               <span
                 aria-hidden="true"
-                className={cn("size-8 rounded-full border-token", DOTS[i % DOTS.length])}
+                className={cn("size-8 rounded-full", DOTS[i % DOTS.length])}
               />
               <span className="font-display text-2xl leading-tight sm:text-3xl">{t.name}</span>
               <span className="flex items-center justify-between text-sm font-semibold">

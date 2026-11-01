@@ -27,7 +27,7 @@ export function TileFan({
     >
       <span
         className={cn(
-          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent",
+          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--surface)_55%,transparent)]",
           big ? "size-52" : "size-28",
         )}
       />
@@ -43,7 +43,7 @@ export function TileFan({
           <span
             key={tile.productId}
             className={cn(
-              "relative rounded-card border-token bg-surface shadow-button",
+              "relative rounded-card bg-surface shadow-card",
               big ? "-mx-4 size-36" : "-mx-3 size-20",
               ROTATIONS[i % ROTATIONS.length],
             )}

@@ -1,12 +1,12 @@
 /** Backing colours and shapes shared by the static poster and the animated stage, so the rest frame matches. */
 
-/** Backing colours cycle so the grid reads as a collage, in whichever vibe's tokens are active. */
+/** Soft tints of the active vibe's palette cycle so the grid reads as a collage; no outlines, a diffused shadow lifts them. */
 export const BACKINGS = [
-  "bg-accent",
+  "bg-[color-mix(in_srgb,var(--accent)_26%,var(--surface))]",
   "bg-surface-2",
-  "bg-accent-2",
+  "bg-[color-mix(in_srgb,var(--accent-2)_30%,var(--surface))]",
   "bg-surface",
-  "bg-accent-3",
+  "bg-[color-mix(in_srgb,var(--accent-3)_34%,var(--surface))]",
   "bg-surface-2",
 ] as const;
 
