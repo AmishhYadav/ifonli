@@ -161,7 +161,7 @@ function ToastItem({ item, onDismiss }: { item: ToastItemData; onDismiss: (id: n
       {...scope}
       data-state={open ? "open" : "closed"}
       data-tone={tone}
-      className="ui-toast pointer-events-auto flex items-start gap-3 rounded-card border-token bg-surface p-3 pl-4 text-ink shadow-card"
+      className="ui-toast pointer-events-auto flex items-start gap-3 rounded-card bg-surface p-3 pl-4 text-ink shadow-card"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

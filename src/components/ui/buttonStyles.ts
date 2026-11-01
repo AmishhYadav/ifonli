@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 
 /**
- * Shared look of buttons and icon buttons. Colour, radius, border width, shadow and motion come from vibe
+ * Shared look of buttons and icon buttons. Soft by design: no outlines, surface tints and a glow instead. Colour, radius, shadow and motion come from vibe
  * tokens only; every size keeps a >= 44px touch target.
  */
 export const buttonVariants = cva(
@@ -17,10 +17,10 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          "rounded-button border-token bg-accent text-on-accent shadow-button hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0",
+          "rounded-button bg-accent text-on-accent shadow-button hover:-translate-y-0.5 hover:brightness-110 active:translate-y-0",
         secondary:
-          "rounded-button border-token bg-surface text-ink shadow-button hover:-translate-y-0.5 hover:bg-surface-2 active:translate-y-0",
-        ghost: "rounded-button border border-transparent bg-transparent text-ink hover:bg-surface-2",
+          "rounded-button bg-surface-2 text-ink hover:-translate-y-px hover:bg-[color-mix(in_srgb,var(--surface-2),var(--ink)_9%)] active:translate-y-0",
+        ghost: "rounded-button bg-transparent text-ink hover:bg-surface-2",
         link: "rounded-input px-1 text-link underline underline-offset-4 hover:no-underline",
       },
       size: {

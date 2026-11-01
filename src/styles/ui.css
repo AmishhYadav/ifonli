@@ -109,7 +109,10 @@
     position: fixed;
     inset: 0;
     z-index: 60;
-    background-color: color-mix(in srgb, black 55%, transparent);
+    /* A soft veil: lighter than a dim, with a gentle blur of the page behind. */
+    background-color: color-mix(in srgb, black 40%, transparent);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
   }
   .ui-overlay[data-state="open"] {
     animation: ui-fade-in var(--motion-dur) var(--motion-ease);
@@ -138,11 +141,16 @@
     bottom: 0;
     z-index: 61;
   }
+  /* Panels are rounded on the inner edge, so they read as a soft sheet laid over the page. */
   .ui-drawer[data-side="right"] {
     right: 0;
+    border-top-left-radius: var(--radius-card);
+    border-bottom-left-radius: var(--radius-card);
   }
   .ui-drawer[data-side="left"] {
     left: 0;
+    border-top-right-radius: var(--radius-card);
+    border-bottom-right-radius: var(--radius-card);
   }
   .ui-drawer[data-side="right"][data-state="open"] {
     animation: ui-slide-in-right var(--motion-dur) var(--motion-ease);
@@ -176,6 +184,18 @@
 
   .ui-tooltip {
     animation: ui-tip-in var(--motion-dur) var(--motion-ease);
+  }
+
+  /*
+   * Text controls (Input, Textarea, Select): the 1px --border outline stays (>= 3:1) and focus softens it: the
+   * border turns accent and a 3px accent halo appears. The transparent outline keeps a visible indicator in
+   * forced-colors mode.
+   */
+  .ui-control:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 0;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
   }
 
   /* Native select: hide the platform arrow (an icon is drawn over it). */

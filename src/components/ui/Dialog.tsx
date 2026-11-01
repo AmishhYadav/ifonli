@@ -62,7 +62,7 @@ export function DialogContent({
         {...focus}
         {...(description ? {} : { "aria-describedby": rest["aria-describedby"] })}
         className={cn(
-          "ui-dialog flex max-h-[min(85dvh,44rem)] w-[calc(100vw-2rem)] max-w-lg flex-col rounded-card border-token bg-surface text-ink shadow-card",
+          "ui-dialog flex max-h-[min(85dvh,44rem)] w-[calc(100vw-2rem)] max-w-lg flex-col rounded-card bg-surface text-ink shadow-card",
           className,
         )}
         {...rest}

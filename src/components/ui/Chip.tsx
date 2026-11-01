@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 import { Icon } from "./Icon";
 
 const chipBase =
-  "inline-flex items-center gap-1.5 rounded-button border-token px-3.5 text-sm font-semibold whitespace-nowrap transition-[background-color,box-shadow,transform] ease-vibe";
+  "inline-flex items-center gap-1.5 rounded-button px-4 text-sm font-semibold whitespace-nowrap transition-[background-color,box-shadow,transform] ease-vibe";
 
 export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   children: ReactNode;
@@ -18,7 +18,7 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
 /** Filter / tag chip. Static chips render as a `<span>`; interactive ones as a toggle button. */
 export function Chip({ selected, onClick, className, children, ...rest }: ChipProps) {
   const interactive = selected !== undefined || onClick !== undefined;
-  const look = selected ? "bg-accent text-on-accent" : "bg-surface text-ink";
+  const look = selected ? "bg-accent text-on-accent shadow-button" : "bg-surface-2 text-ink";
   if (!interactive) {
     return <span className={cn(chipBase, "min-h-8", look, className)}>{children}</span>;
   }
@@ -27,7 +27,7 @@ export function Chip({ selected, onClick, className, children, ...rest }: ChipPr
       type="button"
       aria-pressed={selected ?? false}
       onClick={onClick}
-      className={cn(chipBase, "min-h-11", look, !selected && "hover:bg-surface-2", className)}
+      className={cn(chipBase, "min-h-11", look, !selected && "hover:-translate-y-px hover:bg-[color-mix(in_srgb,var(--surface-2),var(--ink)_9%)]", className)}
       {...rest}
     >
       {selected ? <Icon name="check" className="size-4" /> : null}
@@ -56,7 +56,7 @@ export type VibeChipProps = VibeChipBaseProps &
  */
 export function VibeChip({ vibe, children, selected, className, href, onClick }: VibeChipProps) {
   const classes = cn(
-    "inline-flex min-h-11 items-center gap-1.5 rounded-button border-token bg-accent px-4 text-base text-on-accent font-display",
+    "inline-flex min-h-11 items-center gap-1.5 rounded-button bg-accent px-4 text-base text-on-accent font-display",
     "transition-[box-shadow,transform] ease-vibe",
     selected ? "shadow-button" : "hover:-translate-y-0.5",
     className,
@@ -95,7 +95,7 @@ export function VibeDot({ vibe, className }: { vibe: string; className?: string 
     <span
       data-vibe={vibe}
       aria-hidden="true"
-      className={cn("inline-block size-3.5 flex-none rounded-full border-token bg-accent", className)}
+      className={cn("inline-block size-3.5 flex-none rounded-full bg-accent", className)}
     />
   );
 }
