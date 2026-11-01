@@ -280,7 +280,8 @@ test.describe("checkout form", () => {
     await expect(page.getByLabel("Pincode")).toHaveValue("1234");
 
     await page.getByLabel("Pincode").fill(PINCODE_UNKNOWN);
-    await expect(page.getByText("We couldn't find that pincode")).toBeVisible();
+    // The message shows under the field, in the shipping section and in the blockers list.
+    await expect(page.getByText("We couldn't find that pincode").first()).toBeVisible();
 
     await page.getByLabel("Pincode").fill(PINCODE_UNSERVICEABLE);
     await expect(
