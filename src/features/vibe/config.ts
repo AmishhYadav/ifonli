@@ -44,9 +44,6 @@ export const DISPLAY_FONT_LOAD: Record<Vibe, string> = {
   gothic: '400 1em "Creepster"',
 };
 
-export const handUrl = (vibe: Vibe): string => `/vibe/hands/${vibe}.svg`;
-export const textureUrl = (vibe: Vibe): string => `/vibe/textures/${vibe}.svg`;
-
 export function isVibe(value: unknown): value is Vibe {
   return typeof value === "string" && (VIBES as readonly string[]).includes(value);
 }

@@ -85,57 +85,6 @@
   display: var(--dv-funky, none);
 }
 
-/* Hand glyphs are CSS masks so they take currentColor. Art: /public/vibe/hands/{vibe}.svg */
-.vibe-hand {
-  display: inline-block;
-  width: 1.75rem;
-  height: 1.75rem;
-  flex: none;
-  background-color: currentColor;
-  scale: var(--hand-scale);
-  transform-origin: 50% 90%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-}
-.vibe-hand[data-hand="cute"] {
-  -webkit-mask-image: url("/vibe/hands/cute.svg");
-  mask-image: url("/vibe/hands/cute.svg");
-}
-.vibe-hand[data-hand="bold"] {
-  -webkit-mask-image: url("/vibe/hands/bold.svg");
-  mask-image: url("/vibe/hands/bold.svg");
-}
-.vibe-hand[data-hand="gothic"] {
-  -webkit-mask-image: url("/vibe/hands/gothic.svg");
-  mask-image: url("/vibe/hands/gothic.svg");
-}
-.vibe-hand[data-hand="funky"] {
-  -webkit-mask-image: url("/vibe/hands/funky.svg");
-  mask-image: url("/vibe/hands/funky.svg");
-}
-
-@keyframes vibe-flick {
-  0% {
-    rotate: 0deg;
-  }
-  25% {
-    rotate: -18deg;
-  }
-  65% {
-    rotate: 8deg;
-  }
-  100% {
-    rotate: 0deg;
-  }
-}
-[data-flick="1"] .vibe-hand {
-  animation: vibe-flick 250ms var(--motion-ease) 1;
-}
-
 /* Icons (sprite at /icons/sprite.svg): stroke geometry comes from tokens. */
 .icon {
   display: inline-block;
