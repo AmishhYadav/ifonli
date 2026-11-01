@@ -14,11 +14,10 @@ config({ path: ".env.local" });
 config();
 
 const VIBES = [
-  { slug: "cute", name: "Cute", sort: 1 },
-  { slug: "bold", name: "Bold", sort: 2 },
-  { slug: "overthinking", name: "Overthinking", sort: 3 },
-  { slug: "gothic", name: "Gothic", sort: 4 },
-  { slug: "funky", name: "Funky", sort: 5 },
+  { slug: "cute", name: "Mochi", sort: 1 },
+  { slug: "funky", name: "Chaos Cabinet", sort: 2 },
+  { slug: "bold", name: "Unapologetic", sort: 3 },
+  { slug: "gothic", name: "After the Dark", sort: 4 },
 ] as const;
 
 const PRODUCT_TYPES = [

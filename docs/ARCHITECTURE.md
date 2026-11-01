@@ -67,7 +67,7 @@ Principles
 
 Admin Server Actions call `updateTag` (read-your-writes); Route Handlers (webhook, verify, cron) call `revalidateTag(tag, "max")` (stale-while-revalidate). **Live stock** on the PDP is an uncached hole, and stock is re-validated on the server at add-to-cart and checkout regardless of cache.
 
-**Vibe theme without a flash.** `VibeHeadScript` is a small inline blocking script that resolves `?vibe=` then cookie then `localStorage` then the default and sets `html[data-vibe]` before paint. All five vibes' variants render in the HTML and CSS shows the active one, so switching needs no network round-trip. This is why a nonce CSP is not used (DECISIONS D-SEC-1).
+**Vibe theme without a flash.** `VibeHeadScript` is a small inline blocking script that resolves `?vibe=` then cookie then `localStorage` then the default and sets `html[data-vibe]` before paint. All four vibes' variants render in the HTML and CSS shows the active one, so switching needs no network round-trip. This is why a nonce CSP is not used (DECISIONS D-SEC-1).
 
 ## 4. Auth and RBAC
 

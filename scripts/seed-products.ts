@@ -80,7 +80,7 @@ const HOOK: Record<string, string> = {
   "hipper-flame-pin": "A flame pin for turning up the heat.",
   "hipper-crossed-bones-pin": "Crossed bones, because subtlety is overrated.",
   "hipper-rainbow-pin": "A rainbow pin for a cloudy mood.",
-  "hipper-coffee-pin": "A coffee cup pin for an overthinking morning.",
+  "hipper-coffee-pin": "A coffee cup pin for a slow morning.",
   "sticker3d-cloud": "A puffy cloud to carry your head up there.",
   "sticker3d-strawberry": "A puffy strawberry, extra sweet by design.",
   "sticker3d-cat-face": "A puffy cat face that judges you lovingly.",

@@ -34,7 +34,7 @@ test.describe("landing page", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName("IfOnli");
     await expect(page.getByText("Tiny things. Big feelings.")).toBeVisible();
-    for (const name of ["Four kinds of tiny.", "Five moods, one for every you.", "Small things, handled with care.", "Ready? Step inside."]) {
+    for (const name of ["Four kinds of tiny.", "Four moods, one for every you.", "Small things, handled with care.", "Ready? Step inside."]) {
       await expect(page.getByRole("heading", { level: 2, name })).toBeAttached();
     }
     const enter = page.getByRole("link", { name: "Enter the store" });
@@ -156,11 +156,10 @@ test.describe("reduced motion", () => {
       "Hippers",
       "3D Stickers",
       "DIY Accessories",
-      "Cute",
-      "Bold",
-      "Overthinking",
-      "Gothic",
-      "Funky",
+      "Mochi",
+      "Chaos Cabinet",
+      "Unapologetic",
+      "After the Dark",
       "Small things, handled with care.",
       "Ready? Step inside.",
     ]) {
@@ -175,7 +174,7 @@ test.describe("reduced motion", () => {
     const stage = await page.evaluate(() => getComputedStyle(document.querySelector(".l-moods__stage")!).position);
     expect(stage).toBe("static");
     const opacities = await page.$$eval(".l-mood", (els) => els.map((el) => getComputedStyle(el).opacity));
-    expect(opacities).toEqual(["1", "1", "1", "1", "1"]);
+    expect(opacities).toEqual(["1", "1", "1", "1"]);
   });
 
   for (const vibe of VIBES) {

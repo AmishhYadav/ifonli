@@ -136,7 +136,7 @@ test.describe("full flow", () => {
     await page.getByLabel("Description (Markdown)").fill("A tiny **test** charm.");
 
     await page.getByRole("tab", { name: "Vibes" }).click();
-    await page.getByLabel("Cute").click();
+    await page.getByLabel("Mochi").click();
     await page.getByLabel("Featured rank").fill("3");
 
     await page.getByRole("tab", { name: "Options & variants" }).click();

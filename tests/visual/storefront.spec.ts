@@ -18,7 +18,7 @@ import { VIBES, gotoVibe, type Vibe } from "../support/vibes";
 import { FROZEN_NOW, snap, visualEnabled } from "./helpers";
 
 /**
- * Storefront screenshots: every page type x five vibes x the width of the project (390, 768, 1440).
+ * Storefront screenshots: every page type x four vibes x the width of the project (390, 768, 1440).
  *
  * Deterministic by construction: reduced motion (the hero is its poster), a frozen clock, seeded catalogue,
  * fixed orders with fixed dates and a fixed guest token, animations disabled, and the few regions that

@@ -14,7 +14,7 @@ Conventions
 ## Catalogue (`catalog.ts`)
 | Table | Purpose / key columns / constraints |
 |---|---|
-| `vibes` | The five moods. `slug` unique, `sort`, `description`, SEO and `hero_copy`. |
+| `vibes` | The four moods. `slug` unique, `sort`, `description`, SEO and `hero_copy`. |
 | `product_types` | Charms, Hippers, 3D stickers, DIY accessories. `slug` unique, `definition`, `active`. |
 | `products` | `slug` unique, `type_id` (FK restrict), `status`, legal fields (`hsn_code`, `gst_rate_bp` 0..10000 or NULL = store default, `country_of_origin`, `net_quantity`, `dimensions`, `manufacturer_override` jsonb), `is_kit`. `search_tsv` is a generated, stored tsvector: name weight A + description weight C, accent-folded, English config. GIN on `search_tsv`; GIN trigram on `name`. |
 | `product_slug_redirects` | `old_slug` PK, `product_id` (cascade), `created_at`. Written when an admin changes a product's slug; the PDP 308-redirects an unknown slug to the product's current one. |

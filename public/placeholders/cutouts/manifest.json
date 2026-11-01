@@ -69,8 +69,7 @@
     "type": "charm",
     "name": "Ghost charm",
     "suggestedVibes": [
-      "gothic",
-      "overthinking"
+      "gothic"
     ],
     "palette": [
       "#2B2140",
@@ -109,8 +108,7 @@
     "type": "charm",
     "name": "Crescent moon charm",
     "suggestedVibes": [
-      "gothic",
-      "overthinking"
+      "gothic"
     ],
     "palette": [
       "#FFD23F",
@@ -122,8 +120,7 @@
     "type": "charm",
     "name": "Evil-eye bead charm",
     "suggestedVibes": [
-      "gothic",
-      "overthinking"
+      "gothic"
     ],
     "palette": [
       "#1B4FBF",
@@ -207,7 +204,6 @@
     "type": "hipper",
     "name": "Coffee cup pin",
     "suggestedVibes": [
-      "overthinking",
       "funky"
     ],
     "palette": [
@@ -222,8 +218,7 @@
     "type": "sticker3d",
     "name": "Puffy cloud sticker",
     "suggestedVibes": [
-      "cute",
-      "overthinking"
+      "cute"
     ],
     "palette": [
       "#3B4A7A",
@@ -275,7 +270,7 @@
     "type": "sticker3d",
     "name": "Thought bubble \"hmm?\" sticker",
     "suggestedVibes": [
-      "overthinking"
+      "funky"
     ],
     "palette": [
       "#EEF2FF",
@@ -287,7 +282,7 @@
     "type": "sticker3d",
     "name": "Spiral notebook doodle sticker",
     "suggestedVibes": [
-      "overthinking"
+      "funky"
     ],
     "palette": [
       "#FBF7EA",
@@ -313,8 +308,7 @@
     "type": "sticker3d",
     "name": "Candle sticker",
     "suggestedVibes": [
-      "gothic",
-      "overthinking"
+      "gothic"
     ],
     "palette": [
       "#FFF3D6",
@@ -430,8 +424,7 @@
     "type": "diy",
     "name": "Keychain ring + tag",
     "suggestedVibes": [
-      "bold",
-      "overthinking"
+      "bold"
     ],
     "palette": [
       "#FF7EB6"

@@ -36,8 +36,6 @@ describe("motion profiles", () => {
     expect(PROFILES.cute.ease.settle).toMatch(/elastic/);
     expect(PROFILES.bold.ease.snap).toMatch(/^steps\(/);
     expect(PROFILES.bold.ease.move).toMatch(/expo/);
-    expect(typeof PROFILES.overthinking.ease.move).toBe("function"); // hesitation pauses
-    expect(PROFILES.overthinking.connector).toBe("scribble"); // DrawSVG scribbles
     expect(PROFILES.gothic.ease.move).toMatch(/sine/);
     expect(PROFILES.gothic.throughBlack).toBe(true);
     expect(PROFILES.gothic.flicker.amp).toBeGreaterThan(0); // candle flicker
@@ -47,8 +45,8 @@ describe("motion profiles", () => {
   });
 
   it("uses the dark token that is actually dark in each vibe", () => {
-    expect(PROFILES.gothic.veilDark).toBe("bg");
-    for (const v of VIBES.filter((x) => x !== "gothic")) expect(PROFILES[v].veilDark).toBe("ink");
+    for (const v of ["gothic", "bold"] as const) expect(PROFILES[v].veilDark).toBe("bg");
+    for (const v of ["cute", "funky"] as const) expect(PROFILES[v].veilDark).toBe("ink");
   });
 });
 

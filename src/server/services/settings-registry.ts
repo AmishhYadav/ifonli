@@ -460,7 +460,7 @@ export const SETTINGS = {
     label: "Hand-button vibe order",
     description: "Ordered list of vibe slugs the hand button cycles through. Wraps at the end.",
     schema: z.array(nonEmpty).min(1),
-    placeholder: ["cute", "bold", "overthinking", "gothic", "funky"],
+    placeholder: ["cute", "gothic", "funky", "bold"],
     requiredForLaunch: true,
   }),
   default_vibe: define("default_vibe", {

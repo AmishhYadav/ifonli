@@ -17,7 +17,7 @@ import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock"
 
 /**
  * WCAG 2.2 AA scan (axe-core, tags wcag2a/2aa/21a/21aa/22aa, every impact level) of every storefront page
- * type in all five vibes, the customer account, and the admin pages.
+ * type in all four vibes, the customer account, and the admin pages.
  *
  * Needs the dev stack: a migrated + seeded database (`pnpm db:seed`, `db:seed-products`, `db:seed-content`)
  * and a running server (`next dev` or `next start`):

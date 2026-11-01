@@ -81,7 +81,7 @@ async function fillAllSettings() {
     return_policy_type: "no_returns",
     returns_window_days: 0,
     damaged_claim_window_hours: 48,
-    vibe_cycle: ["cute", "bold", "overthinking", "gothic", "funky"],
+    vibe_cycle: ["cute", "gothic", "funky", "bold"],
     default_vibe: "cute",
     admin_alert_emails: ["ops@ifonli.in"],
     "policy.jurisdiction_city": "Pune",

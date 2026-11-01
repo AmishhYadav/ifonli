@@ -1,11 +1,11 @@
 # Visual regression
 
-Screenshots of every storefront page type in all five vibes at three widths, plus the main admin pages, compared pixel by pixel (`toHaveScreenshot`). A change that moves, recolours or restyles something fails the run and shows the diff.
+Screenshots of every storefront page type in all four vibes at three widths, plus the main admin pages, compared pixel by pixel (`toHaveScreenshot`). A change that moves, recolours or restyles something fails the run and shows the diff.
 
 | What | Coverage |
 | --- | --- |
 | Storefront | home (hero as its poster), shop, vibe collection, type collection, product, search with results, search with no results, cart empty, cart filled, checkout (filled form), order confirmation (COD, confirmed), order shipped, order cancelled and refunded, track, track result, help, a policy page, wishlist, account login, account overview, orders, order detail, addresses, profile, 404 |
-| Vibes | cute, bold, overthinking, gothic, funky (each page is opened with `?vibe=`) |
+| Vibes | cute, funky, bold, gothic (each page is opened with `?vibe=`) |
 | Widths | `visual-390`, `visual-768`, `visual-1440` (one Playwright project each) |
 | Admin | dashboard, orders, order detail, products, inventory, collections, discounts, support, content, FAQ, policies, settings, users, audit, reports, insights, sign-in, at 1440 only |
 

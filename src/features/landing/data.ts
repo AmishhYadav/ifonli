@@ -2,7 +2,7 @@ import { VIBES, type Vibe } from "@/features/vibe/config";
 
 /**
  * Landing page content that does not depend on settings: cutout art, the four product types and the
- * five moods. Pure data (no DOM, no colour values) so the server sections and the motion code agree.
+ * four moods. Pure data (no DOM, no colour values) so the server sections and the motion code agree.
  */
 
 export const CUTOUT_BASE = "/placeholders/cutouts";
@@ -68,11 +68,6 @@ export const MOOD_CUTOUTS: Record<Vibe, readonly MoodCutout[]> = {
     { name: "charm-lightning", x: 8, y: 20, size: 50, rot: -10 },
     { name: "sticker3d-wow", x: 52, y: 6, size: 44, rot: 9 },
     { name: "hipper-flame-pin", x: 48, y: 52, size: 42, rot: -6 },
-  ],
-  overthinking: [
-    { name: "sticker3d-hmm-bubble", x: 8, y: 24, size: 48, rot: -8 },
-    { name: "sticker3d-notebook-doodle", x: 52, y: 4, size: 42, rot: 7 },
-    { name: "hipper-coffee-pin", x: 50, y: 52, size: 40, rot: -5 },
   ],
   gothic: [
     { name: "charm-skull", x: 10, y: 22, size: 50, rot: -9 },

@@ -15,7 +15,7 @@ const SUGGESTION_COUNT = 4;
 
 /**
  * Search with nothing to show. `none`: themed "no results" copy (the whole point of the five voices) with
- * ways forward: vibe chips, type links and popular products per vibe (all five rendered, CSS shows the
+ * ways forward: vibe chips, type links and popular products per vibe (all four rendered, CSS shows the
  * active one). `prompt`: an empty query.
  */
 export async function NoResults({
