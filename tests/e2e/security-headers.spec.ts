@@ -228,8 +228,9 @@ test.describe("security: no violations in a real browser", () => {
     await page.goto(`/products/${PRODUCT}?vibe=bold`);
     await settle(page);
     await expect(page.getByTestId("stock-status")).toHaveAttribute("data-stock", /.+/);
+    // Pick a variant that can be bought (the first one may be sold out after other runs).
     await page
-      .getByTestId("option-value")
+      .locator('[data-testid="option-value"]:not([data-sold-out])')
       .first()
       .click()
       .catch(() => {});
@@ -241,9 +242,15 @@ test.describe("security: no violations in a real browser", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     await page.goto("/checkout");
-    await expect(page.getByTestId("review")).toHaveAttribute("aria-busy", "false", {
-      timeout: 30_000,
-    });
+    // A production build whose launch checklist still has blockers (placeholder settings, as in CI's
+    // main build) shows the "not taking orders" notice instead of the form: that is what ships. CI runs
+    // this test again on the review build (gate off) so the form itself is covered too.
+    const review = page.getByTestId("review");
+    await expect(review.or(page.getByTestId("checkout-closed"))).toBeVisible({ timeout: 30_000 });
+    if (process.env.E2E_EXPECT_CHECKOUT_FORM) await expect(review).toBeVisible();
+    if (await review.isVisible()) {
+      await expect(review).toHaveAttribute("aria-busy", "false", { timeout: 30_000 });
+    }
     expect(violations).toEqual([]);
   });
 

@@ -23,7 +23,7 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 | V-3 | Medium | **Lighthouse budgets not measured** on a production deployment (plan section 13: home and PDP 85, other pages 90; LCP 2.5 s; CLS 0.05; initial JS 150 KB gzip). The acceptance check "mobile load meets agreed target" is therefore open. |
 | V-4 | Medium | **Backups and restore drill, Sentry, rate limits on the live host, security headers and CSP with live Razorpay** belong to the security and CI work and RUNBOOK; they have not been exercised on a live host. |
 | V-5 | Low | **No visual baselines committed yet.** The suite passed locally on Chrome for Testing 153, but Playwright 1.64.1 downloads Chromium 156, so the first baselines must be generated on CI's browser (`pnpm visual:update`, see `tests/visual/README.md`), reviewed and committed. Until then `pnpm visual` has nothing to compare against. |
-| V-6 | Low | The e2e specs that place orders or use the admin mutate shared dev-database rows (settings, pincodes, stock) and restore them afterwards. They must run one project at a time and not in parallel with each other. |
+| V-6 | Low | The e2e specs that rewrite shared dev-database rows (commerce settings, test pincodes and stock, the qa- fixtures) queue on a Postgres advisory lock (`tests/support/fixture-lock.ts`), so they never overlap across workers; they still assume a dev database nobody else is changing at the same time. |
 
 ## Product and code
 
@@ -35,7 +35,6 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 | P-6 | Low | **Shipping is manual.** Couriers and AWB numbers are typed in by staff; there is no live rate, label or tracking feed (Phase 9: Shiprocket). Tracking links are built from the AWB for common couriers. |
 | P-7 | Low | **Product images from Supabase Storage** are allowed in `next.config.ts` only for the local Storage host. Add the production Supabase host before launch (owned by the security and CI work). |
 | P-8 | Low | **Cart page shows no COD line.** The COD fee is shown as its own line at checkout, before the Place order button, as the copy checklist requires; the cart only gives a shipping estimate. Consider a one-line "COD adds a Rs X fee" note under the totals if COD is on. |
-| P-10 | Low | **Default variant can be sold out.** The product page opens on the first variant; when that one is out of stock but others are available (seeded Heart charm: Pink sold out, Red and Lilac in stock) the page opens on a disabled "Sold out" button until the shopper picks another colour. Consider opening on the first purchasable variant. |
 | P-9 | Low | The animated hero's colour and motion per vibe, the display fonts and the five looks are proposals awaiting owner and brand review (see HERO.md and OWNER-INPUTS.md). |
 
 ## Security and operations (deep review)
@@ -50,4 +49,4 @@ An honest list as of the Phase 8 QA pass. Severity: **Critical** (cannot launch)
 
 ## Fixed during this pass
 
-See the commit log; in short: focus is now returned to the opener when a state-driven dialog or drawer closes (address dialog, cart drawer); the skip link target is focusable; breadcrumb, policy contents, draft-banner, checkout and footer links reach 44 px; the 404 numeral and the admin "faint" text meet contrast; the styleguide no longer mounts a second toast region; the audit-log disclosure has an accessible name that contains its visible text; flattering or dare-style wording was removed from the Overthinking and Bold vibe strings.
+See the commit log; in short: focus is now returned to the opener when a state-driven dialog or drawer closes (address dialog, cart drawer); the skip link target is focusable; breadcrumb, policy contents, draft-banner, checkout and footer links reach 44 px; the 404 numeral and the admin "faint" text meet contrast; the product page opens on the first variant that is in stock; the styleguide no longer mounts a second toast region; the audit-log disclosure has an accessible name that contains its visible text; flattering or dare-style wording was removed from the Overthinking and Bold vibe strings.

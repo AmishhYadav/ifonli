@@ -84,15 +84,45 @@ test.describe("product page", () => {
     const status = page.getByTestId("stock-status");
     const pink = page.getByTestId("option-value").filter({ hasText: "Pink" });
     const red = page.getByTestId("option-value").filter({ hasText: "Red" });
-    await expect(pink).toHaveAttribute("aria-pressed", "true");
-    await expect(status).toHaveAttribute("data-stock", "low");
-    await expect(status).toContainText(/Only \d+ left/);
+    // Pink is seeded with low stock; orders placed by other specs can sell it out, and then the page
+    // opens on the first variant that is in stock instead.
+    const pinkSoldOut = (await pink.getAttribute("data-sold-out")) === "true";
+    await expect(pinkSoldOut ? red : pink).toHaveAttribute("aria-pressed", "true");
     await red.click();
     await expect(red).toHaveAttribute("aria-pressed", "true");
     await expect(pink).toHaveAttribute("aria-pressed", "false");
     await expect(page.getByTestId("selected-variant")).toHaveText("Red");
     await expect(status).toHaveAttribute("data-stock", "in_stock");
     await expect(status).toContainText("In stock");
+    await pink.click();
+    await expect(pink).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("selected-variant")).toHaveText("Pink");
+    if (pinkSoldOut) {
+      await expect(status).toHaveAttribute("data-stock", "sold_out");
+    } else {
+      await expect(status).toHaveAttribute("data-stock", "low");
+      await expect(status).toContainText(/Only \d+ left/);
+    }
+  });
+
+  test("a sold-out default variant: the page opens on one that is in stock", async ({ page }) => {
+    const sql = postgres(DB_URL, { max: 1, onnotice: () => {} });
+    const rows = await sql<{ id: string; stock_on_hand: number }[]>`
+      select id, stock_on_hand from variants where sku = 'PH-CHARM-HEART-PINK'`.catch(() => []);
+    if (rows.length === 0) await sql.end({ timeout: 1 }).catch(() => {});
+    test.skip(rows.length === 0, "database not reachable or seeded Pink variant missing");
+    const pinkRow = rows[0]!;
+    await sql`update variants set stock_on_hand = 0 where id = ${pinkRow.id}`;
+    try {
+      await openProduct(page, "heart-charm");
+      const pink = page.getByTestId("option-value").filter({ hasText: "Pink" });
+      await expect(pink).toHaveAttribute("data-sold-out", "true");
+      await expect(pink).toHaveAttribute("aria-pressed", "false");
+      await expect(page.getByTestId("add-to-cart")).toBeEnabled();
+    } finally {
+      await sql`update variants set stock_on_hand = ${pinkRow.stock_on_hand} where id = ${pinkRow.id}`;
+      await sql.end();
+    }
   });
 
   test("a sold-out product says so and cannot be added", async ({ page }) => {

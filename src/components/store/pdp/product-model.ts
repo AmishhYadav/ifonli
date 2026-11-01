@@ -48,11 +48,27 @@ export function findVariant(model: PdpModel, variantId: string | null | undefine
 }
 
 /**
- * The variant to land on: the first one in display order. (Live stock is not known at render time, and
- * silently swapping the shopper's default after load would be surprising.)
+ * The variant to render first: the first one in display order (live stock is not known at render time;
+ * `landingVariantId` corrects it once stock streams in).
  */
 export function defaultVariantId(model: PdpModel): string | null {
   return model.variants[0]?.id ?? null;
+}
+
+/**
+ * The variant to land on once live stock is known, while the shopper has not picked one: the current
+ * one if it can be bought, otherwise the first in display order that is in stock (so the page never
+ * opens on a disabled "Sold out" button when another colour is available). Unchanged when nothing is
+ * in stock or the current variant's stock is unknown.
+ */
+export function landingVariantId(
+  model: PdpModel,
+  stock: ReadonlyMap<string, { inStock: boolean }>,
+  currentId: string | null,
+): string | null {
+  const current = currentId ? stock.get(currentId) : undefined;
+  if (!current || current.inStock) return currentId;
+  return model.variants.find((v) => stock.get(v.id)?.inStock)?.id ?? currentId;
 }
 
 /** Variant whose option values are exactly `valueIds` (order independent), or null for a hole in the matrix. */
