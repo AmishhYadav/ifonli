@@ -1,6 +1,7 @@
 /**
  * The one way to change the site's vibe from the UI: the hand, the nav pills, the mobile menu and a vibe
- * collection page all call `switchVibeTo`. It warms the new display font (so the swap does not flash a
+ * collection page all call `switchVibeTo`. The hand and the header theme pills go through `switchTheme`, which
+ * holds the "stay on the page" rule. It warms the new display font (so the swap does not flash a
  * fallback face), runs the store write inside a view transition (cross-fade) unless the visitor prefers
  * reduced motion, and keeps the `ifonli:vibe-change` event / analytics `source` accurate.
  * Client-only: call it from event handlers and effects.
@@ -95,5 +96,31 @@ export async function switchVibeTo(to: Vibe, source: VibeSource, options: Switch
     if (pending === to) pending = null;
     performance.mark("vibe-switch-end");
     options.onSettled?.();
+  });
+}
+
+/** Matches the pathname of a theme's own page, `/vibes/<slug>`. */
+const VIBE_PAGE = /^\/vibes\/[^/]+/;
+
+/** Whether the visitor is on a theme's own collection page. */
+export function isOnVibePage(pathname: string = window.location.pathname): boolean {
+  return VIBE_PAGE.test(pathname);
+}
+
+/**
+ * The page-follows-theme rule for the hand and the header theme pills, in one place. A visitor who switches theme
+ * stays on the page they are on (so the `/home` hero keeps playing in the new theme), except on a theme's own page
+ * `/vibes/<slug>`, which moves to `/vibes/<new>` so its products match the theme.
+ */
+export function switchTheme(
+  to: Vibe,
+  source: VibeSource,
+  router: { push: (href: string) => void },
+  options: Pick<SwitchOptions, "onSettled"> = {},
+): Promise<void> {
+  const follow = isOnVibePage();
+  return switchVibeTo(to, source, {
+    ...options,
+    navigate: follow ? () => router.push(`/vibes/${to}`) : undefined,
   });
 }
