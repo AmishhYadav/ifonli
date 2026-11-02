@@ -143,7 +143,7 @@ jobs:
             sleep 2
           done
           # First hit of a route compiles it under `next dev`; do that before the timed tests.
-          for path in / /shop /products/heart-charm /vibes/cute /cart /checkout /track /help /search /wishlist /admin/login /policies/shipping; do
+          for path in / /home /shop /products/heart-charm /vibes/cute /vibes/funky /vibes/bold /vibes/gothic /types/charms /types/hippers /types/3d-stickers /types/diy-accessories /cart /checkout /track /help /search /wishlist /account/login /admin/login /policies/shipping /policies/returns-refunds; do
             curl -sS -o /dev/null -m 120 "http://localhost:3000${path}" || true
           done
       - name: Playwright (chromium-desktop)

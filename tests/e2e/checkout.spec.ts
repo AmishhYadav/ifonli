@@ -365,7 +365,7 @@ test.describe("payment and order page", () => {
     await expect(dialog).toBeVisible();
     await dialog.getByTestId("mock-success").click();
 
-    await expect(page).toHaveURL(/\/orders\/IFO-[0-9A-Z-]+\?t=/);
+    await expect(page).toHaveURL(/\/orders\/IFO-[0-9A-Z-]+\?t=/, { timeout: 30_000 });
     await expect(page.getByTestId("order-status")).toHaveText("Confirmed");
     await expect(page.getByTestId("order-headline")).toHaveText(
       "Thank you, your order is confirmed",
@@ -415,7 +415,7 @@ test.describe("payment and order page", () => {
     await page.getByTestId("payment-retry").click();
     await expect(dialog).toBeVisible();
     await dialog.getByTestId("mock-success").click();
-    await expect(page).toHaveURL(/\/orders\/IFO-/);
+    await expect(page).toHaveURL(/\/orders\/IFO-/, { timeout: 30_000 });
     await expect(page.getByTestId("order-status")).toHaveText("Confirmed");
   });
 
@@ -434,7 +434,7 @@ test.describe("payment and order page", () => {
 
     // The order's own page (the `?t=` link) offers the same Retry.
     await page.getByRole("link", { name: "View order" }).click();
-    await expect(page).toHaveURL(/\/orders\/IFO-[0-9A-Z-]+\?t=/);
+    await expect(page).toHaveURL(/\/orders\/IFO-[0-9A-Z-]+\?t=/, { timeout: 30_000 });
     await expect(page.getByTestId("order-status")).toHaveText("Payment pending");
     await expect(tid(page, "pay-now")).toContainText("don't pay again");
     await tid(page, "payment-retry").click();
@@ -457,7 +457,7 @@ test.describe("payment and order page", () => {
     const review = await readAmounts(page);
 
     await codButton(page).click();
-    await expect(page).toHaveURL(/\/orders\/IFO-[0-9A-Z-]+\?t=/);
+    await expect(page).toHaveURL(/\/orders\/IFO-[0-9A-Z-]+\?t=/, { timeout: 30_000 });
     await expect(page.getByTestId("order-status")).toHaveText("Confirmed");
     await expect(page.getByTestId("payment-line")).toContainText(
       "Cash on delivery: pay ₹448 when it arrives",
@@ -487,7 +487,7 @@ test.describe("tracking", () => {
     const email = await fillCheckout(page);
     await page.getByRole("radio", { name: /Cash on delivery/ }).check();
     await codButton(page).click();
-    await expect(page).toHaveURL(/\/orders\/IFO-/);
+    await expect(page).toHaveURL(/\/orders\/IFO-/, { timeout: 30_000 });
     const ref = (await page.getByTestId("order-ref").textContent())!;
 
     await page.goto("/track");
@@ -531,7 +531,7 @@ test.describe("tracking", () => {
     const email = await fillCheckout(page);
     await page.getByRole("radio", { name: /Cash on delivery/ }).check();
     await codButton(page).click();
-    await expect(page).toHaveURL(/\/orders\/IFO-/);
+    await expect(page).toHaveURL(/\/orders\/IFO-/, { timeout: 30_000 });
     const ref = (await page.getByTestId("order-ref").textContent())!;
 
     await sql`insert into shipments (order_id, courier, awb, tracking_url, status, shipped_at)
@@ -636,7 +636,7 @@ test.describe("screenshots", () => {
         await shot("5-payment-not-completed");
         await page.getByTestId("payment-retry").click();
         await dialog.getByTestId("mock-success").click();
-        await expect(page).toHaveURL(/\/orders\/IFO-/);
+        await expect(page).toHaveURL(/\/orders\/IFO-/, { timeout: 30_000 });
         await expect(page.getByTestId("order-status")).toHaveText("Confirmed");
         await page.waitForTimeout(400);
         await shot("6-confirmation");

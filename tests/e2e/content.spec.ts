@@ -83,6 +83,8 @@ test.describe("policies", () => {
 
 test.describe("footer, cart, checkout and PDP links", () => {
   test("every internal footer link resolves (no 404s)", async ({ page, request }) => {
+    // ~20 footer routes, several of them (vibe and type pages) not yet compiled when this runs under `next dev`.
+    test.setTimeout(120_000);
     await page.goto("/policies/shipping");
     const hrefs = await page
       .locator("footer a[href^='/']")

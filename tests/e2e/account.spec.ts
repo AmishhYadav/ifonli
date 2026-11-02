@@ -208,7 +208,7 @@ test.describe("login", () => {
 
     // Sign out ends the session: the account area asks for a login again.
     await page.getByTestId("sign-out").click();
-    await expect(page).toHaveURL(/\/(\?vibe=[a-z]+)?$/);
+    await expect(page).toHaveURL(/\/home(\?vibe=[a-z]+)?$/);
     await page.goto("/account");
     await expect(page).toHaveURL(/\/account\/login/);
   });

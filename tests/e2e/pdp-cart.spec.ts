@@ -393,7 +393,7 @@ test.describe("wishlist", () => {
 
     await page.goto("/wishlist");
     const grid = page.getByTestId("wishlist-grid");
-    await expect(grid.getByRole("link", { name: "Star charm" })).toBeVisible();
+    await expect(grid.getByRole("link", { name: "Star charm", exact: true })).toBeVisible();
     await expect(page.getByTestId("wishlist-count")).toHaveText("1 saved product");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 
