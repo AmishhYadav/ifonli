@@ -76,7 +76,7 @@ const toneColor: Record<ToastTone, string> = {
 };
 
 /**
- * Toasts for transient confirmations ("Added to cart"). One polite live region (always in the DOM, so
+ * Toasts for transient confirmations ("Added to bag"). One polite live region (always in the DOM, so
  * additions are announced); each toast pauses its timer while hovered or focused and offers a close button
  * (and Escape while focused inside it). The toast wears the vibe / Buy scope of the element that fired it.
  */
@@ -96,8 +96,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [remove],
   );
 
+  const region = useRef<HTMLElement>(null);
+
   const toast = useCallback((options: ToastOptions) => {
     const id = nextId.current++;
+    // Desktop toasts sit just under the sticky header, in the corner where the bag is, clear of the page
+    // content. The header's height differs per layout (store vs. buy), so measure it when a toast opens.
+    const header = document.querySelector("header");
+    const headerBottom = header ? Math.max(0, Math.round(header.getBoundingClientRect().bottom)) : 0;
+    region.current?.style.setProperty("--toast-top", `${headerBottom + 12}px`);
     const origin = document.activeElement;
     const scope =
       origin && origin !== document.body
@@ -117,9 +124,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={api}>
       {children}
+      {/* Mobile: along the bottom, above the sticky PDP add bar when it is showing (`--toast-bottom`, set by the
+          PDP). From md up: top right under the header, so it never covers the product or its buy controls. */}
       <section
+        ref={region}
         aria-label="Notifications"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-80 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end"
+        className={
+          "pointer-events-none fixed inset-x-0 bottom-[var(--toast-bottom,0px)] z-80 flex justify-center px-4 " +
+          "pb-[max(0.75rem,env(safe-area-inset-bottom))] md:bottom-auto md:top-[var(--toast-top,5rem)] md:justify-end md:pb-0"
+        }
       >
         <div
           role="status"
@@ -161,7 +174,7 @@ function ToastItem({ item, onDismiss }: { item: ToastItemData; onDismiss: (id: n
       {...scope}
       data-state={open ? "open" : "closed"}
       data-tone={tone}
-      className="ui-toast pointer-events-auto flex items-start gap-3 rounded-card border-token bg-surface p-3 pl-4 text-ink shadow-card"
+      className="ui-toast pointer-events-auto flex items-start gap-3 rounded-card bg-surface p-3 pl-4 text-ink shadow-card"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}

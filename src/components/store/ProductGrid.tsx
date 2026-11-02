@@ -12,7 +12,7 @@ export function ProductGrid({ className, ...rest }: HTMLAttributes<HTMLUListElem
   return (
     <ul
       className={cn(
-        "grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-5 sm:gap-y-7 md:grid-cols-3 xl:grid-cols-4",
+        "grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 xl:grid-cols-4",
         className,
       )}
       {...rest}

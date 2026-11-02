@@ -280,7 +280,7 @@ export function priceCart(input: PriceInput): PriceResult {
       if (eligible.length === 0) {
         messages.push({
           code: "coupon_no_eligible_items",
-          text: `${coupon.code} doesn't apply to the items in your cart.`,
+          text: `${coupon.code} doesn't apply to the items in your bag.`,
         });
       } else if (coupon.kind === "free_shipping") {
         freeShippingCoupon = true;

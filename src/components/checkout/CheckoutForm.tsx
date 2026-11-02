@@ -9,7 +9,12 @@ import { useForm, useWatch } from "react-hook-form";
 import { AmountBreakdown } from "@/components/orders/AmountBreakdown";
 import { formatDateRange } from "@/components/orders/format";
 import { OrderLines } from "@/components/orders/OrderLines";
-import { Button, Checkbox, Field, Icon, Input, Radio, RadioGroup, Select, Spinner } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Field, Input, Select } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
+import { Radio, RadioGroup } from "@/components/ui/Radio";
+import { Spinner } from "@/components/ui/Spinner";
 import type { SavedAddress } from "@/features/account/schema";
 import { trackPaymentInfo, trackShippingInfo } from "@/features/analytics/checkout-events";
 import { getCheckoutQuote, lookupPincode, placeOrder } from "@/features/checkout/actions";
@@ -483,7 +488,7 @@ export function CheckoutForm({
 
         {/* 1. Contact */}
         <section aria-labelledby="checkout-contact" className="flex flex-col gap-4">
-          <h2 id="checkout-contact" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-contact" className="buy-display text-2xl leading-tight">
             Contact
           </h2>
           <Field
@@ -513,7 +518,7 @@ export function CheckoutForm({
 
         {/* 2. Delivery address */}
         <section aria-labelledby="checkout-address" className="flex flex-col gap-4">
-          <h2 id="checkout-address" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-address" className="buy-display text-2xl leading-tight">
             Delivery address
           </h2>
           {savedAddresses.length > 0 ? (
@@ -598,7 +603,7 @@ export function CheckoutForm({
 
         {/* 3. Shipping */}
         <section aria-labelledby="checkout-shipping" className="flex flex-col gap-3">
-          <h2 id="checkout-shipping" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-shipping" className="buy-display text-2xl leading-tight">
             Shipping
           </h2>
           {!pincode ? (
@@ -619,7 +624,7 @@ export function CheckoutForm({
             </p>
           ) : (
             <div
-              className="flex items-start gap-3 rounded-card border-token bg-surface p-4"
+              className="flex items-start gap-3 rounded-card bg-surface shadow-card p-4"
               data-testid="shipping-option"
             >
               <Icon name="truck" className="mt-0.5 size-6 flex-none" />
@@ -640,7 +645,7 @@ export function CheckoutForm({
 
         {/* 4. Payment */}
         <section aria-labelledby="checkout-payment" className="flex flex-col gap-3">
-          <h2 id="checkout-payment" className="font-display text-2xl leading-tight">
+          <h2 id="checkout-payment" className="buy-display text-2xl leading-tight">
             Payment
           </h2>
           <RadioGroup
@@ -682,11 +687,11 @@ export function CheckoutForm({
 
       <section
         aria-labelledby="checkout-review"
-        className="flex min-w-0 flex-col gap-5 rounded-card border-token bg-surface p-4 shadow-card sm:p-5 lg:sticky lg:top-6"
+        className="flex min-w-0 flex-col gap-5 rounded-card bg-surface p-4 shadow-card sm:p-5 lg:sticky lg:top-6"
         data-testid="review"
         aria-busy={!quoteFresh}
       >
-        <h2 id="checkout-review" className="font-display text-2xl leading-tight">
+        <h2 id="checkout-review" className="buy-display text-2xl leading-tight">
           Review your order
         </h2>
 
@@ -720,7 +725,7 @@ export function CheckoutForm({
 
         <p className="-mt-2 text-sm">
           <Link href="/cart" className="inline-flex min-h-11 items-center text-link underline underline-offset-4 hover:no-underline">
-            Edit your cart
+            Edit your bag
           </Link>
         </p>
 
@@ -785,7 +790,7 @@ export function CheckoutForm({
             ref={summaryRef}
             tabIndex={-1}
             role="alert"
-            className="flex flex-col gap-2 rounded-card border-token border-danger bg-surface p-3 text-sm outline-none"
+            className="flex flex-col gap-2 rounded-card bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))] p-3 text-sm outline-none"
             data-testid="error-summary"
           >
             {problem ? (
@@ -804,7 +809,7 @@ export function CheckoutForm({
                       href="/cart"
                       className="font-semibold text-link underline underline-offset-4 hover:no-underline"
                     >
-                      Review your cart
+                      Review your bag
                     </Link>
                   </p>
                 ) : null}

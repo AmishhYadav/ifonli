@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { ProductCardSkeleton, ProductCardView } from "@/components/store/ProductCardView";
 import { ProductGrid, ProductGridItem } from "@/components/store/ProductGrid";
-import { Button, EmptyState } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 import { getWishlistItems, type WishlistItem } from "./actions";
 import { getWishlist, pruneWishlist } from "./store";
@@ -107,7 +108,7 @@ export function WishlistView({ emptyTitle, emptyBody }: WishlistViewProps) {
         {ids.length} saved {ids.length === 1 ? "product" : "products"}
       </p>
       {error ? (
-        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-card border-token bg-surface p-4">
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-card bg-surface shadow-card p-4">
           <p className="text-base">{error}</p>
           <Button variant="secondary" size="sm" onClick={() => setAttempt((n) => n + 1)}>
             Try again

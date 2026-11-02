@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { Drawer, DrawerClose, DrawerContent, DrawerTrigger, Icon, IconButton } from "@/components/ui";
+import { IconButton } from "@/components/ui/Button";
+import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from "@/components/ui/Drawer";
+import { Icon } from "@/components/ui/Icon";
+import { isVibe } from "@/features/vibe/config";
+import { VibeLink } from "@/features/vibe/VibeLink";
 import { cn } from "@/lib/cn";
 
 export interface MenuLink {
@@ -21,39 +25,51 @@ interface MobileMenuProps {
 }
 
 const rowClasses =
-  "flex min-h-12 items-center justify-between gap-3 rounded-input px-3 text-lg font-semibold text-ink hover:bg-surface-2";
+  "flex min-h-12 items-center justify-between gap-3 rounded-2xl px-3 text-lg font-semibold text-ink transition-colors ease-vibe hover:bg-surface-2";
+
+/** A vibe row also wears that vibe (same switch as the pills and the hand); other rows just navigate. */
+function renderLink(link: MenuLink, onNavigate: () => void) {
+  const className = cn(
+    rowClasses,
+    link.vibe && "rounded-card bg-surface-2 font-display text-xl",
+    link.vibe && "my-1 min-h-14",
+  );
+  const body = (
+    <>
+      <span>{link.label}</span>
+      {link.vibe ? (
+        <span aria-hidden="true" className="flex gap-1">
+          <span className="size-4 rounded-full bg-accent" />
+          <span className="size-4 rounded-full bg-accent-2" />
+          <span className="size-4 rounded-full bg-accent-3" />
+        </span>
+      ) : link.detail ? (
+        <span className="text-sm font-normal text-ink-muted">{link.detail}</span>
+      ) : (
+        <Icon name="chevron-right" className="size-5 text-ink-muted" />
+      )}
+    </>
+  );
+  return isVibe(link.vibe) ? (
+    <VibeLink vibe={link.vibe} href={link.href} data-vibe={link.vibe} onClick={onNavigate} className={className}>
+      {body}
+    </VibeLink>
+  ) : (
+    <Link href={link.href} onClick={onNavigate} className={className}>
+      {body}
+    </Link>
+  );
+}
 
 function Group({ title, links, onNavigate }: { title: string; links: MenuLink[]; onNavigate: () => void }) {
   return (
     <section aria-label={title} className="flex flex-col gap-1">
-      <h2 className="px-3 pb-1 text-xs font-bold tracking-widest text-ink-muted uppercase">{title}</h2>
+      <h2 className="px-3 pb-1 font-label text-xs tracking-widest text-ink-muted">{title}</h2>
       <ul className="flex flex-col">
         {links.map((link) => (
           <li key={link.href}>
             <DrawerClose asChild>
-              <Link
-                href={link.href}
-                data-vibe={link.vibe}
-                onClick={onNavigate}
-                className={cn(
-                  rowClasses,
-                  link.vibe && "rounded-card border-token bg-bg font-display text-xl hover:bg-bg",
-                  link.vibe && "my-1 min-h-14",
-                )}
-              >
-                <span>{link.label}</span>
-                {link.vibe ? (
-                  <span aria-hidden="true" className="flex gap-1">
-                    <span className="size-4 rounded-full border border-border bg-accent" />
-                    <span className="size-4 rounded-full border border-border bg-accent-2" />
-                    <span className="size-4 rounded-full border border-border bg-accent-3" />
-                  </span>
-                ) : link.detail ? (
-                  <span className="text-sm font-normal text-ink-muted">{link.detail}</span>
-                ) : (
-                  <Icon name="chevron-right" className="size-5 text-ink-muted" />
-                )}
-              </Link>
+              {renderLink(link, onNavigate)}
             </DrawerClose>
           </li>
         ))}
@@ -62,7 +78,7 @@ function Group({ title, links, onNavigate }: { title: string; links: MenuLink[];
   );
 }
 
-/** Right-hand drawer with the full navigation, for screens below `lg`. */
+/** Right-hand drawer with the full navigation (plus account and wishlist), for screens below `md`. */
 export function MobileMenu({ vibes, types, className }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);

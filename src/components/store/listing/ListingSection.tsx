@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { connection } from "next/server";
 
-import { Button, EmptyState, Icon } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
 import { SearchTracker } from "@/features/analytics";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
 import { getDb } from "@/server/db";
@@ -147,7 +149,7 @@ function FilterChips({
           <Link
             href={chip.href}
             scroll={false}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-button border-token bg-surface-2 px-3.5 text-sm font-semibold text-ink"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-button bg-surface-2 px-4 text-sm font-semibold text-ink"
             aria-label={`Remove filter: ${chip.label}`}
           >
             {chip.label}
@@ -205,19 +207,34 @@ export async function ListingSection({
   const sortHrefs = Object.fromEntries(
     sorts.map((sort) => [sort, buildListingHref(basePath, { ...query, sort, page: 1 }, { search, q })]),
   ) as Partial<Record<SearchSortValue, string>>;
+  // A search whose query alone matches nothing has nothing to filter: no sidebar, Filters button or sort. When
+  // filters cause the empty result they stay, so the visitor can clear them.
+  if (search && items.length === 0 && noFilters) {
+    return (
+      <>
+        <SearchTracker query={q!} results={total} />
+        <NoResults variant="none" q={q!} />
+      </>
+    );
+  }
   const filterProps = { basePath, q, search, fixed, query, facets: listingFacets };
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 pb-4 sm:px-6">
       {search ? <SearchTracker query={q!} results={total} /> : null}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4">
-        <p role="status" aria-live="polite" className="text-base font-semibold" data-testid="result-count">
+      {/* One row, stable order (count, Filters, Sort). Below `sm` it wraps predictably: count and Filters share
+          row one, Sort takes row two at full width. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-3 border-b border-hairline py-4">
+        <p
+          role="status"
+          aria-live="polite"
+          className="min-w-0 flex-1 text-base font-semibold"
+          data-testid="result-count"
+        >
           {total} {total === 1 ? "product" : "products"}
         </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <FilterDrawer {...filterProps} activeCount={filterCount} total={total} />
-          {total > 1 ? <SortSelect value={query.sort} hrefs={sortHrefs} /> : null}
-        </div>
+        <FilterDrawer {...filterProps} activeCount={filterCount} total={total} />
+        {total > 1 ? <SortSelect value={query.sort} hrefs={sortHrefs} /> : null}
       </div>
 
       <div className="grid gap-8 pt-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
@@ -271,7 +288,7 @@ export async function ListingSection({
               </div>
             </>
           ) : search ? (
-            <NoResults variant="none" q={q!} />
+            <NoResults variant="none" q={q!} embedded />
           ) : (
             <EmptyState
               icon={noFilters ? "package" : "filter"}

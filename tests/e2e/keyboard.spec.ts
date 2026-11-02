@@ -162,7 +162,7 @@ test.describe("skip link and header", () => {
 
   for (const vibe of VIBES) {
     test(`every header and page stop shows a focus indicator in ${vibe}`, async ({ page }) => {
-      await gotoVibe(page, "/", vibe);
+      await gotoVibe(page, "/home", vibe);
       await page.waitForLoadState("networkidle");
       await expectVisibleFocus(page, `home in ${vibe}`, 60);
     });
@@ -171,7 +171,7 @@ test.describe("skip link and header", () => {
   test("search sheet: opens from the header, focuses the field, Escape returns focus to the button", async ({
     page,
   }) => {
-    await gotoVibe(page, "/", "cute");
+    await gotoVibe(page, "/home", "cute");
     await page.waitForLoadState("networkidle");
     const trigger = page.getByRole("button", { name: /Search/ }).first();
     await trigger.focus();
@@ -198,7 +198,7 @@ test.describe("skip link and header", () => {
     baseURL,
   }) => {
     await seedCart(context, baseURL!, 1);
-    await gotoVibe(page, "/", "funky");
+    await gotoVibe(page, "/home", "funky");
     await page.waitForLoadState("networkidle");
     const trigger = page.locator('[data-testid="cart-button"]:visible');
     await trigger.focus();
@@ -258,7 +258,7 @@ test.describe("checkout", () => {
     baseURL,
   }) => {
     await seedCart(context, baseURL!, 1);
-    await gotoVibe(page, "/checkout", "overthinking");
+    await gotoVibe(page, "/checkout", "funky");
     await expect(page.getByTestId("review")).toHaveAttribute("aria-busy", "false", {
       timeout: 30_000,
     });
@@ -411,7 +411,7 @@ test.describe("dialogs and account forms", () => {
 test.describe("tracking and help", () => {
   for (const path of ["/track", "/help", "/policies/shipping", "/cart", "/search?q=heart"]) {
     test(`${path}: every stop shows a focus indicator`, async ({ page }) => {
-      await gotoVibe(page, path, "overthinking");
+      await gotoVibe(page, path, "funky");
       await page.waitForLoadState("networkidle");
       await expectVisibleFocus(page, path, 80);
     });

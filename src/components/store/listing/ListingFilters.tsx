@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, useTransition, type FormEvent } from "react";
 
-import { Button, Checkbox, Input, Switch, VibeDot } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Input } from "@/components/ui/Field";
+import { Switch } from "@/components/ui/Switch";
+import { VibeDot } from "@/components/ui/Chip";
 import { VIBE_NAMES, isVibe } from "@/features/vibe/config";
 import { formatINR } from "@/lib/money";
 
@@ -45,7 +49,7 @@ interface ListingFiltersProps {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <fieldset className="flex min-w-0 flex-col gap-1 border-0 p-0">
-      <legend className="mb-1 font-display text-lg">{title}</legend>
+      <legend className="mb-1 font-label text-sm">{title}</legend>
       {children}
     </fieldset>
   );

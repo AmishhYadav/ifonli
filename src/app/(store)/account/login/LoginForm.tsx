@@ -2,7 +2,9 @@
 
 import { useActionState, useEffect, useRef } from "react";
 
-import { Button, Field, Icon, Input } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
 
 import { loginAction } from "./actions";
 import { initialLoginState } from "./types";
@@ -34,7 +36,7 @@ export function LoginForm({ initialEmail, next }: { initialEmail: string; next: 
     <form
       action={action}
       noValidate
-      className="flex flex-col gap-4 rounded-card border-token bg-surface p-4 shadow-card sm:p-6"
+      className="flex flex-col gap-4 rounded-card bg-surface p-4 shadow-card sm:p-6"
       data-testid="login-form"
     >
       <input type="hidden" name="next" value={state.next} />

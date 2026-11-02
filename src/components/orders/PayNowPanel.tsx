@@ -5,7 +5,8 @@ import { useEffect } from "react";
 
 import { PaymentStatusPanel } from "@/components/checkout/PaymentStatusPanel";
 import { usePayment } from "@/components/checkout/usePayment";
-import { Button, Icon } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 
 export interface PayNowPanelProps {
   orderRef: string;
@@ -41,7 +42,7 @@ export function PayNowPanel({ orderRef, token, email, amountLabel, holdUntil }: 
 
   return (
     <div
-      className="flex flex-col gap-3 rounded-card border-token bg-surface p-4"
+      className="flex flex-col gap-3 rounded-card bg-surface shadow-card p-4"
       data-testid="pay-now"
     >
       <p className="flex items-start gap-2 text-base font-bold">

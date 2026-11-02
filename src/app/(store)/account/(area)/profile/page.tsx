@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { Card, CardTitle } from "@/components/ui";
+import { Card, CardTitle } from "@/components/ui/Card";
 import { requireCustomer } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { getProfile } from "@/server/services/account";

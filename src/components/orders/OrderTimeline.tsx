@@ -31,7 +31,7 @@ export function OrderTimeline({ events }: { events: readonly TimelineEvent[] }) 
               <span
                 className={`mt-1.5 size-3 rounded-full ${last ? "bg-accent" : "bg-ink-muted"}`}
               />
-              {last ? null : <span className="absolute top-5 -bottom-1.5 w-px bg-border" />}
+              {last ? null : <span className="absolute top-5 -bottom-1.5 w-px bg-hairline" />}
             </span>
             <div className="min-w-0">
               <p className="text-base leading-snug font-semibold">

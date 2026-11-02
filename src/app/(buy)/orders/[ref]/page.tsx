@@ -4,7 +4,9 @@ import { Suspense } from "react";
 
 import { OrderDetailView } from "@/components/orders/OrderDetailView";
 import { RefreshCartBadge } from "@/components/orders/RefreshCartBadge";
-import { Button, EmptyState, Skeleton } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { getOptionalCustomer } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { loadOrderPageExtras } from "@/server/services/order-page";

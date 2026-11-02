@@ -8,7 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
  *   E2E_BASE_URL=http://localhost:3105 pnpm exec playwright test hero --project chromium-desktop
  */
 
-const VIBES = ["cute", "bold", "overthinking", "gothic", "funky"] as const;
+const VIBES = ["cute", "funky", "bold", "gothic"] as const;
 const STAGE_MARKER = "ifonli-hero-stage-chunk-v1";
 
 interface HeroState {
@@ -16,7 +16,7 @@ interface HeroState {
   scene: number;
   profile: string;
   pending: string | null;
-  pendingBoundary: number | null;
+  switching: string | null;
   paused: string[];
   tileCount: number;
   ready: boolean;
@@ -39,7 +39,7 @@ const seek = (page: Page, t: number) =>
   page.evaluate((time) => (window as unknown as HeroWindow).__ifonliHero!.seek(time), t);
 
 async function openHero(page: Page, vibe: (typeof VIBES)[number] = "cute") {
-  await page.goto(`/?vibe=${vibe}`);
+  await page.goto(`/home?vibe=${vibe}`);
   await page.waitForFunction(
     () => (window as unknown as HeroWindow).__ifonliHero?.ready === true,
     null,
@@ -82,7 +82,7 @@ test.describe("progressive enhancement", () => {
     page,
   }) => {
     const stageChunks = watchScripts(page);
-    const response = await page.goto("/?vibe=cute");
+    const response = await page.goto("/home?vibe=cute");
     // The poster (LCP) is in the HTML itself.
     const html = await response!.text();
     expect(html).toContain("data-hero");
@@ -120,7 +120,7 @@ test.describe("progressive enhancement", () => {
       });
       await page.setViewportSize({ width: 1440, height: 900 });
       if (reducedMotion === "reduce") {
-        await page.goto("/?vibe=cute");
+        await page.goto("/home?vibe=cute");
         await expect(page.getByTestId("hero-shop")).toBeVisible();
       } else {
         await openHero(page);
@@ -150,7 +150,7 @@ test.describe("progressive enhancement", () => {
 
     test("shows the poster only: no stage, no hook, no animation script", async ({ page }) => {
       const stageChunks = watchScripts(page);
-      await page.goto("/?vibe=bold");
+      await page.goto("/home?vibe=bold");
       await expect(page.getByTestId("hero-shop")).toBeVisible();
       await expect(page.locator("[data-hero] [data-poster-list]:visible").first()).toBeVisible();
       await page.waitForTimeout(3500); // well past the idle + visibility checks
@@ -163,7 +163,7 @@ test.describe("progressive enhancement", () => {
     });
 
     test("poster tile clicks still report hero_tile_click (animated: false)", async ({ page }) => {
-      await page.goto("/?vibe=bold");
+      await page.goto("/home?vibe=bold");
       const link = page.locator("[data-poster-list] a[data-hero-tile]:visible").first();
       const slug = await link.getAttribute("data-hero-tile");
       await link.click();
@@ -183,7 +183,7 @@ test.describe("progressive enhancement", () => {
       });
     });
     const stageChunks = watchScripts(page);
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     await expect(page.getByTestId("hero-shop")).toBeVisible();
     await page.waitForTimeout(3500);
     await expect(page.locator("[data-hero-stage-inner]")).toHaveCount(0);
@@ -197,7 +197,7 @@ test.describe("progressive enhancement", () => {
       });
     });
     const stageChunks = watchScripts(page);
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     await page.waitForTimeout(3500);
     await expect(page.locator("[data-hero-stage-inner]")).toHaveCount(0);
     expect(await stageChunks()).toBe(0);
@@ -488,69 +488,110 @@ test.describe("every frame", () => {
 });
 
 test.describe("vibe switch", () => {
-  test("the new motion profile starts at the next scene boundary, not before", async ({
+  const tileNames = (page: Page) =>
+    page
+      .locator('[data-stage-tile]:not([aria-hidden="true"])')
+      .evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+
+  /** Click the hand and return the vibe the site switched to. */
+  async function clickHand(page: Page): Promise<string> {
+    const before = await page.locator("html").getAttribute("data-vibe");
+    await page.locator("button[data-vibe-hand]").first().click();
+    await page.waitForFunction((v) => document.documentElement.dataset.vibe !== v, before);
+    return (await page.locator("html").getAttribute("data-vibe"))!;
+  }
+
+  test("the new theme's animation starts within a dissolve of the click, from the top of its loop", async ({
     page,
     isMobile,
   }) => {
     test.skip(
       isMobile,
-      "the hand button is exercised on desktop; the boundary logic is viewport independent",
+      "the hand button is exercised on desktop; the switch logic is viewport independent",
     );
     await openHero(page, "cute");
-    await page.evaluate(() => (window as unknown as HeroWindow).__ifonliHero!.pause());
-    await seek(page, 2.5); // inside scene 3; the next boundary is 3.8
-    const tilesBefore = await page
-      .locator('[data-stage-tile]:not([aria-hidden="true"])')
-      .evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+    await page.mouse.move(700, 20);
+    const tilesBefore = await tileNames(page);
 
-    await page.locator("button[data-vibe-hand]").first().click();
-    await expect(page.locator("html")).toHaveAttribute("data-vibe", "bold");
-
+    const target = await clickHand(page);
+    await expect.poll(async () => (await state(page)).profile, { timeout: 1500 }).toBe(target);
     const s = await state(page);
-    expect(s.profile).toBe("cute"); // still the old profile mid-scene
-    expect(s.pending).toBe("bold");
-    expect(s.pendingBoundary).toBeCloseTo(3.8, 2);
-    const tilesMid = await page
-      .locator('[data-stage-tile]:not([aria-hidden="true"])')
-      .evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
-    expect(tilesMid).toEqual(tilesBefore); // products change with the profile, at the boundary
-
-    // Run: the switch lands at the boundary.
-    await page.evaluate(() => (window as unknown as HeroWindow).__ifonliHero!.play());
-    await expect.poll(async () => (await state(page)).profile, { timeout: 8000 }).toBe("bold");
-    const after = await state(page);
-    expect(after.pending).toBeNull();
-    expect(after.t).toBeGreaterThanOrEqual(3.8 - 0.05);
-    expect(after.t).toBeLessThan(6);
-    const tilesAfter = await page
-      .locator('[data-stage-tile]:not([aria-hidden="true"])')
-      .evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
-    expect(tilesAfter).not.toEqual(tilesBefore);
+    expect(s.t).toBeLessThan(1.2); // scene 1: the new profile's intro, not mid-loop
+    expect(await tileNames(page)).not.toEqual(tilesBefore);
+    await expect.poll(async () => (await state(page)).switching, { timeout: 2000 }).toBeNull();
+    const a = (await state(page)).t;
+    await page.waitForTimeout(500);
+    expect((await state(page)).t).toBeGreaterThan(a); // it plays
   });
 
-  test("a switch very near a boundary waits for the following one (the dissolve needs 300 ms)", async ({
+  test("a resting pointer over a tile never holds a switch up", async ({ page, isMobile }) => {
+    test.skip(isMobile, "hover is a pointer interaction");
+    await openHero(page, "cute");
+    const target = await clickHand(page);
+    await page.mouse.move(150, 330);
+    await page.mouse.move(152, 332);
+    await expect.poll(async () => (await state(page)).profile, { timeout: 1500 }).toBe(target);
+    await expect.poll(async () => (await state(page)).switching, { timeout: 2000 }).toBeNull();
+    const a = await state(page);
+    await page.waitForTimeout(800);
+    const b = await state(page);
+    expect(b.paused).not.toContain("hover"); // the pointer did not move: no stale hover pause
+    expect(b.t).toBeGreaterThan(a.t);
+  });
+
+  test("hover pauses on pointer movement over a tile and resumes when it leaves that tile", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, "hover is a pointer interaction");
+    await openHero(page, "cute");
+    const tile = page.locator('[data-stage-tile]:not([aria-hidden="true"])').first();
+    await page.evaluate(() => (window as unknown as HeroWindow).__ifonliHero!.seek(10.9));
+    await tile.hover();
+    await expect.poll(async () => (await state(page)).paused).toContain("hover");
+    await page.mouse.move(2, 2);
+    await expect.poll(async () => (await state(page)).paused).not.toContain("hover");
+  });
+
+  test("rapid switches coalesce and end on the last vibe, playing", async ({ page, isMobile }) => {
+    test.skip(isMobile, "desktop only");
+    await openHero(page, "cute");
+    await page.mouse.move(700, 20);
+    const targets: string[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      targets.push(await clickHand(page));
+      await page.waitForTimeout(300);
+    }
+    const last = targets[3]!;
+    await expect.poll(async () => (await state(page)).profile, { timeout: 4000 }).toBe(last);
+    await expect.poll(async () => (await state(page)).switching, { timeout: 4000 }).toBeNull();
+    expect(
+      await page
+        .locator("[data-stage-content]")
+        .evaluate((el) => (el as HTMLElement).style.opacity),
+    ).toBe("");
+    const a = (await state(page)).t;
+    await page.waitForTimeout(500);
+    expect((await state(page)).t).toBeGreaterThan(a);
+  });
+
+  test("a switch while the visitor has paused applies at once, stays paused, and Play resumes", async ({
     page,
     isMobile,
   }) => {
     test.skip(isMobile, "desktop only");
     await openHero(page, "cute");
-    await page.evaluate(() => (window as unknown as HeroWindow).__ifonliHero!.pause());
-    await seek(page, 3.7); // 0.1 s before the boundary at 3.8
-    await page.locator("button[data-vibe-hand]").first().click();
-    await expect(page.locator("html")).toHaveAttribute("data-vibe", "bold");
-    const s = await state(page);
-    expect(s.pending).toBe("bold");
-    expect(s.pendingBoundary).toBeCloseTo(4.8, 2);
-  });
-
-  test("a switch while the visitor has paused applies at once", async ({ page, isMobile }) => {
-    test.skip(isMobile, "desktop only");
-    await openHero(page, "cute");
     await page.locator("[data-stage-toggle]").click();
     expect((await state(page)).paused).toContain("user");
-    await page.locator("button[data-vibe-hand]").first().click();
-    await expect.poll(async () => (await state(page)).profile).toBe("bold");
-    expect((await state(page)).pending).toBeNull();
+    const target = await clickHand(page);
+    await expect.poll(async () => (await state(page)).profile).toBe(target);
+    const s = await state(page);
+    expect(s.pending).toBeNull();
+    expect(s.paused).toContain("user");
+    await page.waitForTimeout(400);
+    expect((await state(page)).t).toBeCloseTo(s.t, 2);
+    await page.locator("[data-stage-toggle]").click();
+    await expect.poll(async () => (await state(page)).t).not.toBeCloseTo(s.t, 1);
   });
 });
 
@@ -574,7 +615,7 @@ test.describe("accessibility", () => {
   test("axe finds no violations in the poster-only hero (reduced motion)", async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: "reduce" });
     const page = await context.newPage();
-    await page.goto("/?vibe=gothic");
+    await page.goto("/home?vibe=gothic");
     await expect(page.getByTestId("hero-shop")).toBeVisible();
     const results = await new AxeBuilder({ page }).include("[data-hero]").analyze();
     expect(results.violations.map((v) => v.id)).toEqual([]);
@@ -586,7 +627,7 @@ test.describe("dev storyboard", () => {
   test("/dev/hero renders ten frames per vibe from the timeline", async ({ page }) => {
     await page.goto("/dev/hero");
     await expect(page.getByRole("heading", { name: "Hero storyboard" })).toBeVisible();
-    for (const name of ["Cute", "Bold", "Overthinking", "Gothic", "Funky"]) {
+    for (const name of ["Mochi", "Chaos Cabinet", "Unapologetic", "After the Dark"]) {
       await page.getByRole("button", { name, exact: true }).click();
       await expect(page.locator("[data-testid^=frame-]")).toHaveCount(10);
       const frames = page.locator("[data-testid^=frame-]");

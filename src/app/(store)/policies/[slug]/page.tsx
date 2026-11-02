@@ -50,7 +50,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
 
   const title = policy?.title ?? fallbackTitle(slug);
   const crumbs: Crumb[] = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Policies", path: "/policies" },
     { name: title, path: `/policies/${slug}` },
   ];
@@ -83,7 +83,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
           <PolicyToc headings={policy.headings} />
           <article
             aria-label={title}
-            className="min-w-0 rounded-card border-token bg-surface p-5 shadow-card sm:p-8 lg:p-10"
+            className="min-w-0 rounded-card bg-surface p-5 shadow-card sm:p-8 lg:p-10"
           >
             <PolicyProse html={policy.html} />
           </article>

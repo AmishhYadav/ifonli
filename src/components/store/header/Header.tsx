@@ -1,24 +1,21 @@
-import Link from "next/link";
-
 import { HandButton } from "@/features/vibe/HandButton";
 import { SearchSheet, type SearchShortcut } from "@/features/search/SearchSheet";
-import { isVibe } from "@/features/vibe/config";
+import { isVibe, type Vibe } from "@/features/vibe/config";
 import { getCollections } from "@/server/cache/catalog";
 import { getVibeSettings } from "@/server/cache/settings";
 
 import { CartButton } from "./CartButton";
+import { HeaderOffset } from "./HeaderOffset";
 import { IconLink } from "./IconLink";
 import { Logo } from "./Logo";
-import { MobileMenu, type MenuLink } from "./MobileMenu";
-import { NavMenu } from "./NavMenu";
-import { VibeSwatchLink } from "./VibeSwatchLink";
-
-const navLinkClass =
-  "inline-flex min-h-11 items-center rounded-button px-3 text-base font-semibold text-ink hover:bg-surface-2";
+import type { MenuLink } from "./MobileMenu";
+import { MobileMenuLazy } from "./MobileMenuLazy";
+import { NavPills } from "./NavPills";
 
 /**
- * Storefront header. Top-left on every breakpoint: the hand button. Below `lg` the nav collapses into the
- * right-hand drawer: `[hand] [logo] ... [search] [cart] [menu]`.
+ * Storefront header, sticky and soft (translucent, a hairline underline, no hard edge). Row 1: the hand
+ * button and the wordmark on the left; search, account, wishlist and bag on the right (on a phone: search,
+ * bag, menu). Row 2: pills for the four vibes, the types and Shop all, with the current theme filled in (strong) and the current page tinted (soft).
  */
 export async function Header() {
   const [{ cycle }, collections] = await Promise.all([getVibeSettings(), getCollections()]);
@@ -42,57 +39,26 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur-sm">
-      <div className="mx-auto flex min-h-16 max-w-[1440px] items-center gap-2 px-4 sm:gap-3 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-hairline bg-bg/85 backdrop-blur">
+      <HeaderOffset />
+      <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-4 pt-2 sm:gap-3 sm:px-6">
         <HandButton cycle={cycle} className="header-hand" />
-        <Logo className="ml-1" />
+        <Logo tagline className="ml-1" />
 
-        <nav aria-label="Primary" className="ml-4 hidden items-center gap-1 lg:flex">
-          <Link href="/shop" className={navLinkClass}>
-            Shop
-          </Link>
-          <NavMenu label="Vibes" panelClassName="w-[min(30rem,90vw)]">
-            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {vibeLinks.map((link) => (
-                <li key={link.href}>
-                  <VibeSwatchLink href={link.href} vibe={link.vibe!} label={link.label} />
-                </li>
-              ))}
-              <li>
-                <Link
-                  href="/shop"
-                  className="flex min-h-14 items-center justify-center rounded-card border-token border-dashed px-3 text-base font-semibold text-ink hover:bg-surface-2"
-                >
-                  All vibes together
-                </Link>
-              </li>
-            </ul>
-          </NavMenu>
-          <NavMenu label="Types" panelClassName="w-72">
-            <ul className="flex flex-col">
-              {typeLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="flex min-h-11 items-center justify-between gap-3 rounded-input px-3 text-base font-semibold text-ink hover:bg-surface-2"
-                  >
-                    {link.label}
-                    <span className="text-sm font-normal text-ink-muted">{link.detail}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </NavMenu>
-        </nav>
-
-        <div className="ml-auto flex items-center">
+        <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
           <SearchSheet shortcuts={shortcuts} />
           <IconLink href="/account" icon="user" label="Account" className="hidden md:inline-flex" />
-          <IconLink href="/wishlist" icon="heart" label="Wishlist" className="hidden md:inline-flex" />
-          <CartButton />
-          <MobileMenu vibes={vibeLinks} types={typeLinks} className="lg:hidden" />
+          <IconLink href="/wishlist" icon="heart" label="Wishlist" flyTarget="wishlist" className="hidden md:inline-flex" />
+          <CartButton className="size-11 min-h-11 min-w-11 rounded-full px-0 [&_svg]:size-7" />
+          <MobileMenuLazy vibes={vibeLinks} types={typeLinks} className="md:hidden [&_svg]:size-7" />
         </div>
       </div>
+
+      <NavPills
+        vibes={vibes.map((v) => ({ href: `/vibes/${v.slug}`, label: v.name, vibe: v.slug as Vibe }))}
+        types={typeLinks.map(({ href, label }) => ({ href, label }))}
+        shop={{ href: "/shop", label: "Shop all" }}
+      />
     </header>
   );
 }

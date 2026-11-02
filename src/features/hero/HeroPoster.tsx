@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { VibeCopy } from "@/components/store/VibeCopy";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import type { Vibe } from "@/features/vibe/config";
 import { cn } from "@/lib/cn";
 import { getHeroTilesForAllVibes } from "@/server/cache/catalog";
@@ -82,7 +82,7 @@ function TileList({
           <li
             key={`${tile.productId}-${index}`}
             className={cn(
-              "hero-tile relative aspect-square border-token shadow-card ease-vibe",
+              "hero-tile relative aspect-square shadow-card ease-vibe",
               backingOf(index),
               shapeOf(index),
               tileVisibility(position),
@@ -136,7 +136,7 @@ function TileSet({ vibe, tiles }: { vibe: Vibe; tiles: HeroTile[] }) {
 /**
  * Static poster hero (plan section 9): product cutouts on vibe-coloured square/circle backings in a grid,
  * with the headline, sub-line and Shop button in a separate top layer that is never animated away.
- * All five vibes' tile sets are in the markup; CSS shows the active one. This is the server-rendered LCP
+ * All four vibes' tile sets are in the markup; CSS shows the active one. This is the server-rendered LCP
  * view, and the only view for reduced motion, save-data, slow connections and no JS.
  *
  * `HeroEnhancer` (a small client component) mounts into `#hero-stage-root` and, only when the hero is in the
@@ -175,7 +175,7 @@ export async function HeroPoster({ stage }: { stage?: ReactNode }) {
         {/* Text layer: always above the tiles, never animated away. */}
         <div
           data-hero-card=""
-          className="relative z-10 order-3 mt-1 rounded-card border-token bg-surface p-6 text-ink shadow-card sm:p-8 lg:col-start-2 lg:row-start-1 lg:mt-0 lg:p-10"
+          className="relative z-10 order-3 mt-1 rounded-card bg-[color-mix(in_srgb,var(--surface)_80%,transparent)] p-6 text-ink shadow-card backdrop-blur-md sm:p-8 lg:col-start-2 lg:row-start-1 lg:mt-0 lg:p-10"
         >
           <VibeCopy
             k="hero.headline"

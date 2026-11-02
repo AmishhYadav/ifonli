@@ -3,6 +3,7 @@
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 
+import { cardImageRef } from "@/components/store/card-image";
 import type { ResolvedImage } from "@/components/store/ProductCardView";
 import { getDb } from "@/server/db";
 import { limitByIp } from "@/server/security/action-limit";
@@ -43,15 +44,15 @@ export async function getWishlistItems(ids: string[]): Promise<WishlistItemsResu
     for (const id of parsed.data) {
       const product = byId.get(id);
       if (!product) continue;
+      const { ref, isCutout } = cardImageRef(product);
       let image: ResolvedImage | null = null;
-      if (product.image) {
+      if (ref) {
         try {
-          image = imageProps(product.image);
+          image = imageProps(ref);
         } catch (error) {
           console.error(`wishlist: unusable image for "${product.slug}"`, error);
         }
       }
-      const isCutout = Boolean(product.image && product.cutout && product.image.path === product.cutout.path);
       items.push({ product, image, isCutout });
     }
     return {

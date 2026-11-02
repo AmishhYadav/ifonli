@@ -33,7 +33,7 @@ export interface MotionProfile {
   /** Candle flicker of the glow layer: opacity amplitude (kept under 0.1) and rate in Hz (kept under 3). */
   flicker: { amp: number; hz: number };
   connector: ConnectorStyle;
-  /** Which token is the "dark" of the dark turn: `ink` on light vibes, `bg` on Gothic. */
+  /** Which token is the "dark" of the dark turn: `ink` on the light vibes, `bg` on the dark ones (Unapologetic, After the Dark). */
   veilDark: "ink" | "bg";
   /** Opacity the dark veil reaches in scene 4. */
   darkLevel: number;

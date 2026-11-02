@@ -2,18 +2,11 @@
 
 import { useId, useRef, useState } from "react";
 
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTrigger,
-  Field,
-  Icon,
-  Radio,
-  RadioGroup,
-  Textarea,
-} from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
+import { Field, Textarea } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
+import { Radio, RadioGroup } from "@/components/ui/Radio";
 import { prepareSupportPhotosAction, reportProblemAction } from "@/features/orders/actions";
 import {
   SUPPORT_DESCRIPTION_MAX,
@@ -201,7 +194,7 @@ export function ReportProblemDialog({
         ) : (
           <form id="report-problem-form" onSubmit={(e) => void submit(e)} noValidate className="flex flex-col gap-5">
             {windowEnded && claimWindowHours > 0 ? (
-              <p className="flex items-start gap-2 rounded-card border-token bg-surface-2 p-3 text-sm" data-testid="report-late-note">
+              <p className="flex items-start gap-2 rounded-card bg-surface-2 p-3 text-sm" data-testid="report-late-note">
                 <Icon name="info" className="mt-0.5 size-4 flex-none" />
                 It&apos;s been more than our usual {claimWindowHours} hours since delivery. Please tell us
                 anyway: we&apos;ll look at every report.
@@ -265,7 +258,7 @@ export function ReportProblemDialog({
                   disabled={busy || files.length >= SUPPORT_PHOTO_MAX}
                   aria-describedby={`${fileId}-hint`}
                   onChange={(e) => pickFiles(e.target.files)}
-                  className="min-h-11 w-full rounded-input border-token bg-surface px-3 py-2 text-base text-ink file:mr-3 file:min-h-9 file:rounded-button file:border-0 file:bg-surface-2 file:px-3 file:font-semibold file:text-ink"
+                  className="ui-control min-h-11 w-full rounded-input border-0 bg-field px-3 py-2 text-base text-ink file:mr-3 file:min-h-9 file:rounded-button file:border-0 file:bg-surface-2 file:px-3 file:font-semibold file:text-ink"
                 />
                 {files.length > 0 ? (
                   <ul className="flex flex-col gap-1" data-testid="report-files">

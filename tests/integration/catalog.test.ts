@@ -8,6 +8,7 @@ import {
   getCollections,
   getFeaturedForAllVibes,
   getHeroTilesForAllVibes,
+  getHomeFeaturedForAllVibes,
   getLiveAvailability,
   getProductBySlug,
   getRelatedProducts,
@@ -132,6 +133,23 @@ describe("listProducts", () => {
     await db().update(variants).set({ lowStockThreshold: 3 }).where(eq(variants.id, f.variants.cat!));
     const r3 = await listProducts(db(), {});
     expect(r3.items.find((i) => i.slug === "cat-sticker")!.lowStock).toBe(true);
+  });
+
+  it("quickAddVariantId: the only active variant when it has stock, else null", async () => {
+    const f = await seedCatalogFixture();
+    const bySlug = async () => Object.fromEntries((await listProducts(db(), {})).items.map((i) => [i.slug, i]));
+    const first = await bySlug();
+    expect(first["skull-charm"]!.quickAddVariantId).toBe(f.variants.skull);
+    expect(first["cat-sticker"]!.quickAddVariantId).toBe(f.variants.cat);
+    // Two active variants: the shopper has to choose on the product page.
+    expect(first["heart-charm"]!.quickAddVariantId).toBeNull();
+    // An active reservation that takes all stock sold the variant out; an expired one does not.
+    await reserve(f.variants.cat!, 3, 10);
+    await reserve(f.variants.ghost!, 20, -5);
+    const after = await bySlug();
+    expect(after["cat-sticker"]!.inStock).toBe(false);
+    expect(after["cat-sticker"]!.quickAddVariantId).toBeNull();
+    expect(after["ghost-sticker"]!.quickAddVariantId).toBe(f.variants.ghost);
   });
 
   it("a sold-out product is never lowStock", async () => {
@@ -397,6 +415,20 @@ describe("featured sets", () => {
     expect(sets.gothic!.map((c) => c.name)).toEqual(["Ghost Sticker", "Skull Charm"]);
     // other vibes still get the fallback
     expect(sets.cute).toHaveLength(2);
+  });
+});
+
+describe("home featured sets (own-vibe products first)", () => {
+  it("puts a vibe's own products before products only tagged with it, and keeps tagged ones as padding when it has few", async () => {
+    const f = await seedCatalogFixture();
+    // Skull Charm belongs to gothic (rank 0) and is only tagged bold (rank 2); Spiky Charm is bold's own.
+    await addSlot(f.vibes.bold, "home_featured", f.products["skull-charm"]!, 0); // curated, but not bold's own
+    const sets = await getHomeFeaturedForAllVibes(db(), 8);
+    expect(sets.bold!.map((c) => c.name)).toEqual(["Spiky Charm", "Skull Charm"]);
+    expect(sets.bold![0]!.primaryVibe).toBe("bold");
+    expect(sets.gothic!.map((c) => c.primaryVibe)).toEqual(["gothic", "gothic"]);
+    // The limit applies after ordering, so a tagged product never displaces an own one.
+    expect((await getHomeFeaturedForAllVibes(db(), 1)).bold!.map((c) => c.name)).toEqual(["Spiky Charm"]);
   });
 });
 

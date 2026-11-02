@@ -15,7 +15,11 @@ import {
   type Vibe,
 } from "./config";
 
-export type VibeSource = "hand" | "url" | "scope" | "init" | "api";
+/**
+ * Who changed the vibe: the hand, a nav pill / mobile-menu link (`nav`), arriving on a `/vibes/<slug>` page
+ * (`page`), a shared `?vibe=` link (`url`), a scope, the first-load restore (`init`) or code (`api`).
+ */
+export type VibeSource = "hand" | "nav" | "page" | "url" | "scope" | "init" | "api";
 
 export interface SetVibeOptions {
   source: VibeSource;
@@ -99,13 +103,46 @@ function announce(vibe: Vibe): void {
   if (region) region.textContent = `Vibe changed to ${VIBE_NAMES[vibe]}`;
 }
 
+/**
+ * While a switch runs, `html[data-vibe-switching]` turns every colour/background/border transition off (vibe.css), so
+ * each element, including ones the browser skips (content-visibility on the footer, off-screen subtrees), computes the
+ * new theme at once instead of starting a 0.32s transition that may never finish. Cleared two frames after the
+ * switch settles; a newer switch keeps it on until its own end.
+ */
+let switchToken = 0;
+function beginSwitch(settled: PromiseLike<unknown> | undefined): void {
+  const root = document.documentElement;
+  const token = ++switchToken;
+  root.setAttribute("data-vibe-switching", "");
+  const end = () => {
+    if (token !== switchToken) return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (token === switchToken) root.removeAttribute("data-vibe-switching");
+      }),
+    );
+  };
+  Promise.resolve(settled).then(end, end);
+}
+
+/**
+ * Content the browser skips (`below-fold` = content-visibility: auto) only resolves its style when it is first
+ * rendered, which would be after the switch ended and transitions are back on: it would then ease from the old
+ * theme's colours. Reading a computed style makes the browser resolve it now, while transitions are still off.
+ */
+function flushSkippedStyles(): void {
+  for (const el of document.querySelectorAll(".below-fold, .below-fold *")) void getComputedStyle(el).color;
+}
+
 /** Apply a vibe: attribute, theme-color, cookie, localStorage, URL, live region, change event. */
 export function setVibe(to: Vibe, options: SetVibeOptions): void {
   if (typeof document === "undefined") return;
   const from = getVibe();
   const startedAt = options.startedAt ?? performance.now();
 
+  if (from !== to) beginSwitch(options.settled);
   document.documentElement.dataset.vibe = to;
+  if (from !== to) flushSkippedStyles();
   updateThemeColor();
   persist(to);
   syncUrl(to);

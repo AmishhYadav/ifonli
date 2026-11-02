@@ -1,13 +1,26 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
-import { Button, Dialog, DialogContent, Icon, IconButton } from "@/components/ui";
+import { IconButton } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
 import { usePurchase } from "./PurchaseProvider";
-import { imageIndexForVariant, type PdpImage } from "./product-model";
+import { galleryOrder, imageIndexForVariant, type PdpImage } from "./product-model";
+
+const GalleryZoom = dynamic(() => import("./GalleryZoom").then((m) => m.GalleryZoom), { ssr: false });
+
+/** Static class names: the tile sits on the product's own vibe gradient (neutral when it has none). */
+const ART: Record<string, string> = {
+  cute: "art-cute",
+  funky: "art-funky",
+  bold: "art-bold",
+  gothic: "art-gothic",
+};
+const artClass = (vibe: string | null | undefined) => (vibe ? ART[vibe] : undefined) ?? "art-none";
 
 const reducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -29,22 +42,40 @@ function Picture({
       alt={image.alt}
       fill
       sizes={sizes}
-      priority={priority}
+      // The first slide is the LCP image: eager + high fetch priority (Next 16 deprecates `priority` for
+      // `preload`, but its docs steer responsive, multi-image cases to `loading` / `fetchPriority`).
+      loading={priority ? "eager" : undefined}
+      fetchPriority={priority ? "high" : undefined}
       className={cn(image.isCutout ? "object-contain p-[10%]" : "object-cover", className)}
     />
   );
 }
 
 /**
- * Product gallery: square slides in a scroll-snap strip (native touch swipe), previous / next buttons,
- * arrow keys on the strip, thumbnails, and a click-to-open zoom dialog. Every slide is the same square so
- * switching images never moves the page. A variant that has its own photo brings it into view.
+ * Product gallery: the cutout leads (on the product's vibe gradient), then the photos. Square slides in a
+ * scroll-snap strip (native touch swipe), previous / next buttons, arrow keys on the strip, thumbnails, and a
+ * click-to-open zoom dialog. Every slide is the same square so switching images never moves the page. A variant
+ * that has its own photo brings it into view.
  */
-export function Gallery({ images, productName }: { images: PdpImage[]; productName: string }) {
+export function Gallery({
+  images: imagesInBuildOrder,
+  productName,
+  primaryVibe,
+}: {
+  images: PdpImage[];
+  productName: string;
+  /** The product's main vibe: picks the tile's art gradient. */
+  primaryVibe?: string | null;
+}) {
+  const art = artClass(primaryVibe);
+  const images = useMemo(() => galleryOrder(imagesInBuildOrder), [imagesInBuildOrder]);
   const { variantId } = usePurchase();
   const strip = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
+  // The zoom dialog (and the dialog library behind it) is only downloaded once a photo has been opened.
+  const [zoomEver, setZoomEver] = useState(false);
+  if (zoomOpen && !zoomEver) setZoomEver(true);
   const [zoomed, setZoomed] = useState(false);
   const count = images.length;
 
@@ -96,7 +127,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
 
   if (count === 0) {
     return (
-      <div className="grid aspect-square w-full place-items-center rounded-card border-token bg-surface-2 text-ink-muted">
+      <div className={cn("grid aspect-square w-full place-items-center rounded-card text-ink-muted", art)}>
         <Icon name="image" className="size-16" />
         <span className="sr-only">No photo yet</span>
       </div>
@@ -105,7 +136,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
 
   const current = images[Math.min(index, count - 1)]!;
   const navButton =
-    "absolute top-1/2 z-10 -translate-y-1/2 border-token bg-surface/90 hover:bg-surface max-md:hidden";
+    "absolute top-1/2 z-10 -translate-y-1/2 bg-surface/80 shadow-card backdrop-blur-sm hover:bg-surface max-md:hidden";
 
   return (
     <section aria-label={`${productName} photos`} className="flex flex-col gap-3" data-testid="gallery">
@@ -118,7 +149,8 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
           tabIndex={0}
           onKeyDown={onKeyDown}
           className={cn(
-            "flex aspect-square w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card border-token bg-surface-2",
+            "flex aspect-square w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-card",
+            art,
             "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           )}
         >
@@ -128,6 +160,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
               role="group"
               aria-roledescription="slide"
               aria-label={`Photo ${i + 1} of ${count}`}
+              data-fly-source={i === Math.min(index, count - 1) ? "" : undefined}
               className="relative aspect-square w-full flex-none snap-center"
             >
               <button
@@ -166,7 +199,7 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
             />
             <p
               aria-hidden="true"
-              className="pointer-events-none absolute right-2 bottom-2 rounded-button border-token bg-surface px-2.5 py-0.5 text-sm font-semibold tabular-nums"
+              className="pointer-events-none absolute right-3 bottom-3 rounded-button bg-surface/80 px-3 py-0.5 text-sm font-semibold tabular-nums backdrop-blur-sm"
             >
               {Math.min(index, count - 1) + 1} / {count}
             </p>
@@ -179,15 +212,18 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
           {images.map((image, i) => {
             const active = i === Math.min(index, count - 1);
             return (
-              <li key={image.id}>
+              <li key={image.id} className="flex flex-col items-center gap-1.5">
+                {/* Selected = lifted (bigger, soft shadow, full strength) with a small pill under it: no hard ring,
+                    and the cue is shape and size as well as colour. */}
                 <button
                   type="button"
                   onClick={() => goTo(i)}
                   aria-label={`Show photo ${i + 1} of ${count}`}
                   aria-current={active ? "true" : undefined}
                   className={cn(
-                    "relative block size-16 overflow-hidden rounded-input border-token bg-surface-2 sm:size-[4.5rem]",
-                    active ? "shadow-button" : "opacity-70 hover:opacity-100",
+                    "relative block size-16 overflow-hidden rounded-input transition-[opacity,box-shadow,transform] ease-vibe sm:size-[4.5rem]",
+                    art,
+                    active ? "scale-105 opacity-100 shadow-card" : "opacity-60 hover:opacity-100",
                   )}
                 >
                   <Image
@@ -195,58 +231,46 @@ export function Gallery({ images, productName }: { images: PdpImage[]; productNa
                     alt=""
                     fill
                     sizes="72px"
+                    // Eager but low priority: the thumbnail shares its default `src` URL with the slide of the
+                    // same photo, and Next's dev LCP check keys on that URL, so a lazy thumbnail would make the
+                    // eager LCP slide look lazy to it. The thumbnails are tiny and sit right under the photo.
+                    loading="eager"
+                    fetchPriority="low"
                     className={image.isCutout ? "object-contain p-1.5" : "object-cover"}
                   />
                 </button>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "h-1 w-6 rounded-full bg-accent transition-opacity ease-vibe",
+                    active ? "opacity-100" : "opacity-0",
+                  )}
+                />
               </li>
             );
           })}
         </ul>
       ) : null}
 
-      <Dialog open={zoomOpen} onOpenChange={setZoomOpen}>
-        <DialogContent
+      {zoomEver ? (
+        <GalleryZoom
+          open={zoomOpen}
+          onOpenChange={setZoomOpen}
           title={`${productName}, photo ${Math.min(index, count - 1) + 1} of ${count}`}
-          hideTitle
-          className="max-w-[min(94vw,52rem)]"
-          onKeyDown={(event) => {
-            if (count < 2) return;
-            if (event.key === "ArrowRight") goTo(index + 1, "auto");
-            if (event.key === "ArrowLeft") goTo(index - 1, "auto");
-          }}
-          footer={
-            <>
-              <Button variant="secondary" onClick={() => setZoomed((z) => !z)} aria-pressed={zoomed}>
-                {zoomed ? "Zoom out" : "Zoom in"}
-              </Button>
-              {count > 1 ? (
-                <>
-                  <Button variant="secondary" iconStart="chevron-left" onClick={() => goTo(index - 1, "auto")}>
-                    Previous
-                  </Button>
-                  <Button variant="secondary" iconEnd="chevron-right" onClick={() => goTo(index + 1, "auto")}>
-                    Next
-                  </Button>
-                </>
-              ) : null}
-            </>
-          }
+          count={count}
+          zoomed={zoomed}
+          onToggleZoom={() => setZoomed((z) => !z)}
+          onPrevious={() => goTo(index - 1, "auto")}
+          onNext={() => goTo(index + 1, "auto")}
         >
           <div
-            tabIndex={0}
-            role="group"
-            aria-label="Photo, scroll to pan when zoomed in"
-            className="max-h-[65dvh] overflow-auto rounded-card border border-border bg-surface-2"
+            className={cn("relative aspect-square max-w-none transition-[width] ease-vibe", art)}
+            style={{ width: zoomed ? "200%" : "100%" }}
           >
-            <div
-              className="relative aspect-square max-w-none transition-[width] ease-vibe"
-              style={{ width: zoomed ? "200%" : "100%" }}
-            >
-              <Picture image={current} sizes="(min-width: 1024px) 1600px, 188vw" />
-            </div>
+            <Picture image={current} sizes="(min-width: 1024px) 1600px, 188vw" />
           </div>
-        </DialogContent>
-      </Dialog>
+        </GalleryZoom>
+      ) : null}
     </section>
   );
 }

@@ -282,7 +282,7 @@ function reconcile(
       out.notices.push({
         code: "removed_unavailable",
         variantId: item.variantId,
-        message: `${snap ? displayName(snap) : "An item"} is no longer available, so we removed it from your cart.`,
+        message: `${snap ? displayName(snap) : "An item"} is no longer available, so we removed it from your bag.`,
       });
       continue;
     }
@@ -292,7 +292,7 @@ function reconcile(
       out.notices.push({
         code: "removed_sold_out",
         variantId: item.variantId,
-        message: `${displayName(snap)} just sold out, so we removed it from your cart.`,
+        message: `${displayName(snap)} just sold out, so we removed it from your bag.`,
       });
       continue;
     }
@@ -512,7 +512,7 @@ export async function getCartState(
     if (c && !c.applied && c.rejectCode && !RECOVERABLE_COUPON.has(c.rejectCode)) {
       notices.push({
         code: "coupon_removed",
-        message: `${c.code} was removed from your cart. ${c.message ?? ""}`.trim(),
+        message: `${c.code} was removed from your bag. ${c.message ?? ""}`.trim(),
       });
       dropCoupon = true;
       couponCode = null;
@@ -629,7 +629,7 @@ async function setLineQty(
 ): Promise<CartMutation> {
   return db.transaction(async (tx) => {
     if (!(await touchCart(tx, cartId, now))) {
-      return fail("cart_not_found", "We couldn't find your cart. Please refresh the page.");
+      return fail("cart_not_found", "We couldn't find your bag. Please refresh the page.");
     }
     const snaps = await loadVariantSnapshots(tx, [variantId]);
     const snap = snaps.get(variantId);
@@ -695,7 +695,7 @@ export async function removeItem(
 ): Promise<CartMutation> {
   return db.transaction(async (tx) => {
     if (!(await touchCart(tx, cartId, now))) {
-      return fail("cart_not_found", "We couldn't find your cart. Please refresh the page.");
+      return fail("cart_not_found", "We couldn't find your bag. Please refresh the page.");
     }
     await tx
       .delete(cartItems)
@@ -718,12 +718,12 @@ export async function applyCoupon(
   const now = opts.now ?? new Date();
   return db.transaction(async (tx) => {
     const cart = await touchCart(tx, cartId, now);
-    if (!cart) return fail("cart_not_found", "We couldn't find your cart. Please refresh the page.");
+    if (!cart) return fail("cart_not_found", "We couldn't find your bag. Please refresh the page.");
     const settings = await loadCommerceSettings(tx);
     const rec = await loadReconciliation(tx, cartId, settings, now);
     const lines = rec.lines.map((l) => toCartLine(l.snap, l.qty, settings));
     if (lines.length === 0) {
-      return fail("coupon", "Add something to your cart first, then apply your code.", "no_eligible_items");
+      return fail("coupon", "Add something to your bag first, then apply your code.", "no_eligible_items");
     }
     const check = await validateCoupon(tx, code, lines, opts.email, {
       now,
@@ -742,7 +742,7 @@ export async function removeCoupon(
 ): Promise<CartMutation> {
   return db.transaction(async (tx) => {
     if (!(await touchCart(tx, cartId, now))) {
-      return fail("cart_not_found", "We couldn't find your cart. Please refresh the page.");
+      return fail("cart_not_found", "We couldn't find your bag. Please refresh the page.");
     }
     await tx.update(carts).set({ couponCode: null }).where(eq(carts.id, cartId));
     return { ok: true, notices: [] } satisfies CartMutation;

@@ -196,7 +196,7 @@ async function readAmounts(page: Page) {
 test.describe("checkout form", () => {
   test("an empty cart shows an empty state, not the form", async ({ page }) => {
     await page.goto("/checkout");
-    await expect(page.getByRole("heading", { name: "Your cart is empty" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your bag is empty" })).toBeVisible();
     await expect(page.getByTestId("checkout-form")).toHaveCount(0);
   });
 

@@ -11,7 +11,7 @@ import {
 } from "@/components/store/listing/params";
 
 const known: KnownValues = {
-  vibes: ["cute", "bold", "overthinking", "gothic", "funky"],
+  vibes: ["cute", "funky", "bold", "gothic"],
   types: ["charms", "hippers", "3d-stickers", "diy-accessories"],
   madeIn: ["India", "Nepal"],
 };

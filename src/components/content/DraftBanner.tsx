@@ -1,4 +1,4 @@
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 
 /**
  * Review-mode banner (development and dev-pages builds): the owner can read the page but must not
@@ -18,7 +18,7 @@ export function DraftBanner({
       role="note"
       aria-label="Draft status"
       data-testid="draft-banner"
-      className="flex flex-col gap-3 rounded-card border-token border-warning bg-surface p-4 text-ink sm:p-5"
+      className="flex flex-col gap-3 rounded-card bg-[color-mix(in_srgb,var(--warning)_10%,var(--surface))] p-4 text-ink sm:p-5"
     >
       <p className="flex items-start gap-2 text-lg font-bold">
         <Icon name="alert-circle" className="mt-1 size-5 flex-none text-warning" />

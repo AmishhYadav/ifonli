@@ -6,11 +6,10 @@
  *   - no luminance change is faster than 200 ms (cross-dissolves only, never a hard cut);
  *   - no more than four luminance transitions start in any one second (a flash is a pair of opposing
  *     transitions, so that is at most two flashes against the limit of three), counting the loop wrap and
- *     the worst case of a profile switch at every boundary the spacing rule allows;
+ *     the worst case of a visitor flipping vibes as fast as the switch spacing allows;
  *   - the Gothic candle flicker stays under a 10 percent opacity swing and 3 Hz.
  */
 import {
-  BOUNDARIES,
   LOOP_DURATION,
   MIN_DISSOLVE,
   MIN_SWITCH_SPACING,
@@ -63,26 +62,26 @@ export function luminanceEvents(profile: MotionProfile): LuminanceEvent[] {
 }
 
 /**
- * Greedy worst case of profile switches: one at every boundary that the spacing rule allows, each adding
- * a fade-out ending at the boundary and a fade-in starting at it.
+ * Worst case of vibe switches: a dissolve out and back in every `MIN_SWITCH_SPACING` seconds (wall clock) for a
+ * whole loop, the fastest the Director allows. A switch also restarts the loop at t = 0, so the scene luminance
+ * changes (the first is `FIRST_SCENE_LUMINANCE`) never overlap a burst of switches; that is checked separately.
  */
 export function worstCaseSwitchEvents(): LuminanceEvent[] {
   const events: LuminanceEvent[] = [];
-  let last = -Infinity;
-  for (const b of BOUNDARIES) {
-    if (b - last < MIN_SWITCH_SPACING - 1e-9 || b - PROFILE_FADE < 0) continue;
-    // The wrap boundary is the loop end: its fade-in lands at the start of the next loop.
+  for (let k = 0, at = 0; at < LOOP_DURATION; k += 1, at = k * MIN_SWITCH_SPACING) {
+    events.push({ label: `switch-out@${at}`, at, duration: PROFILE_FADE, delta: 1 });
     events.push({
-      label: `switch-out@${b}`,
-      at: b - PROFILE_FADE,
+      label: `switch-in@${at}`,
+      at: at + PROFILE_FADE,
       duration: PROFILE_FADE,
-      delta: 0.5,
+      delta: 1,
     });
-    events.push({ label: `switch-in@${b}`, at: b, duration: PROFILE_FADE, delta: 0.5 });
-    last = b;
   }
   return events;
 }
+
+/** Loop time of the first scene luminance change after a restart (scene 4, dark turn). */
+export const FIRST_SCENE_LUMINANCE: number = sceneStart(LUMI.darkIn.scene) + LUMI.darkIn.at;
 
 /** Most transitions that start inside any window of `windowSec` seconds, counting the wrap-around. */
 export function maxStartsInWindow(
@@ -117,10 +116,14 @@ export function checkEvents(tag: string, events: readonly LuminanceEvent[]): str
 
 /** Violations (empty = safe) for one motion profile. */
 export function checkFlashSafety(profile: MotionProfile): string[] {
-  const problems = checkEvents(profile.vibe, [
-    ...luminanceEvents(profile),
-    ...worstCaseSwitchEvents(),
-  ]);
+  const problems = [
+    ...checkEvents(profile.vibe, luminanceEvents(profile)),
+    ...checkEvents(`${profile.vibe} (switching)`, worstCaseSwitchEvents()),
+  ];
+  // The loop restarts on every switch and plays slower than the wall clock, so the scene changes start well after
+  // a burst of switches has ended. They must stay clear of it by at least one second.
+  if (FIRST_SCENE_LUMINANCE < 1)
+    problems.push(`${profile.vibe}: scene luminance too close to a restart`);
   if (profile.flicker.amp >= MAX_FLICKER_AMP) {
     problems.push(
       `${profile.vibe}: flicker swing ${profile.flicker.amp} is not under ${MAX_FLICKER_AMP}`,

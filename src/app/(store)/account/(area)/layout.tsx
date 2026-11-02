@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { Skeleton } from "@/components/ui";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { getOptionalCustomer } from "@/server/auth/session";
 
 import { AccountNav } from "./AccountNav";

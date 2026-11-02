@@ -19,7 +19,7 @@ import { createdAt, paise, pk, timestamps, tsvector } from "./_common";
 export const productStatusEnum = pgEnum("product_status", ["draft", "active", "archived"]);
 export const imageKindEnum = pgEnum("image_kind", ["photo", "cutout"]);
 
-/** The five moods ("vibes"): Cute, Bold, Overthinking, Gothic, Funky. */
+/** The four moods ("vibes"): Mochi (cute), Chaos Cabinet (funky), Unapologetic (bold), After the Dark (gothic). Slugs stay the old ones. */
 export const vibes = pgTable("vibes", {
   id: pk(),
   slug: text("slug").notNull().unique(),

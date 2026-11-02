@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 import { Toaster } from "@/components/admin/ui";
 
+import "@/styles/admin.css";
+
 /**
  * The admin is session-gated and fully dynamic, so it is exempt from instant-navigation validation
  * (a static shell would only ever be a spinner). The storefront routes keep validating.

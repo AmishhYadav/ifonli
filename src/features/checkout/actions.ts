@@ -64,7 +64,7 @@ export async function getCheckoutQuote(input: {
     if (!row) {
       return {
         ok: false,
-        error: { code: "cart_not_found", message: "Your cart is empty. Add something first." },
+        error: { code: "cart_not_found", message: "Your bag is empty. Add something first." },
       };
     }
     const quote = await buildCheckoutQuote(db, row.id, {
@@ -147,7 +147,7 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
     if (!cartToken) {
       return {
         ok: false,
-        error: { code: "cart_not_found", message: "Your cart is empty. Add something first." },
+        error: { code: "cart_not_found", message: "Your bag is empty. Add something first." },
       };
     }
 

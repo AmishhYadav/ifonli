@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { AnalyticsFooterLink } from "@/features/analytics/AnalyticsMount";
 import { getCollections } from "@/server/cache/catalog";
 import { getStoreInfo } from "@/server/cache/settings";
@@ -21,12 +21,12 @@ export const POLICY_LINKS = [
 ] as const;
 
 const linkClass =
-  "inline-flex min-h-11 items-center text-base text-ink underline-offset-4 hover:underline md:min-h-9";
+  "inline-flex min-h-11 items-center text-base text-ink-muted transition-colors ease-vibe hover:text-ink md:min-h-9";
 
 function Column({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-2 font-display text-lg">{title}</h2>
+      <h2 className="mb-3 font-label text-sm">{title}</h2>
       {children}
     </section>
   );
@@ -37,12 +37,12 @@ export async function Footer() {
   const officer = info.grievance;
 
   return (
-    <footer className="mt-20 border-t border-border bg-surface text-ink">
-      <div className="mx-auto grid max-w-[1440px] gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.4fr]">
+    <footer className="mt-20 rounded-t-card bg-surface text-ink below-fold [--cv-h:30rem]">
+      <div className="mx-auto grid max-w-[1440px] gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.4fr]">
         <div className="flex flex-col gap-3">
           <Logo className="self-start" />
           <p className="max-w-xs text-base text-ink-muted">
-            Charms, Hippers, 3D stickers and DIY kits in five moods. Made in India.
+            Charms, Hippers, 3D stickers and DIY kits in four moods. Made in India.
           </p>
           <ul className="flex flex-wrap gap-x-4">
             {collections.vibes.map((v) => (
@@ -134,7 +134,7 @@ export async function Footer() {
           </address>
         </Column>
       </div>
-      <div className="border-t border-border">
+      <div className="border-t border-hairline">
         <p className="mx-auto max-w-[1440px] px-4 py-5 text-sm text-ink-muted sm:px-6">
           All prices are in Indian rupees and include all taxes. &copy; {info.brandName}{" "}
           <AnalyticsFooterLink className="ml-2 inline-flex min-h-11 items-center text-ink underline underline-offset-4 hover:no-underline md:min-h-9" />

@@ -38,7 +38,7 @@ export async function generateMetadata({
     title: textOr(type.seoTitle, `${type.name} in every vibe`),
     description: textOr(
       type.seoDesc,
-      `Shop IfOnli ${type.name}: cute, bold, overthinking, gothic and funky, all in one place.`,
+      `Shop IfOnli ${type.name}: Mochi, Chaos Cabinet, Unapologetic and After the Dark, all in one place.`,
     ),
     alternates: { canonical: `/types/${type.slug}` },
   };
@@ -55,7 +55,7 @@ export default async function TypePage({
   if (!type) notFound();
 
   const crumbs: Crumb[] = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Shop", path: "/shop" },
     { name: type.name, path: `/types/${type.slug}` },
   ];
@@ -65,7 +65,7 @@ export default async function TypePage({
       <CollectionHeader
         crumbs={crumbs}
         title={type.name}
-        description={textOr(type.definition, `${type.name} in all five vibes.`)}
+        description={textOr(type.definition, `${type.name} in all four vibes.`)}
       />
       <Suspense fallback={<ListingSkeleton />}>
         <ListingSection

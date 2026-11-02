@@ -15,7 +15,7 @@ describe("resolveVibeSettings", () => {
     });
   });
 
-  it("drops unknown slugs and duplicates; an empty or invalid cycle becomes all five vibes", () => {
+  it("drops unknown slugs and duplicates; an empty or invalid cycle becomes all four vibes", () => {
     expect(resolve(["bold", "nope", "bold"], "bold").cycle).toEqual(["bold"]);
     expect(resolve([], "cute").cycle).toEqual([...DEFAULT_VIBE_CYCLE]);
     expect(resolve("cute", "cute").cycle).toEqual([...DEFAULT_VIBE_CYCLE]);

@@ -4,16 +4,11 @@ import { useActionState, useEffect, useRef, useState } from "react";
 
 import { formatDateRange, formatDateTime } from "@/components/orders/format";
 import { OrderTimeline } from "@/components/orders/OrderTimeline";
-import {
-  Badge,
-  Button,
-  Card,
-  CardTitle,
-  Field,
-  Icon,
-  Input,
-  type BadgeTone,
-} from "@/components/ui";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardTitle } from "@/components/ui/Card";
+import { Field, Input } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
 import { formatINR } from "@/lib/money";
 
 import { trackOrder } from "./actions";
@@ -122,7 +117,7 @@ export function TrackForm() {
       <form
         action={action}
         noValidate
-        className="flex flex-col gap-4 rounded-card border-token bg-surface p-4 shadow-card sm:p-5"
+        className="flex flex-col gap-4 rounded-card bg-surface p-4 shadow-card sm:p-5"
       >
         <Field label="Order reference" required error={state.fieldErrors?.ref}>
           <Input
@@ -171,7 +166,7 @@ export function TrackForm() {
         {state.status === "not_found" ||
         state.status === "rate_limited" ||
         state.status === "error" ? (
-          <p className="flex items-start gap-2 rounded-card border-token border-danger bg-surface p-4 text-base font-semibold text-danger">
+          <p className="flex items-start gap-2 rounded-card bg-[color-mix(in_srgb,var(--danger)_10%,var(--surface))] p-4 text-base font-semibold text-danger">
             <Icon name="alert-circle" className="mt-0.5 size-5 flex-none" />
             {state.message}
           </p>
@@ -180,7 +175,7 @@ export function TrackForm() {
         {state.status === "found" && order ? (
           <div className="flex flex-col gap-5">
             <header className="flex flex-col gap-2">
-              <h2 className="font-display text-2xl leading-tight">
+              <h2 className="buy-display text-2xl leading-tight">
                 Order <span data-testid="track-ref">{order.ref}</span>
               </h2>
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1">

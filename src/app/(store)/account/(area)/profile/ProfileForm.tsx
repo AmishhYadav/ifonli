@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-import { Button, Checkbox, Field, Icon, Input, useToast } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Field, Input } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
+import { useToast } from "@/components/ui/Toast";
 import { profileSchema } from "@/features/account/schema";
 import { fieldErrorsOf } from "@/features/account/schema";
 

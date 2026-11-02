@@ -154,6 +154,7 @@ async function check(page: Page, label: string) {
 
 const PUBLIC_PAGES = [
   "/",
+  "/home",
   "/shop",
   "/vibes/gothic",
   "/types/charms",

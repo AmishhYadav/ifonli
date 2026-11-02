@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
-import { Slot } from "radix-ui";
+import * as Slot from "radix-ui/slot";
 import * as React from "react";
 
 import { cn } from "./cn";

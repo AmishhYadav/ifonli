@@ -61,7 +61,7 @@ async function CheckoutContent() {
 export default function CheckoutPage() {
   return (
     <>
-      <h1 className="mb-6 font-display text-4xl leading-tight">Checkout</h1>
+      <h1 className="buy-display buy-display-fx mb-6 text-4xl leading-tight">Checkout</h1>
       <Suspense fallback={<CheckoutSkeleton />}>
         <CheckoutContent />
       </Suspense>

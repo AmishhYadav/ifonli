@@ -7,7 +7,7 @@ import { expect, test, type Page } from "@playwright/test";
  *   E2E_BASE_URL=http://localhost:3100 pnpm exec playwright test styleguide
  */
 
-const VIBES = ["cute", "bold", "overthinking", "gothic", "funky"] as const;
+const VIBES = ["cute", "funky", "bold", "gothic"] as const;
 const col = (page: Page, name: string) => page.getByTestId(`col-${name}`);
 
 test.beforeEach(async ({ page }) => {
@@ -30,13 +30,11 @@ test("renders every vibe column plus a buy-scope column", async ({ page }) => {
   await expect(sold.getByRole("link")).toHaveAttribute("href", /\/products\//);
 });
 
-test("Buy scope resets shape: pill buttons in Cute, base radius in the buy column", async ({ page }) => {
-  const radius = (name: string) =>
-    col(page, name)
-      .getByRole("button", { name: "Primary" })
-      .evaluate((el) => getComputedStyle(el).borderTopLeftRadius);
-  expect(await radius("cute")).not.toBe(await radius("buy"));
-  expect(await radius("buy")).toBe("8px");
+test("Buy scope resets shape: Mochi's 20px cards, the base 16px in the buy column", async ({ page }) => {
+  const cardRadius = (name: string) =>
+    col(page, name).evaluate((el) => getComputedStyle(el).getPropertyValue("--radius-card").trim());
+  expect(await cardRadius("cute")).toBe("20px");
+  expect(await cardRadius("buy")).toBe("16px");
 });
 
 test("buttons and steppers meet the 44px touch target", async ({ page }) => {
@@ -98,7 +96,7 @@ test("buy-scope dialog keeps the buy scope", async ({ page }) => {
 });
 
 test("drawer traps focus, locks scroll and closes with Escape", async ({ page }) => {
-  const trigger = col(page, "gothic").getByRole("button", { name: "Open cart drawer" });
+  const trigger = col(page, "gothic").getByRole("button", { name: "Open bag drawer" });
   await trigger.click();
   const drawer = page.getByRole("dialog", { name: "Your bag" });
   await expect(drawer).toBeVisible();
@@ -138,18 +136,18 @@ test("toast is announced in a polite live region, has an action and auto-dismiss
   const region = page.getByRole("region", { name: "Notifications" });
   const live = region.getByRole("status");
   await expect(live).toHaveAttribute("aria-live", "polite");
-  await col(page, "cute").getByRole("button", { name: "Added-to-cart toast" }).click();
-  await expect(live).toContainText("Added to cart");
-  await expect(live.getByRole("link", { name: "View cart" })).toBeVisible();
+  await col(page, "cute").getByRole("button", { name: "Added-to-bag toast" }).click();
+  await expect(live).toContainText("Added to bag");
+  await expect(live.getByRole("link", { name: "View bag" })).toBeVisible();
   // duration is 2.5s in the demo
-  await expect(live).not.toContainText("Added to cart", { timeout: 6000 });
+  await expect(live).not.toContainText("Added to bag", { timeout: 6000 });
 });
 
 test("toast pauses while hovered", async ({ page, isMobile }) => {
   test.skip(isMobile, "hover is a pointer-only interaction");
   const live = page.getByRole("region", { name: "Notifications" }).getByRole("status");
-  await col(page, "cute").getByRole("button", { name: "Added-to-cart toast" }).click();
-  const toast = live.getByText("Added to cart");
+  await col(page, "cute").getByRole("button", { name: "Added-to-bag toast" }).click();
+  const toast = live.getByText("Added to bag");
   await expect(toast).toBeVisible();
   await toast.hover();
   await page.waitForTimeout(3500);
@@ -180,7 +178,7 @@ test("no serious or critical accessibility violations", async ({ page }) => {
 });
 
 test("no serious or critical violations with a dialog open", async ({ page }) => {
-  await col(page, "overthinking").getByRole("button", { name: "Open dialog" }).click();
+  await col(page, "funky").getByRole("button", { name: "Open dialog" }).click();
   await expect(page.getByRole("dialog", { name: "Notify me" })).toBeVisible();
   const results = await new AxeBuilder({ page }).analyze();
   const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");

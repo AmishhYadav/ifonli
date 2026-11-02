@@ -1,6 +1,6 @@
 /**
  * Hero loop schedule (plan section 9): ten scenes, 12 s. Pure data and arithmetic, no DOM and no GSAP,
- * so scene boundaries, the profile switch rule and the storyboard timestamps are unit-tested.
+ * so scene boundaries, the switch timing constants and the storyboard timestamps are unit-tested.
  */
 
 export interface SceneDef {
@@ -46,6 +46,16 @@ export function sceneEnd(id: number): number {
   return ms(sceneStart(id) + (SCENES[id - 1]?.duration ?? 0));
 }
 
+/**
+ * Playback speed of the live hero relative to the schedule above (owner feedback: the centre animation played
+ * too fast). The Director applies it with `timeline.timeScale()`, so one loop takes `LOOP_DURATION / HERO_TIME_SCALE`
+ * seconds on the wall clock (15 s at 0.8). Everything in this file, the storyboard, `__ifonliHero.seek()` and the
+ * visual tests stay in loop time: `totalTime()` is not affected by the scale. Keep it at or below 1: a slower
+ * timeline only lengthens every dissolve, so the WCAG 2.3.1 guard in `flash.ts` (which reasons in loop time) can
+ * only get safer, never worse.
+ */
+export const HERO_TIME_SCALE = 0.8;
+
 /** Wrap any time into [0, LOOP_DURATION). */
 export function wrapTime(t: number): number {
   const m = t % LOOP_DURATION;
@@ -79,46 +89,21 @@ export function sceneAt(t: number): SceneAt {
 /** Loop times of every scene boundary after scene 1, including the wrap back to scene 1 (= LOOP_DURATION). */
 export const BOUNDARIES: readonly number[] = [...SCENE_STARTS.slice(1), LOOP_DURATION];
 
-/** Dissolve length used when the motion profile changes. */
+/**
+ * A vibe switch dissolves the stage out, swaps the profile and tiles, restarts the loop and dissolves back in.
+ * Each half takes this long, in WALL-CLOCK seconds (a plain GSAP tween, not the loop timeline, so a paused loop
+ * can never hold a switch up).
+ */
 export const PROFILE_FADE = 0.3;
 /** WCAG 2.3.1 guard: no luminance change is ever faster than this. */
 export const MIN_DISSOLVE = 0.2;
 
-/** Next boundary strictly after `t`, as an absolute time on an unrolled (repeating) timeline. */
-export function nextBoundaryAfter(t: number): number {
-  const time = wrapTime(t);
-  const cycle = ms(t - time);
-  for (const b of BOUNDARIES) {
-    if (b > time + 1e-9) return ms(cycle + b);
-  }
-  return ms(cycle + LOOP_DURATION);
-}
-
 /**
- * Boundary at which a pending profile switch takes effect: the next scene boundary, unless it is closer
- * than the dissolve (the outgoing fade needs at least `fade` seconds), in which case the one after it.
+ * Wall-clock seconds between the starts of two switch dissolves. One switch is an out and an in (two transitions),
+ * so this keeps rapid theme flipping to at most three transitions per second, under the guard in `flash.ts`.
+ * Requests that arrive sooner are coalesced: the stage ends on the latest vibe.
  */
-export function profileSwitchBoundary(
-  t: number,
-  fade: number = PROFILE_FADE,
-  earliest: number = -Infinity,
-): number {
-  let b = nextBoundaryAfter(t);
-  while (b - t < fade - 1e-9 || b < earliest - 1e-9) b = nextBoundaryAfter(b);
-  return b;
-}
-
-/** Two profile dissolves are never closer than this (keeps the dissolves under 3 per second). */
-export const MIN_SWITCH_SPACING = 1;
-
-/** Opacity of the stage content around a profile switch at `boundary`: out over `fade`, in over `fade`. */
-export function dissolveOpacity(t: number, boundary: number, fade: number = PROFILE_FADE): number {
-  const x = t - boundary;
-  if (x <= -fade) return 1;
-  if (x >= fade) return 1;
-  const k = Math.abs(x) / fade; // 1 at the edges, 0 at the boundary
-  return k * k * (3 - 2 * k);
-}
+export const MIN_SWITCH_SPACING = 0.75;
 
 /** Loop time at which the animation starts: the settled rest frame of scene 9, identical to the static poster. */
 export const REST_TIME: number = ms(sceneEnd(9) - 0.3);

@@ -9,6 +9,7 @@ import { ReturnNote } from "@/components/store/cart/ReturnNote";
 import { JsonLd } from "@/components/store/JsonLd";
 import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
 import { buildPdpImages, buildPdpModel } from "@/components/store/pdp/build-model";
+import { BackButton } from "@/components/store/pdp/BackButton";
 import { DeliveryEstimate } from "@/components/store/pdp/DeliveryEstimate";
 import { Description } from "@/components/store/pdp/Description";
 import { Gallery } from "@/components/store/pdp/Gallery";
@@ -18,7 +19,7 @@ import { markdownToPlainText } from "@/components/store/pdp/markdown";
 import { PurchaseProvider } from "@/components/store/pdp/PurchaseProvider";
 import { StockFallback } from "@/components/store/pdp/StockControls";
 import { VariantPicker } from "@/components/store/pdp/VariantPicker";
-import { VibeChip } from "@/components/ui";
+import { VibeChip } from "@/components/ui/Chip";
 import { PdpTracker } from "@/features/analytics";
 import { isVibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
@@ -110,7 +111,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const images = buildPdpImages(product);
 
   const crumbs: Crumb[] = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Shop", path: "/shop" },
     { name: product.type.name, path: `/types/${product.type.slug}` },
     { name: product.name, path: `/products/${product.slug}` },
@@ -122,11 +123,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
       <PdpTracker productId={product.id} />
       <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-4 sm:px-6">
-        <Breadcrumbs crumbs={crumbs} />
+        <BackButton fallbackHref={`/types/${product.type.slug}`} />
+        <div className="mt-1">
+          <Breadcrumbs crumbs={crumbs} />
+        </div>
         <PurchaseProvider model={model}>
           <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-14">
-            <div className="lg:sticky lg:top-24 lg:self-start">
-              <Gallery images={images} productName={product.name} />
+            <div className="lg:sticky lg:top-[calc(var(--header-h,7.5rem)+1rem)] lg:self-start">
+              <Gallery images={images} productName={product.name} primaryVibe={product.primaryVibe} />
             </div>
 
             <div className="flex min-w-0 flex-col gap-5">

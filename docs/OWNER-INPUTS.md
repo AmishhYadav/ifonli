@@ -68,4 +68,4 @@ Each setting has a placeholder and a launch gate. The owner supplies the real va
 - [ ] Pincode directory is the data.gov.in May-2019 snapshot (+40 newer pincodes). Download a fresh official extract (needs a data.gov.in login) and re-run `pnpm db:import-reference` before launch if coverage of post-2019 pincodes matters. (Phase 8)
 - [ ] GST state code for the merged UT "Dadra and Nagar Haveli and Daman and Diu" is set to `26`; the GST portal still lists 25 and 26 separately. Confirm with CA before invoices go live. (Phase 5)
 - [ ] Delivery zones in `data/reference/zones.json` are a placeholder grouping; confirm per courier/actual delivery times. (Phase 4)
-- [ ] Display fonts are proposals (Fredoka, Archivo, Kalam, Grenze Gotisch, Shrikhand; body Figtree, all SIL OFL). Replace with brand typography if IfOnli has its own. (Phase 2)
+- [ ] Display fonts are proposals (Fredoka, Rubik Glitch, Bebas Neue, Creepster; body Nunito, all SIL OFL). Replace with brand typography if IfOnli has its own. (Phase 2)

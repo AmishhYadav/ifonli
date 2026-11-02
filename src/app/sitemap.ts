@@ -15,7 +15,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getPolicyIndex(),
   ]);
   return [
-    { url: absoluteUrl("/"), changeFrequency: "daily", priority: 1 },
+    { url: absoluteUrl("/"), changeFrequency: "weekly", priority: 1 },
+    { url: absoluteUrl("/home"), changeFrequency: "daily", priority: 0.9 },
     { url: absoluteUrl("/shop"), changeFrequency: "daily", priority: 0.9 },
     ...collections.vibes.map((v) => ({
       url: absoluteUrl(`/vibes/${v.slug}`),

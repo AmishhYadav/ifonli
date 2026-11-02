@@ -2,11 +2,11 @@
    Only the font a rendered element actually uses is downloaded; display fonts are per vibe. */
 
 @font-face {
-  font-family: "Figtree";
+  font-family: "Nunito";
   font-style: normal;
   font-weight: 400 800;
   font-display: swap;
-  src: url("/fonts/figtree-wght400-800-latin.woff2") format("woff2");
+  src: url("/fonts/nunito-wght400-800-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -25,45 +25,33 @@
 }
 
 @font-face {
-  font-family: "Archivo";
-  font-style: normal;
-  font-weight: 900;
-  font-stretch: 125%;
-  font-display: swap;
-  src: url("/fonts/archivo-wdth125-wght900-latin.woff2") format("woff2");
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Kalam";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/kalam-wght700-latin.woff2") format("woff2");
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Grenze Gotisch";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/grenze-gotisch-wght700-latin.woff2") format("woff2");
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Shrikhand";
+  font-family: "Rubik Glitch";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/shrikhand-wght400-latin.woff2") format("woff2");
+  src: url("/fonts/rubik-glitch-wght400-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Bebas Neue";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/bebas-neue-wght400-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Creepster";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/creepster-wght400-latin.woff2") format("woff2");
   unicode-range:
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -72,11 +60,11 @@
 /* Metric-matched fallbacks (Arial based) so the swap from fallback to web font causes no layout shift. */
 
 @font-face {
-  font-family: "Figtree Fallback";
+  font-family: "Nunito Fallback";
   src: local("Arial"), local("ArialMT"), local("Helvetica");
-  size-adjust: 102.61%;
-  ascent-override: 92.58%;
-  descent-override: 24.36%;
+  size-adjust: 101.92%;
+  ascent-override: 99.19%;
+  descent-override: 34.63%;
   line-gap-override: 0%;
 }
 
@@ -90,41 +78,32 @@
 }
 
 @font-face {
-  font-family: "Archivo Fallback";
+  font-family: "Rubik Glitch Fallback";
   src: local("Arial"), local("ArialMT"), local("Helvetica");
-  size-adjust: 146.51%;
-  ascent-override: 59.93%;
-  descent-override: 14.33%;
+  size-adjust: 84.19%;
+  ascent-override: 111.06%;
+  descent-override: 29.7%;
   line-gap-override: 0%;
 }
 
 @font-face {
-  font-family: "Kalam Fallback";
+  font-family: "Bebas Neue Fallback";
   src: local("Arial"), local("ArialMT"), local("Helvetica");
-  size-adjust: 102.67%;
-  ascent-override: 103.54%;
-  descent-override: 51.72%;
+  size-adjust: 128.91%;
+  ascent-override: 69.82%;
+  descent-override: 23.27%;
   line-gap-override: 0%;
 }
 
 @font-face {
-  font-family: "Grenze Gotisch Fallback";
+  font-family: "Creepster Fallback";
   src: local("Arial"), local("ArialMT"), local("Helvetica");
-  size-adjust: 85.18%;
-  ascent-override: 129.14%;
-  descent-override: 44.61%;
-  line-gap-override: 0%;
-}
-
-@font-face {
-  font-family: "Shrikhand Fallback";
-  src: local("Arial"), local("ArialMT"), local("Helvetica");
-  size-adjust: 120.84%;
-  ascent-override: 84.9%;
-  descent-override: 35.75%;
+  size-adjust: 109.03%;
+  ascent-override: 87.24%;
+  descent-override: 19.97%;
   line-gap-override: 0%;
 }
 
 :root {
-  --font-body: "Figtree", "Figtree Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Nunito", "Nunito Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
 }

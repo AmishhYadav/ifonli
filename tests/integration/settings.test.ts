@@ -37,10 +37,9 @@ describe("settings service", () => {
     expect(await getSetting("guest_checkout_enabled")).toBe(true);
     expect(await getSetting("vibe_cycle")).toEqual([
       "cute",
-      "bold",
-      "overthinking",
       "gothic",
       "funky",
+      "bold",
     ]);
     expect(await getSetting("gstin")).toBeNull();
   });

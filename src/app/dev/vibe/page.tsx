@@ -40,7 +40,7 @@ export default function VibePlaygroundPage() {
           </a>
         ))}
         <a href="/dev/vibe/other">Another page</a>
-        <Link href="/">Home (client navigation)</Link>
+        <Link href="/home">Home (client navigation)</Link>
       </nav>
 
       <section aria-labelledby="active" className="flex flex-col gap-4">
@@ -55,7 +55,7 @@ export default function VibePlaygroundPage() {
 
       <section aria-labelledby="strip" className="flex flex-col gap-4">
         <h2 id="strip" className="font-display text-2xl">
-          All five side by side (VibeScope)
+          All four side by side (VibeScope)
         </h2>
         <div
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"

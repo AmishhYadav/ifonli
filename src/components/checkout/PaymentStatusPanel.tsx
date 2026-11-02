@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 
-import { Button, Icon, Spinner } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { Spinner } from "@/components/ui/Spinner";
 
 import type { PaymentPhase } from "./usePayment";
 
@@ -18,7 +20,7 @@ export interface PaymentStatusPanelProps {
 /** Reasons come from the payment provider and may lack a full stop. */
 const sentence = (text: string) => (/[.!?]$/.test(text.trim()) ? text.trim() : `${text.trim()}.`);
 
-const box = "flex flex-col gap-3 rounded-card border-token p-4";
+const box = "flex flex-col gap-3 rounded-card p-4 shadow-card";
 
 /**
  * What the customer sees around the payment popup: progress, "Payment not completed - Retry", "We're
@@ -98,7 +100,7 @@ export function PaymentStatusPanel({
             <p className="text-base">{phase.message}</p>
             <div>
               <Button asChild>
-                <Link href="/cart">Review your cart</Link>
+                <Link href="/cart">Review your bag</Link>
               </Button>
             </div>
           </div>

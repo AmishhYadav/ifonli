@@ -4,27 +4,29 @@
 @import "../styles/tokens/base.css";
 @import "../styles/tokens/cute.css";
 @import "../styles/tokens/bold.css";
-@import "../styles/tokens/overthinking.css";
 @import "../styles/tokens/gothic.css";
 @import "../styles/tokens/funky.css";
 /* buy.css must come after every vibe file (see scripts/build-tokens.ts). */
 @import "../styles/tokens/buy.css";
 @import "../styles/vibe.css";
 @import "../styles/ui.css";
-@import "../styles/admin.css";
 
 /* Colour tokens become Tailwind utilities: bg-bg, bg-surface, text-ink, border-border, ring-focus-ring ... */
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-field: var(--field);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-accent-2: var(--accent-2);
   --color-accent-3: var(--accent-3);
+  /* border-border = form-control outlines only (>= 3:1). border-hairline = dividers, card edges, header underline. */
   --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-hand: var(--hand);
   --color-focus-ring: var(--focus-ring);
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -58,10 +60,37 @@
 @utility border-token {
   border-style: solid;
   border-width: var(--border-w);
+  /* The >= 3:1 form-control outline (Field, Checkbox, Radio). Cards and dividers use border-hairline instead. */
   border-color: var(--border);
+}
+/*
+ * Product art tiles. Keyed by the PRODUCT's vibe, not the active theme (the stops are global custom properties on
+ * :root, see tokens/base.css): put art-<primaryVibe> on the image tile. art-none is the neutral tile.
+ */
+@utility art-cute {
+  background: linear-gradient(160deg, var(--art-cute-a), var(--art-cute-b));
+}
+@utility art-funky {
+  background: linear-gradient(160deg, var(--art-funky-a), var(--art-funky-b));
+}
+@utility art-bold {
+  background: linear-gradient(160deg, var(--art-bold-a), var(--art-bold-b));
+}
+@utility art-gothic {
+  background: linear-gradient(160deg, var(--art-gothic-a), var(--art-gothic-b));
+}
+@utility art-none {
+  background: linear-gradient(160deg, var(--surface-2), var(--surface));
 }
 @utility font-body {
   font-family: var(--font-body);
+}
+/* Small labels (under ~18px): the body font, bold, spaced caps. Display fonts (Creepster, Rubik Glitch) fall apart that small. */
+@utility font-label {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 /* Display font + its weight, tracking and stretch travel together. */
 @utility font-display {
@@ -74,12 +103,27 @@
 @utility display-fx {
   filter: var(--display-filter);
 }
+/*
+ * Below-the-fold content: the browser skips style, layout and paint (and the fonts, textures and images that only
+ * that content uses) until it is near the viewport. `auto` remembers the real height after the first render, so
+ * scrolling back shifts nothing; `--cv-h` is the guess used before that. Paint containment would clip card shadows
+ * and glows at the box, so `overflow-clip-margin` widens the clip; engines without it (Safari) keep rendering
+ * everything, as before.
+ */
+@utility below-fold {
+  @supports (overflow-clip-margin: 1px) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto var(--cv-h, 600px);
+    overflow-clip-margin: 2.5rem;
+  }
+}
 @utility ease-vibe {
   transition-timing-function: var(--motion-ease);
   transition-duration: var(--motion-dur);
 }
 
-/* Admin panel colours (variables live in styles/admin.css under [data-admin]): bg-admin-surface, text-admin-ink ... */
+/* Admin panel colours: bg-admin-surface, text-admin-ink ... The variables and [data-admin] rules live in styles/admin.css,
+   which only the admin layout imports (storefront pages never download it). */
 @theme inline {
   --color-admin-bg: var(--admin-bg);
   --color-admin-surface: var(--admin-surface);

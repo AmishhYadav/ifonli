@@ -1,6 +1,6 @@
 "use client";
 
-import { Slot } from "radix-ui";
+import * as Slot from "radix-ui/slot";
 import type { ButtonHTMLAttributes, MouseEvent, Ref } from "react";
 
 import { cn } from "@/lib/cn";

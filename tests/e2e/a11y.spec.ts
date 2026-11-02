@@ -17,7 +17,7 @@ import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock"
 
 /**
  * WCAG 2.2 AA scan (axe-core, tags wcag2a/2aa/21a/21aa/22aa, every impact level) of every storefront page
- * type in all five vibes, the customer account, and the admin pages.
+ * type in all four vibes, the customer account, and the admin pages.
  *
  * Needs the dev stack: a migrated + seeded database (`pnpm db:seed`, `db:seed-products`, `db:seed-content`)
  * and a running server (`next dev` or `next start`):
@@ -79,7 +79,7 @@ async function expectClean(page: Page, label: string, opts?: Parameters<typeof a
 }
 
 const PUBLIC_PAGES: { name: string; path: string }[] = [
-  { name: "home", path: "/" },
+  { name: "home", path: "/home" },
   { name: "shop", path: "/shop" },
   { name: "vibe collection", path: "/vibes/gothic" },
   { name: "type collection", path: "/types/charms" },
@@ -147,7 +147,7 @@ test.describe("storefront, every vibe", () => {
   test("open cart drawer in every vibe", async ({ page, context, baseURL }) => {
     await seedCart(context, baseURL!);
     for (const vibe of VIBES) {
-      await gotoVibe(page, "/", vibe);
+      await gotoVibe(page, "/home", vibe);
       await settle(page);
       await page.locator('[data-testid="cart-button"]:visible').click();
       const drawer = page.getByRole("dialog").first();
@@ -201,7 +201,7 @@ test.describe("open overlays", () => {
     browser,
   }) => {
     for (const vibe of ["cute", "gothic"] as const) {
-      await gotoVibe(page, "/", vibe);
+      await gotoVibe(page, "/home", vibe);
       await settle(page);
       await page
         .getByRole("button", { name: /Search/ })
@@ -219,7 +219,7 @@ test.describe("open overlays", () => {
       isMobile: true,
     });
     const m = await phone.newPage();
-    await gotoVibe(m, "/", "funky");
+    await gotoVibe(m, "/home", "funky");
     await settle(m);
     await m.getByRole("button", { name: "Open menu" }).click();
     await expect(m.getByRole("dialog", { name: "Menu" })).toBeVisible();

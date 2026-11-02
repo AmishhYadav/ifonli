@@ -11,7 +11,12 @@ over the poster cells without moving anything (no layout shift), then replaces t
 
 - `prefers-reduced-motion` is not `reduce` (and if it becomes `reduce` later the stage unmounts and the poster returns);
 - `navigator.connection.saveData` is false and `effectiveType` is not `slow-2g` or `2g` (`stage/eligibility.ts`);
-- the hero is in the viewport (IntersectionObserver), then after `requestIdleCallback` (300 ms timeout fallback on Safari).
+- the device is not low-end (`isLowEnd`: 2 GB of memory or less, or 4 cores or fewer together with 4 GB or less; browsers
+  that do not report these, such as Safari and Firefox, are never treated as low-end);
+- the hero is in the viewport (IntersectionObserver), the page has loaded, and the visitor has either interacted
+  (pointer, key, touch, wheel, scroll) or `SETTLE_MS` (2.5 s) has passed; then `requestIdleCallback` (300 ms timeout
+  fallback on Safari). The stage starts on the poster's rest frame, so the late hand-over is invisible, and the first
+  seconds (hydration, first taps) keep the main thread to themselves.
 
 The admin setting `hero_enabled` (Settings > Vibes, default on) is checked first, on the server: when it is off
 `HeroPoster` does not mount `HeroEnhancer` at all, so the poster is the whole hero, the stage chunk is never
@@ -31,7 +36,7 @@ was considered and rejected: the timeline needs seek (storyboard, tests), per-sc
 | `src/features/hero/HeroEnhancer.tsx`                     | Lazy-load conditions, `hero_impression`, poster tile clicks                                             |
 | `src/features/hero/stageTiles.ts`                        | Server: per-vibe tile data (slug, name, `getImageProps` URL) for the stage                              |
 | `src/features/hero/stage/schedule.ts`                    | The 10 scenes, 12 s loop, boundaries, profile-switch rule, dissolve curve, storyboard/sample timestamps |
-| `src/features/hero/stage/profiles/{vibe}.ts`             | The five motion profiles                                                                                |
+| `src/features/hero/stage/profiles/{vibe}.ts`             | The four motion profiles                                                                                |
 | `src/features/hero/stage/scenes/scene01..10.ts`          | Scene modules, each builds its tweens into the master timeline                                          |
 | `src/features/hero/stage/timeline.ts`                    | Builds the one parameterised GSAP timeline (baseline state, scenes, ambient flicker/wobble)             |
 | `src/features/hero/stage/poses.ts`, `geometry.ts`        | Pure layout maths: poses per scene, stage geometry, poster cells, swirl                                 |
@@ -62,13 +67,20 @@ visual jump. Every tween is a `fromTo` between two known values (the end pose of
 `k + 1` by construction), so any playhead position renders exactly. The 10 scene modules and the profile are the only
 things that vary: colours always come from the active vibe's tokens (decision C-05).
 
+### Playback speed
+
+The schedule above is in loop time. The live stage plays it at `HERO_TIME_SCALE` (`schedule.ts`, currently 0.8), applied
+with `timeline.timeScale()` in the Director on every (re)build, so one loop takes 15 s on the wall clock. `totalTime()`,
+`__ifonliHero.seek()`, the scene boundaries, the dissolve curve and the storyboard are unaffected (they use loop time).
+Keep the scale at or below 1: a slower timeline only lengthens each dissolve, so `flash.ts` stays valid. Wall-clock things
+(label fade, hero impression timer, idle load) are independent of it.
+
 ## Motion profiles (`profiles/{vibe}.ts`)
 
 | Vibe         | Personality                                                                 |
 | ------------ | --------------------------------------------------------------------------- |
-| Cute         | `back.out` / `elastic.out`, springy pops, curved connectors                 |
-| Bold         | `expo` glides and `steps()` snaps, square-cornered connectors, dark 0.9     |
-| Overthinking | `hesitate()` ease (stops to reconsider twice), DrawSVG scribble connectors  |
+| Cute (Mochi) | `back.out` / `elastic.out`, springy pops, curved connectors                 |
+| Bold         | `expo` glides and `steps()` snaps, square-cornered connectors, dark 0.9 (the veil is `bg`: this theme is dark) |
 | Gothic       | slow `sine`, fade through black, candle-glow flicker (amplitude 0.07, 2 Hz) |
 | Funky        | wavy detours, wobbling products (7 deg), 70s wave connectors, elastic       |
 
@@ -97,7 +109,7 @@ the new profile at the same playhead and swaps the tiles, and the content dissol
   `sine.inOut`, never stepped or elastic); at most 4 luminance transitions start in any second (a flash is two, so this
   is at most 2 flashes against the limit of 3), including the loop wrap and the worst case of a profile switch at every
   allowed boundary; the Gothic flicker is an opacity swing of 0.07 (limit 0.1) at 2 Hz (limit 3). Unit and e2e tests
-  prove it for all five profiles.
+  prove it for all four profiles.
 - **Performance**: only transforms and opacity are animated (plus `stroke-dashoffset` on a few small DrawSVG paths).
   `will-change` is set only while running (`[data-running="true"]`). DOM tiles: 56 (wide) or 36 (stacked), never over
   60; fewer products than tiles repeat in order (as the poster does). Images are the 384 px `next/image` URL, 12 per

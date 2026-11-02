@@ -1,8 +1,11 @@
 import Link from "next/link";
 
-import { Button, EmptyState, VibeChip } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { VibeChip } from "@/components/ui/Chip";
 import { VIBES } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
+import { cn } from "@/lib/cn";
 import { getCollections, getFeaturedForAllVibes } from "@/server/cache/catalog";
 
 import { ProductCard } from "../ProductCard";
@@ -13,20 +16,29 @@ const SUGGESTION_COUNT = 4;
 
 /**
  * Search with nothing to show. `none`: themed "no results" copy (the whole point of the five voices) with
- * ways forward: vibe chips, type links and popular products per vibe (all five rendered, CSS shows the
+ * ways forward: vibe chips, type links and popular products per vibe (all four rendered, CSS shows the
  * active one). `prompt`: an empty query.
  */
 export async function NoResults({
   variant,
   q,
+  embedded = false,
 }: {
   variant: "none" | "prompt";
   q?: string;
+  /** Inside the listing grid (beside the filters): no page container of its own, so it lines up with the grid. */
+  embedded?: boolean;
 }) {
   const [{ types }, featured] = await Promise.all([getCollections(), getFeaturedForAllVibes(8)]);
 
   return (
-    <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-4 py-6 sm:px-6" data-testid="search-empty">
+    <div
+      className={cn(
+        "flex flex-col gap-10",
+        embedded ? "" : "mx-auto max-w-[1440px] px-4 py-6 sm:px-6",
+      )}
+      data-testid="search-empty"
+    >
       <EmptyState
         icon="search"
         headingLevel="h2"
@@ -54,7 +66,7 @@ export async function NoResults({
       </EmptyState>
 
       <section aria-label="Browse by vibe">
-        <ul className="flex flex-wrap justify-center gap-3">
+        <ul className="flex flex-wrap gap-3">
           {VIBES.map((v) => (
             <li key={v}>
               <VibeChip vibe={v} href={`/vibes/${v}`} />
@@ -64,7 +76,7 @@ export async function NoResults({
             <li key={t.slug}>
               <Link
                 href={`/types/${t.slug}`}
-                className="inline-flex min-h-11 items-center rounded-button border-token bg-surface px-4 font-semibold text-ink"
+                className="inline-flex min-h-11 items-center rounded-button bg-surface-2 px-4 font-semibold text-ink transition-colors ease-vibe hover:bg-[color-mix(in_srgb,var(--surface-2),var(--ink)_9%)]"
               >
                 {t.name}
               </Link>

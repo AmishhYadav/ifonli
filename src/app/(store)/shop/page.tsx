@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 const CRUMBS: Crumb[] = [
-  { name: "Home", path: "/" },
+  { name: "Home", path: "/home" },
   { name: "Shop", path: "/shop" },
 ];
 
@@ -27,7 +27,7 @@ export default function ShopPage({ searchParams }: { searchParams: Promise<RawSe
       <CollectionHeader
         crumbs={CRUMBS}
         title="Shop everything"
-        description="All five vibes, all four types. Filter to find your thing."
+        description="All four vibes, all four types. Filter to find your thing."
       />
       <Suspense fallback={<ListingSkeleton />}>
         <ListingSection basePath="/shop" searchParams={searchParams} />

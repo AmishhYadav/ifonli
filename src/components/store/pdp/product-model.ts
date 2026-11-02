@@ -168,6 +168,15 @@ export function selectedValueName(
   return option.values.find((v) => current.optionValueIds.includes(v.id))?.value ?? null;
 }
 
+/**
+ * Gallery order: the transparent cutout leads (it sits on the product's vibe gradient, so it reads the same in
+ * every theme), then the photos, whose baked-in backgrounds can clash with a dark theme. Stable within each
+ * group, so the admin's own order is kept. A product with no cutout keeps its order untouched.
+ */
+export function galleryOrder<T extends { isCutout: boolean }>(images: readonly T[]): T[] {
+  return [...images.filter((i) => i.isCutout), ...images.filter((i) => !i.isCutout)];
+}
+
 /** The slide to show for a variant: its own image if it has one, else null (keep the current slide). */
 export function imageIndexForVariant(images: readonly PdpImage[], variantId: string | null): number | null {
   if (!variantId) return null;

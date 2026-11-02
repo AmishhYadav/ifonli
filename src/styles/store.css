@@ -3,14 +3,12 @@
  * Values come from tokens; nothing here knows a vibe by name.
  */
 
-/* Below 640px the hand button is icon-only (its aria-label still names the current and next vibe). */
-@media (max-width: 639px) {
-  .header-hand {
-    padding-inline: 0.5rem;
-  }
-  .header-hand > span[data-v]:not(:has(> .vibe-hand)) {
-    display: none !important;
-  }
+/*
+ * In-page links (#vibes, the policy contents, ...) land their target below the sticky header. HeaderOffset measures
+ * the header into --header-h; the rem value is the no-JS / pre-measure fallback (about the tallest header).
+ */
+html {
+  scroll-padding-top: calc(var(--header-h, 7.5rem) + 1rem);
 }
 
 /* Hero poster tiles lift on hover/focus; the lift is a no-op under reduced motion (vibe.css). */
@@ -20,4 +18,13 @@
 .hero-tile:hover,
 .hero-tile:has(a:focus-visible) {
   transform: translateY(-4px) rotate(var(--tile-tilt, 0deg));
+}
+
+/*
+ * The animated hero stage may overshoot the hero by its 24px clip margin while tiles fly in and out. On a phone that
+ * overshoot would widen the page by a few pixels (a sideways scrollbar that flickers with the animation), so the hero
+ * clips on the x axis. `clip` (unlike `hidden`) does not make the section a scroll container.
+ */
+[data-hero] {
+  overflow-x: clip;
 }

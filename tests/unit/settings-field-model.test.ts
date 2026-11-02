@@ -141,10 +141,9 @@ describe("settings form model", () => {
     expect(cycle.ordered).toBe(true);
     expect(cycle.options.map((o) => o.value)).toEqual([
       "cute",
-      "bold",
-      "overthinking",
-      "gothic",
       "funky",
+      "bold",
+      "gothic",
     ]);
     const def = nodeForSetting("default_vibe") as Extract<Node, { kind: "enum" }>;
     expect(def.options.map((o) => o.value)).toContain("random");

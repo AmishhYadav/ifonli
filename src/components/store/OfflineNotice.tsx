@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 
 function subscribe(onChange: () => void): () => void {
   window.addEventListener("online", onChange);
@@ -29,7 +29,7 @@ export function OfflineNotice() {
       {online ? null : (
         <p
           data-testid="offline-notice"
-          className="inline-flex max-w-full items-center gap-2 rounded-button border-token bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-card"
+          className="inline-flex max-w-full items-center gap-2 rounded-button bg-surface px-4 py-2 text-sm font-semibold text-ink shadow-card"
         >
           <Icon name="alert-circle" className="size-4 flex-none" />
           You&apos;re offline. Some things won&apos;t work until you&apos;re back online.

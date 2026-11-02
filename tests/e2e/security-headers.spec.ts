@@ -57,6 +57,7 @@ const fakeIp = () =>
 
 const ROUTES = [
   "/",
+  "/home",
   "/shop",
   `/products/${PRODUCT}`,
   "/cart",
@@ -202,7 +203,7 @@ test.describe("security: endpoints", () => {
 test.describe("security: no violations in a real browser", () => {
   test("home page with the hero running, vibe cycling and the search sheet", async ({ page }) => {
     const violations = await trackViolations(page);
-    await page.goto("/?vibe=cute");
+    await page.goto("/home?vibe=cute");
     await settle(page);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     // Let the hero timeline run for a while (GSAP sets inline styles all the time).
@@ -235,7 +236,7 @@ test.describe("security: no violations in a real browser", () => {
       .click()
       .catch(() => {});
     await page.getByTestId("add-to-cart").click();
-    await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
 
     await page.goto("/cart");
     await settle(page);
@@ -364,7 +365,7 @@ test.describe("security: dev mock payment dialog", () => {
     await page.goto(`/products/${PRODUCT}`);
     await settle(page);
     await page.getByTestId("add-to-cart").click();
-    await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
     await page.goto("/checkout");
     await expect(page.getByTestId("review")).toHaveAttribute("aria-busy", "false", {
       timeout: 30_000,

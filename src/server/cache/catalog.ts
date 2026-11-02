@@ -100,6 +100,18 @@ export async function getFeaturedForAllVibes(
   return sets;
 }
 
+/** Home sections: each vibe's own products only (see the service), one cached read for all four. */
+export async function getHomeFeaturedForAllVibes(
+  limitPerVibe = 8,
+): Promise<Record<string, ProductCard[]>> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_TAG, CONTENT_TAG, SETTINGS_TAG); // settings: the cards' low-stock flag
+  const sets = await catalog.getHomeFeaturedForAllVibes(getDb(), limitPerVibe);
+  cacheTag(...stockTagsFor(Object.values(sets).flatMap((cards) => cards.map((c) => c.id))));
+  return sets;
+}
+
 export async function getHeroTilesForAllVibes(limit = 14): Promise<Record<string, HeroTile[]>> {
   "use cache";
   cacheLife("hours");

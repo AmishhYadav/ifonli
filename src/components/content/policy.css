@@ -1,6 +1,6 @@
 /*
  * Long-form text (policies, FAQ answers). Reading comes first: ~70ch measure, generous leading, solid
- * contrast. The vibe shows through tokens only (display font on headings, border, accent, radii).
+ * contrast. The vibe shows through tokens only (display font on headings, accent, radii).
  */
 .policy-prose {
   max-width: 70ch;
@@ -19,13 +19,12 @@
   font-weight: var(--display-weight);
   letter-spacing: var(--display-tracking);
   line-height: 1.2;
-  scroll-margin-top: 6rem;
   text-wrap: balance;
 }
 .policy-prose h2 {
   margin-top: 2.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: var(--border-w) solid var(--border);
+  border-bottom: 1px solid var(--hairline);
   font-size: 1.625rem;
 }
 .policy-prose h3 {
@@ -34,6 +33,10 @@
 }
 .policy-prose h4 {
   margin-top: 1.5rem;
+  /* Under 18px: the body font (display fonts like Creepster do not hold up that small). */
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0;
   font-size: 1.0625rem;
 }
 .policy-prose > :first-child {
@@ -66,9 +69,8 @@
   text-decoration-thickness: 2px;
 }
 .policy-prose blockquote {
-  padding: 0.75rem 1rem;
-  border-left: 0.25rem solid var(--accent);
-  border-radius: var(--radius-input);
+  padding: 0.875rem 1.125rem;
+  border-radius: var(--radius-card);
   background: var(--surface-2);
   font-size: 1rem;
 }
@@ -78,19 +80,20 @@
 .policy-prose hr {
   margin-block: 2rem;
   border: 0;
-  border-top: var(--border-w) solid var(--border);
+  border-top: 1px solid var(--hairline);
 }
 .policy-prose table {
   display: block;
   max-width: 100%;
   overflow-x: auto;
   border-collapse: collapse;
+  border-radius: var(--radius-input);
   font-size: 1rem;
 }
 .policy-prose th,
 .policy-prose td {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--hairline);
   text-align: left;
   vertical-align: top;
 }

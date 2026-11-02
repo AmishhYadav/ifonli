@@ -2,28 +2,28 @@ import Link from "next/link";
 
 import { ProductCard, ProductGrid, ProductGridItem } from "@/components/store";
 import { VibeCopy } from "@/components/store/VibeCopy";
-import { Icon } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
 import { VIBE_NAMES, type Vibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
-import { getFeaturedForAllVibes } from "@/server/cache/catalog";
+import { getHomeFeaturedForAllVibes } from "@/server/cache/catalog";
 import { getVibeSettings } from "@/server/cache/settings";
 
 const FEATURED_SIZES = "(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 46vw";
 
 /**
- * "Featured for your vibe": all five sets (default vibe first in the DOM), CSS shows the active one, so a
+ * "Featured for your vibe": all four sets (default vibe first in the DOM), CSS shows the active one, so a
  * hand-button switch swaps products without any network request. Images are lazy, so only the visible set loads.
  */
 export async function FeaturedForVibe() {
   const [sets, { cycle, defaultVibe }] = await Promise.all([
-    getFeaturedForAllVibes(8),
+    getHomeFeaturedForAllVibes(8),
     getVibeSettings(),
   ]);
   const first = defaultVibe === "random" ? cycle[0] : defaultVibe;
   const order = [first, ...cycle.filter((v) => v !== first)].filter((v): v is Vibe => Boolean(v));
 
   return (
-    <section aria-label="Featured products" className="mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
+    <section aria-label="Featured products" className="below-fold mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <VibeCopy k="home.featuredTitle" as="h2" className="font-display text-3xl display-fx sm:text-4xl" />
         <div>

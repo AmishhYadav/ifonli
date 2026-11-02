@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { endAccountWishlist } from "@/features/wishlist/account-sync";
 
@@ -34,7 +34,7 @@ export function AccountNav() {
   }
 
   return (
-    <nav aria-label="Account" className="flex flex-wrap items-center gap-x-1 gap-y-1 border-b border-border pb-3">
+    <nav aria-label="Account" className="flex flex-wrap items-center gap-x-1 gap-y-1 border-b border-hairline pb-3">
       {LINKS.map((link) => {
         const active = "exact" in link ? pathname === link.href : pathname === link.href || pathname.startsWith(`${link.href}/`);
         return (

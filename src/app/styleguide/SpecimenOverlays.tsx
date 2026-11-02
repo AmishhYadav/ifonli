@@ -2,21 +2,12 @@
 
 import { useState } from "react";
 
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogTrigger,
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerTrigger,
-  Field,
-  Input,
-  QuantityStepper,
-  useToast,
-} from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/Dialog";
+import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from "@/components/ui/Drawer";
+import { Field, Input } from "@/components/ui/Field";
+import { QuantityStepper } from "@/components/ui/QuantityStepper";
+import { useToast } from "@/components/ui/Toast";
 import { formatINR } from "@/lib/money";
 
 /** Interactive overlay demos for one column. Overlays copy the vibe / Buy scope of the column they open from. */
@@ -57,7 +48,7 @@ export function SpecimenOverlays() {
       <Drawer>
         <DrawerTrigger asChild>
           <Button variant="secondary" size="sm" iconStart="bag">
-            Open cart drawer
+            Open bag drawer
           </Button>
         </DrawerTrigger>
         <DrawerContent
@@ -115,15 +106,15 @@ export function SpecimenOverlays() {
         iconStart="check"
         onClick={() =>
           toast({
-            title: "Added to cart",
+            title: "Added to bag",
             description: "Heart charm, qty 1",
             tone: "success",
-            action: { label: "View cart", href: "#top" },
+            action: { label: "View bag", href: "#top" },
             duration: 2500,
           })
         }
       >
-        Added-to-cart toast
+        Added-to-bag toast
       </Button>
       <Button
         variant="ghost"

@@ -2,7 +2,9 @@
 
 import { useId, useState, useTransition } from "react";
 
-import { Button, Icon, Input } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
+import { Input } from "@/components/ui/Field";
 import { formatINR } from "@/lib/money";
 
 import { checkDelivery, type DeliveryCheck } from "./delivery-action";
@@ -37,7 +39,7 @@ export function DeliveryEstimate() {
 
   return (
     <section aria-labelledby={`${inputId}-title`} className="flex flex-col gap-2" data-testid="delivery-estimate">
-      <h2 id={`${inputId}-title`} className="flex items-center gap-2 text-base font-bold">
+      <h2 id={`${inputId}-title`} className="flex items-center gap-2 font-body text-base font-bold tracking-wide uppercase">
         <Icon name="truck" className="size-5" />
         Delivery estimate
       </h2>

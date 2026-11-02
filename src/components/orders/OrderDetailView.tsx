@@ -1,14 +1,9 @@
 import Link from "next/link";
 
 import { accountLoginUrl } from "@/features/account/redirect";
-import {
-  Badge,
-  Card,
-  CardBody,
-  CardTitle,
-  Icon,
-  type BadgeTone,
-} from "@/components/ui";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Card, CardBody, CardTitle } from "@/components/ui/Card";
+import { Icon } from "@/components/ui/Icon";
 import { formatINR } from "@/lib/money";
 import { resolveImageUrl } from "@/server/services/media";
 import type { CustomerOrderView } from "@/server/services/orders";
@@ -96,7 +91,7 @@ export function OrderDetailView({ order, extras, access, signedIn }: OrderDetail
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
         <h1
-          className="font-display text-3xl leading-tight sm:text-4xl"
+          className="buy-display buy-display-fx text-4xl leading-tight"
           data-testid="order-headline"
         >
           {headline(order)}
@@ -122,7 +117,7 @@ export function OrderDetailView({ order, extras, access, signedIn }: OrderDetail
           holdUntil={holdUntil}
         />
       ) : waiting ? (
-        <p className="flex items-start gap-2 rounded-card border-token bg-surface p-4 text-base" data-testid="pay-pending-note">
+        <p className="flex items-start gap-2 rounded-card bg-surface shadow-card p-4 text-base" data-testid="pay-pending-note">
           <Icon name="info" className="mt-0.5 size-5 flex-none" />
           <span>
             We&apos;re waiting for your payment of {formatINR(order.totalPaise)}.

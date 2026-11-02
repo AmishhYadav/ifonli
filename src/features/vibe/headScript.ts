@@ -2,7 +2,7 @@
  * Builds the inline, blocking <head> script that resolves the active vibe before first paint.
  * The string is generated from config + tokens so it cannot drift from them. Budget: < 1 KB.
  *
- * Resolution order: ?vibe= URL param -> cookie -> localStorage -> default ("random" picks one).
+ * Resolution order: /vibes/<slug> path -> ?vibe= URL param -> cookie -> localStorage -> default ("random" picks one).
  * Side effects: html[data-vibe], cookie + localStorage (URL or random pick), font preload, theme-color.
  */
 import {
@@ -48,7 +48,8 @@ export function buildHeadScript({
   return [
     `(function(){try{`,
     `var M={${entries.join(",")}},V=Object.keys(M),d=document,`,
-    `q=new URLSearchParams(location.search).get(${JSON.stringify(VIBE_URL_PARAM)}),`,
+    `p=/^\\/vibes\\/(\\w+)/.exec(location.pathname),`,
+    `q=p?p[1]:new URLSearchParams(location.search).get(${JSON.stringify(VIBE_URL_PARAM)}),`,
     `m=d.cookie.match(/(?:^|; )${VIBE_COOKIE}=(\\w+)/),l,v,u,e;`,
     `try{l=localStorage.getItem(${s})}catch(e){}`,
     `v=V.indexOf(q)>-1?(u=1,q):V.indexOf(m&&m[1])>-1?m[1]:V.indexOf(l)>-1?l:${fallback};`,

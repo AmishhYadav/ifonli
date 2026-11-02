@@ -215,7 +215,7 @@ export function usePayment({ order: initialOrder, onPaid }: UsePaymentOptions = 
           kind: "expired",
           message:
             code === "expired"
-              ? "The time held for this payment has run out, so your items were released. Please review your cart and place the order again."
+              ? "The time held for this payment has run out, so your items were released. Please review your bag and place the order again."
               : message,
         });
       }

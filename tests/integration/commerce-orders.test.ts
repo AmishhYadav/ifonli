@@ -566,7 +566,7 @@ describe("createFromCart: stock", () => {
       ]),
     );
     expect(e.items!.find((i) => i.variantId === f.variants.cat)!.message).toBe(
-      "Only 1 left of Cat Sticker (you have 3 in your cart).",
+      "Only 1 left of Cat Sticker (you have 3 in your bag).",
     );
     // only the rival's order exists
     expect(await db().select().from(orders)).toHaveLength(1);

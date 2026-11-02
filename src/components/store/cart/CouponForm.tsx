@@ -2,7 +2,8 @@
 
 import { useId, useState, useTransition } from "react";
 
-import { Button, Field, Input } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Field, Input } from "@/components/ui/Field";
 import type { CartViewCoupon } from "@/features/cart/types";
 
 import { applyCouponCode, removeCouponCode } from "./cart-store";
@@ -29,7 +30,7 @@ export function CouponForm({ coupon }: { coupon: CartViewCoupon | null }) {
   if (coupon) {
     return (
       <div className="flex flex-col gap-2" data-testid="coupon-applied">
-        <div className="flex items-center justify-between gap-3 rounded-input border-token bg-surface-2 px-3 py-2">
+        <div className="flex items-center justify-between gap-3 rounded-input bg-surface-2 px-3 py-2">
           <p className="text-base font-semibold">
             <span className="sr-only">Coupon </span>
             {coupon.code}

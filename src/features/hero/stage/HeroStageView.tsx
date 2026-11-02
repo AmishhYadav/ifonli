@@ -96,14 +96,14 @@ export function HeroStageView({ assignments, vibe, interactive, className }: Pro
                 tabIndex={interactive && !duplicate ? undefined : -1}
                 className="stage-tile"
               >
-                <span data-layer="sq" className={join("stage-bk border-token shadow-card", bg)} />
+                <span data-layer="sq" className={join("stage-bk rounded-input shadow-card", bg)} />
                 <span
                   data-layer="rd"
-                  className={join("stage-bk rounded-card border-token shadow-card", bg)}
+                  className={join("stage-bk rounded-card shadow-card", bg)}
                 />
                 <span
                   data-layer="ci"
-                  className={join("stage-bk rounded-full border-token shadow-card", bg)}
+                  className={join("stage-bk rounded-full shadow-card", bg)}
                 />
                 <span data-layer="hi" className="stage-bk stage-ring" />
                 {/* Already-optimised URL from the server (next/image getImageProps): a plain img keeps the

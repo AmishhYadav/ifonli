@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
-import { buttonVariants, EmptyState, Icon } from "@/components/ui";
+import { buttonVariants } from "@/components/ui/buttonStyles";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
 import type { CartView } from "@/features/cart/types";
 import { VIBES, VIBE_NAMES } from "@/features/vibe/config";
 import { cn } from "@/lib/cn";
@@ -55,7 +57,7 @@ export function CartPageView({ initial, returnPolicyText, emptyTitle, emptyBody 
                   href={`/vibes/${vibe}`}
                   data-vibe={vibe}
                   className={cn(
-                    "inline-flex min-h-11 items-center rounded-button border-token bg-accent px-4 text-base font-display text-on-accent",
+                    "inline-flex min-h-11 items-center rounded-button bg-accent px-4 text-base font-display text-on-accent",
                     "transition-transform ease-vibe hover:-translate-y-0.5",
                   )}
                 >
@@ -96,7 +98,7 @@ export function CartPageView({ initial, returnPolicyText, emptyTitle, emptyBody 
 
       <aside
         aria-labelledby="cart-summary-heading"
-        className="flex flex-col gap-5 rounded-card border-token bg-surface p-5 shadow-card lg:sticky lg:top-6"
+        className="flex flex-col gap-5 rounded-card bg-surface p-5 shadow-card sm:p-6 lg:sticky lg:top-6"
       >
         <h2 id="cart-summary-heading" className="text-xl font-bold">
           Order summary

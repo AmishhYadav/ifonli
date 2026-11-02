@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   BOUNDARIES,
+  HERO_TIME_SCALE,
+  MIN_DISSOLVE,
   LOOP_DURATION,
   MIN_SWITCH_SPACING,
   PROFILE_FADE,
@@ -10,9 +12,6 @@ import {
   SCENES,
   SCENE_STARTS,
   STORYBOARD_TIMES,
-  dissolveOpacity,
-  nextBoundaryAfter,
-  profileSwitchBoundary,
   sceneAt,
   sceneEnd,
   sceneStart,
@@ -26,6 +25,14 @@ describe("hero schedule (plan section 9)", () => {
     ]);
     expect(SCENES.map((s) => s.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     expect(LOOP_DURATION).toBe(12);
+  });
+
+  it("plays slower than the schedule, never faster, so loop-time flash limits only get safer", () => {
+    expect(HERO_TIME_SCALE).toBeGreaterThan(0.5); // a "little" slower, not a slideshow
+    expect(HERO_TIME_SCALE).toBeLessThanOrEqual(1);
+    // Wall-clock length of the shortest dissolve and of one loop.
+    expect(PROFILE_FADE / HERO_TIME_SCALE).toBeGreaterThanOrEqual(MIN_DISSOLVE);
+    expect(LOOP_DURATION / HERO_TIME_SCALE).toBeCloseTo(15, 6);
   });
 
   it("starts each scene where the previous one ends, without float drift", () => {
@@ -62,43 +69,16 @@ describe("hero schedule (plan section 9)", () => {
   });
 });
 
-describe("next scene boundary and the profile switch", () => {
-  it("finds the next boundary strictly after a time, across loop repeats", () => {
-    expect(nextBoundaryAfter(0)).toBe(1.2);
-    expect(nextBoundaryAfter(1.2)).toBe(2.4);
-    expect(nextBoundaryAfter(1.3)).toBe(2.4);
-    expect(nextBoundaryAfter(11.5)).toBe(12);
-    expect(nextBoundaryAfter(12)).toBe(13.2); // second cycle, unrolled
-    expect(nextBoundaryAfter(24 + 5)).toBe(24 + 6);
+describe("vibe switch timing", () => {
+  it("dissolves in wall-clock time no faster than the WCAG guard allows", () => {
+    expect(PROFILE_FADE).toBeGreaterThanOrEqual(MIN_DISSOLVE);
+    // the new theme is on stage within about half a second of the click
+    expect(PROFILE_FADE).toBeLessThanOrEqual(0.45);
   });
 
-  it("switches at the next boundary when it is at least the dissolve length away", () => {
-    expect(profileSwitchBoundary(1.5)).toBe(2.4);
-    expect(profileSwitchBoundary(2.4 - PROFILE_FADE)).toBe(2.4);
-    expect(profileSwitchBoundary(0.5)).toBe(1.2);
-  });
-
-  it("skips a boundary that is too close for a full dissolve", () => {
-    expect(profileSwitchBoundary(2.4 - PROFILE_FADE + 0.05)).toBe(3.8);
-    expect(profileSwitchBoundary(11.8)).toBe(13.2); // wrap boundary at 12 is 0.2 s away
-  });
-
-  it("respects an earliest allowed boundary (dissolves are spaced out)", () => {
-    expect(profileSwitchBoundary(1.5, PROFILE_FADE, 2.4 + MIN_SWITCH_SPACING - 0.9)).toBe(3.8);
-    expect(profileSwitchBoundary(1.5, PROFILE_FADE, 3.9)).toBe(4.8);
-  });
-
-  it("dissolve is 1 outside the fade window, 0 at the boundary, symmetric and smooth", () => {
-    expect(dissolveOpacity(2.4 - PROFILE_FADE, 2.4)).toBe(1);
-    expect(dissolveOpacity(2.4 + PROFILE_FADE, 2.4)).toBe(1);
-    expect(dissolveOpacity(2.4, 2.4)).toBe(0);
-    expect(dissolveOpacity(2.4 - 0.1, 2.4)).toBeCloseTo(dissolveOpacity(2.4 + 0.1, 2.4), 9);
-    let prev = 1;
-    for (let t = 2.4 - PROFILE_FADE; t <= 2.4; t += 0.01) {
-      const o = dissolveOpacity(t, 2.4);
-      expect(o).toBeLessThanOrEqual(prev + 1e-9);
-      prev = o;
-    }
+  it("spaces dissolve starts so that out and in stay at three transitions per second at most", () => {
+    expect(MIN_SWITCH_SPACING).toBeGreaterThanOrEqual(PROFILE_FADE * 2);
+    expect(2 / MIN_SWITCH_SPACING).toBeLessThanOrEqual(3);
   });
 });
 

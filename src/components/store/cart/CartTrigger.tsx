@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, type MouseEvent } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 
-import { Icon, buttonVariants } from "@/components/ui";
+import { Icon } from "@/components/ui/Icon";
+import { buttonVariants } from "@/components/ui/buttonStyles";
 import { cn } from "@/lib/cn";
 
 import { seedCartCount, setCartOpen } from "./cart-store";
+import { preloadCartDrawer } from "./CartDrawer";
 import { useCartStore } from "./useCart";
 
 /**
@@ -19,6 +21,19 @@ import { useCartStore } from "./useCart";
 export function CartTrigger({ initialCount, className }: { initialCount: number | null; className?: string }) {
   const { count } = useCartStore();
   const shown = count ?? initialCount ?? 0;
+  const badge = useRef<HTMLSpanElement>(null);
+  const previous = useRef(shown);
+
+  // A soft pop when the count goes up (not on first render, not when it goes down).
+  useEffect(() => {
+    const el = badge.current;
+    if (el && shown > previous.current) {
+      el.classList.remove("badge-pop");
+      void el.offsetWidth; // restart the animation if it is already running
+      el.classList.add("badge-pop");
+    }
+    previous.current = shown;
+  }, [shown]);
 
   useEffect(() => {
     if (initialCount !== null) seedCartCount(initialCount);
@@ -36,17 +51,22 @@ export function CartTrigger({ initialCount, className }: { initialCount: number 
     <Link
       href="/cart"
       onClick={onClick}
-      aria-label={shown > 0 ? `Cart, ${shown} ${shown === 1 ? "item" : "items"}` : "Cart"}
+      onPointerEnter={() => void preloadCartDrawer()}
+      onFocus={() => void preloadCartDrawer()}
+      onTouchStart={() => void preloadCartDrawer()}
+      aria-label={shown > 0 ? `Bag, ${shown} ${shown === 1 ? "item" : "items"}` : "Bag"}
       aria-haspopup="dialog"
       data-testid="cart-button"
+      data-fly-target="cart"
       className={cn(buttonVariants({ variant: "ghost", size: "md" }), "relative min-w-12 p-0", className)}
     >
       <Icon name="bag" className="size-6" />
       {shown > 0 ? (
         <span
+          ref={badge}
           aria-hidden="true"
           data-testid="cart-count"
-          className="absolute top-1 right-0.5 grid min-w-5 place-items-center rounded-full border-token bg-accent px-1 text-xs leading-5 font-bold text-on-accent tabular-nums"
+          className="absolute top-1 right-0.5 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-xs leading-5 font-bold text-on-accent tabular-nums"
         >
           {shown > 99 ? "99+" : shown}
         </span>

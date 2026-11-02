@@ -1,12 +1,13 @@
 /**
  * The Director owns the live stage: it measures the poster, builds the timeline for the active vibe's
  * motion profile, and handles everything around playback (pause reasons, off-screen and hidden-tab pause,
- * hover/focus pause with the product label, the Pause/Play toggle, analytics events) and the profile switch
- * at the next scene boundary. No React in here; `HeroStage` mounts it.
+ * hover/focus pause with the product label, the Pause/Play toggle, analytics events) and the vibe switch
+ * (a short wall-clock dissolve, then the new profile restarts from the top of its loop). No React in here;
+ * `HeroStage` mounts it.
  */
 import gsap from "gsap";
 
-import { VIBE_NAMES, type Vibe } from "@/features/vibe/config";
+import { VIBES, VIBE_NAMES, type Vibe } from "@/features/vibe/config";
 import { getVibe, subscribe } from "@/features/vibe/store";
 
 import type { HeroEventName, HeroEventProps } from "./analytics";
@@ -15,11 +16,10 @@ import { profileFor } from "./profiles";
 import type { MotionProfile } from "./profiles/types";
 import { collectRefs, type StageRefs } from "./refs";
 import {
+  HERO_TIME_SCALE,
   MIN_SWITCH_SPACING,
   PROFILE_FADE,
   REST_TIME,
-  dissolveOpacity,
-  profileSwitchBoundary,
   sceneAt,
   wrapTime,
 } from "./schedule";
@@ -34,9 +34,10 @@ export interface DirectorState {
   scene: number;
   /** Vibe whose motion profile is playing. */
   profile: Vibe;
-  /** Vibe waiting for the next scene boundary, if any. */
+  /** Vibe the stage is switching to (dissolve queued or running), if any. */
   pending: Vibe | null;
-  pendingBoundary: number | null;
+  /** Phase of the switch dissolve: waiting for the spacing rule, fading out, or fading back in. */
+  switching: "wait" | "out" | "in" | null;
   paused: PauseReason[];
   tileCount: number;
   ready: boolean;
@@ -88,9 +89,14 @@ export class Director {
   private tl: gsap.core.Timeline | null = null;
   private profile: MotionProfile;
   private readonly reasons = new Set<PauseReason>();
-  private pending: { vibe: Vibe; boundary: number } | null = null;
-  private lastSwitch = -Infinity;
-  private fadeInAt: number | null = null;
+  /** Latest vibe asked for and not yet on stage. Coalesces rapid switches: only the last one is built. */
+  private target: Vibe | null = null;
+  private fade: gsap.core.Tween | null = null;
+  private fadeKind: "out" | "in" | null = null;
+  private delay: gsap.core.Tween | null = null;
+  /** Wall-clock ms at which the last dissolve-out started (for MIN_SWITCH_SPACING). */
+  private lastOutStart = -Infinity;
+  private hoverTile: HTMLElement | null = null;
   private ready = false;
   private destroyed = false;
   private cleanups: (() => void)[] = [];
@@ -109,6 +115,8 @@ export class Director {
   /** Interactive stage: build, show the rest frame, then follow the pause reasons. */
   mount(): void {
     this.refs = collectRefs(this.o.host);
+    // The visitor may have changed vibe between render and mount: start on the current one.
+    if (getVibe() !== this.profile.vibe) this.profile = profileFor(getVibe());
     this.applyTiles(this.profile.vibe);
     // Paused until the observers say the hero is on screen and the tab is visible.
     this.reasons.add("offscreen");
@@ -121,6 +129,15 @@ export class Director {
   private tryStart(): boolean {
     if (this.ready || this.destroyed) return this.ready;
     const { host } = this.o;
+    // The vibe can change while the host has no size yet (the switch has nothing to dissolve then): adopt it now.
+    if (this.target) {
+      const v = this.target;
+      this.target = null;
+      if (v !== this.profile.vibe) {
+        this.profile = profileFor(v);
+        this.applyTiles(v);
+      }
+    }
     if (!this.layoutAndBuild()) return false;
     this.seekTo(REST_TIME);
     const section = host.closest<HTMLElement>("[data-hero]");
@@ -157,6 +174,7 @@ export class Director {
 
   destroy(): void {
     this.destroyed = true;
+    this.cancelSwitchTweens();
     if (this.resizeTimer) clearTimeout(this.resizeTimer);
     this.tl?.kill();
     this.tl = null;
@@ -222,6 +240,9 @@ export class Director {
 
     this.tl?.kill();
     const tl = buildTimeline({ refs: this.refs, profile: this.profile, geo });
+    // Live speed. Applied to every (re)build, so a resize or a vibe switch never snaps back to full speed.
+    // Loop time (totalTime, seek, the dissolve boundaries) is unaffected by the scale.
+    tl.timeScale(HERO_TIME_SCALE);
     tl.eventCallback("onUpdate", this.tick);
     this.tl = tl;
     return true;
@@ -242,8 +263,11 @@ export class Director {
   // ---------------------------------------------------------------------------------------------------
 
   private applyTiles(vibe: Vibe): void {
-    const list = this.o.tiles[vibe];
-    if (!list || list.length === 0) return; // keep what is there
+    // A vibe with no products in the catalogue plays with the first vibe that has some, rather than freezing.
+    const list = this.o.tiles[vibe]?.length
+      ? this.o.tiles[vibe]
+      : VIBES.map((v) => this.o.tiles[v]).find((l) => l?.length);
+    if (!list || list.length === 0) return; // no products anywhere: keep what is there
     const assignments = assignTiles(list, this.refs.tiles.length);
     assignments.forEach(({ index, tile, duplicate }) => {
       const t = this.refs.tiles[index];
@@ -286,56 +310,132 @@ export class Director {
   private readonly tick = (): void => {
     const tl = this.tl;
     if (!tl || this.destroyed) return;
-    const tt = tl.totalTime();
-    this.o.host.dataset.scene = String(sceneAt(tt).scene.id);
-
-    const pending = this.pending;
-    if (pending && tt >= pending.boundary - 1e-6) {
-      this.pending = null;
-      this.lastSwitch = pending.boundary;
-      this.fadeInAt = pending.boundary;
-      // Rebuild after this render pass, while the content is at its most transparent.
-      queueMicrotask(() => this.applyVibe(pending.vibe));
-    }
-    this.updateDissolve(tt);
+    this.o.host.dataset.scene = String(sceneAt(tl.totalTime()).scene.id);
   };
 
-  private updateDissolve(tt: number): void {
-    let o = 1;
-    if (this.pending) o = Math.min(o, dissolveOpacity(tt, this.pending.boundary));
-    if (this.fadeInAt !== null) {
-      o = Math.min(o, dissolveOpacity(tt, this.fadeInAt));
-      if (tt >= this.fadeInAt + PROFILE_FADE) this.fadeInAt = null;
-    }
-    this.refs.content.style.opacity = o >= 0.999 ? "" : String(o);
+  // ---------------------------------------------------------------------------------------------------
+  // Vibe switch
+  //
+  // The site vibe changed: dissolve the stage out (PROFILE_FADE), build the new profile and tiles, restart its
+  // loop from t = 0 and dissolve back in. The dissolve is a wall-clock GSAP tween on the content opacity, so it
+  // runs whatever the loop is doing (hover, focus, test pause, off screen), and nothing waits for a scene
+  // boundary. Rapid switches coalesce: a request during the fade-out only retargets, a request during the
+  // fade-in or inside MIN_SWITCH_SPACING waits for the spacing rule, and the stage always ends on the last vibe.
+  // ---------------------------------------------------------------------------------------------------
+
+  private cancelSwitchTweens(): void {
+    this.fade?.kill();
+    this.fade = null;
+    this.fadeKind = null;
+    this.delay?.kill();
+    this.delay = null;
   }
 
-  private applyVibe(vibe: Vibe): void {
-    if (this.destroyed || vibe === this.profile.vibe) return;
+  /** Nobody is watching: visitor-paused, off screen, hidden tab. The swap needs no dissolve. */
+  private unwatched(): boolean {
+    return this.reasons.has("user") || this.reasons.has("offscreen") || this.reasons.has("hidden");
+  }
+
+  /** The site vibe changed. */
+  requestVibe(next: Vibe): void {
+    if (this.destroyed) return;
+    this.target = next;
+    if (!this.tl) return; // adopted by tryStart once the host has a size
+    this.pump();
+  }
+
+  private pump(): void {
+    const next = this.target;
+    if (next === null || this.destroyed) return;
+    if (this.unwatched()) {
+      // Swap now, to the rest frame, and stay on it (paused or off screen); the Play button / return resumes.
+      this.cancelSwitchTweens();
+      this.swap();
+      return;
+    }
+    if (this.fadeKind === "out") return; // the swap at the bottom of the fade reads the latest target
+    if (next === this.profile.vibe && this.fadeKind === null && !this.delay) {
+      this.target = null; // switched back to what is on stage: nothing to do
+      return;
+    }
+    if (this.delay) return; // already queued; it reads the latest target
+    const wait = Math.max(
+      0,
+      (this.lastOutStart + MIN_SWITCH_SPACING * 1000 - performance.now()) / 1000,
+    );
+    if (wait <= 0.001 && this.fadeKind === null) {
+      this.startOut();
+    } else {
+      this.delay = gsap.delayedCall(Math.max(wait, 0.001), () => {
+        this.delay = null;
+        this.fade?.kill(); // a fade-in still running is finished by the new fade-out starting from its value
+        this.fade = null;
+        this.fadeKind = null;
+        this.startOut();
+      });
+    }
+  }
+
+  private startOut(): void {
+    this.lastOutStart = performance.now();
+    this.fadeKind = "out";
+    this.fade = gsap.to(this.refs.content, {
+      opacity: 0,
+      duration: PROFILE_FADE,
+      ease: "sine.inOut",
+      overwrite: true,
+      onComplete: () => {
+        this.fade = null;
+        this.fadeKind = null;
+        this.swap();
+      },
+    });
+  }
+
+  /** Build the latest target at the start of its loop and bring the stage back (dissolve in unless unwatched). */
+  private swap(): void {
+    const next = this.target;
+    this.target = null;
+    if (this.destroyed) return;
+    const silent = this.unwatched();
+    if (next && next !== this.profile.vibe) this.applyVibe(next, silent ? REST_TIME : 0);
+    if (silent) {
+      this.refs.content.style.opacity = "";
+      return;
+    }
+    this.fadeKind = "in";
+    this.fade = gsap.fromTo(
+      this.refs.content,
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: PROFILE_FADE,
+        ease: "sine.inOut",
+        overwrite: true,
+        clearProps: "opacity",
+        onComplete: () => {
+          this.fade = null;
+          this.fadeKind = null;
+          this.pump(); // something else was asked for during the fade-in
+        },
+      },
+    );
+  }
+
+  /** Swap the profile and tiles and restart the loop at `at`. Hover is stale after a swap: the tiles changed. */
+  private applyVibe(vibe: Vibe, at: number): void {
+    if (this.destroyed) return;
     this.profile = profileFor(vibe);
     this.applyTiles(vibe);
-    this.rebuild();
-  }
-
-  /** The site vibe changed: switch the motion profile at the next scene boundary. */
-  requestVibe(next: Vibe): void {
-    if (!this.tl) return;
-    if (next === this.profile.vibe) {
-      this.pending = null;
-      this.updateDissolve(this.tl.totalTime());
-      return;
-    }
-    // Nobody is watching (visitor-paused, off screen, hidden tab): swap now, no scene boundary to wait for.
-    if (this.reasons.has("user") || this.reasons.has("offscreen") || this.reasons.has("hidden")) {
-      this.pending = null;
-      this.applyVibe(next);
-      return;
-    }
-    const tt = this.tl.totalTime();
-    this.pending = {
-      vibe: next,
-      boundary: profileSwitchBoundary(tt, PROFILE_FADE, this.lastSwitch + MIN_SWITCH_SPACING),
-    };
+    this.reasons.delete("hover");
+    this.hoverTile = null;
+    if (!this.layoutAndBuild()) return;
+    this.seekTo(at);
+    const focused = document.activeElement;
+    const focusTile = this.reasons.has("focus") && focused ? this.tileOf(focused) : null;
+    if (focusTile) this.showLabel(focusTile);
+    else this.hideLabel();
+    this.sync();
   }
 
   private setReason(reason: PauseReason, on: boolean): void {
@@ -344,6 +444,14 @@ export class Director {
     if (on) this.reasons.add(reason);
     else this.reasons.delete(reason);
     this.sync();
+    // Nobody is watching any more: do not leave a dissolve to a throttled tab or a paused page.
+    if (on && this.target && this.unwatched()) this.pump();
+  }
+
+  private tileOf(target: EventTarget | null): HTMLAnchorElement | null {
+    return target instanceof Element
+      ? target.closest<HTMLAnchorElement>("[data-stage-tile]")
+      : null;
   }
 
   private sync(): void {
@@ -355,8 +463,6 @@ export class Director {
     const { host } = this.o;
     host.dataset.running = String(playing);
     host.dataset.userPaused = String(this.reasons.has("user"));
-    if (this.reasons.has("hover") || this.reasons.has("focus"))
-      this.refs.content.style.opacity = "";
     const toggle = host.querySelector<HTMLButtonElement>("[data-stage-toggle]");
     if (toggle) {
       const paused = this.reasons.has("user");
@@ -372,8 +478,8 @@ export class Director {
       t: wrapTime(tt),
       scene: sceneAt(tt).scene.id,
       profile: this.profile.vibe,
-      pending: this.pending?.vibe ?? null,
-      pendingBoundary: this.pending ? this.pending.boundary : null,
+      pending: this.target,
+      switching: this.delay ? "wait" : this.fadeKind,
       paused: [...this.reasons],
       tileCount: this.refs?.tiles.length ?? 0,
       ready: this.ready,
@@ -429,12 +535,33 @@ export class Director {
       el.addEventListener(type, fn);
       this.cleanups.push(() => el.removeEventListener(type, fn));
     };
-    const tileOf = (target: EventTarget | null): HTMLAnchorElement | null =>
-      target instanceof Element ? target.closest<HTMLAnchorElement>("[data-stage-tile]") : null;
+    const tileOf = (target: EventTarget | null) => this.tileOf(target);
 
-    on(host, "pointerover", (e) => {
+    // Hover pauses only on real pointer movement onto a tile, never on a tile that merely arrived under a resting
+    // pointer (browsers synthesise over/out events when content moves or a vibe switch swaps the tiles). The pause
+    // ends as soon as the pointer leaves that tile, or the page scrolls, or the tab loses the pointer.
+    let lastX = NaN;
+    let lastY = NaN;
+    const endHover = () => {
+      if (!this.reasons.has("hover") && !this.hoverTile) return;
+      this.hoverTile = null;
+      this.setReason("hover", false);
+      if (!this.reasons.has("focus")) this.hideLabel();
+    };
+    on(host, "pointermove", (e) => {
+      if (e.pointerType === "touch") return;
+      const moved =
+        Math.abs(e.clientX - lastX) >= 1 || Math.abs(e.clientY - lastY) >= 1 || Number.isNaN(lastX);
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (!moved) return;
       const tile = tileOf(e.target);
-      if (!tile || e.pointerType === "touch") return;
+      if (!tile) {
+        endHover();
+        return;
+      }
+      if (tile === this.hoverTile) return;
+      this.hoverTile = tile;
       this.prefetch(tile);
       this.setReason("hover", true);
       this.showLabel(tile);
@@ -442,9 +569,16 @@ export class Director {
     on(host, "pointerout", (e) => {
       const from = tileOf(e.target);
       if (!from || tileOf(e.relatedTarget) === from) return;
-      this.setReason("hover", false);
-      if (!this.reasons.has("focus")) this.hideLabel();
+      if (from === this.hoverTile) endHover();
     });
+    on(host, "pointerleave", () => endHover());
+    const onScroll = () => endHover();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    this.cleanups.push(() => window.removeEventListener("scroll", onScroll));
+    const onBlur = () => endHover();
+    window.addEventListener("blur", onBlur);
+    this.cleanups.push(() => window.removeEventListener("blur", onBlur));
+
     on(host, "focusin", (e) => {
       const tile = tileOf(e.target);
       if (!tile) return;
@@ -507,8 +641,6 @@ export class Director {
 
     const unsubscribe = subscribe(() => this.requestVibe(getVibe()));
     this.cleanups.push(unsubscribe);
-    // The vibe may have changed between render and mount.
-    if (getVibe() !== this.profile.vibe) this.requestVibe(getVibe());
 
     if (typeof ResizeObserver !== "undefined") {
       let first = true;

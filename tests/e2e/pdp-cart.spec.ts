@@ -31,7 +31,7 @@ async function addFromPdp(page: Page, slug: string, option?: string) {
   await openProduct(page, slug);
   if (option) await page.getByTestId("option-value").filter({ hasText: option }).click();
   await page.getByTestId("add-to-cart").click();
-  await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
   await page.getByRole("button", { name: "Dismiss notification" }).first().click();
 }
 
@@ -70,6 +70,26 @@ test.describe("product page", () => {
     expect(product.offers[0].priceCurrency).toBe("INR");
     expect(product.offers).toHaveLength(3);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/products\/heart-charm$/);
+  });
+
+  test("Back returns to the listing the visitor came from, or goes to the type listing on a direct visit", async ({ page }) => {
+    await page.goto("/types/charms");
+    await page.waitForLoadState("networkidle");
+    await page.locator('a[href^="/products/"]').first().click();
+    await expect(page).toHaveURL(/\/products\//);
+    const back = page.getByRole("link", { name: "Back to products" });
+    await expect(back).toBeVisible();
+    await expect(back).toHaveText("Back");
+    await back.click();
+    await expect(page).toHaveURL(/\/types\/charms/);
+
+    // A fresh page (no previous page of the store) falls back to the product's type listing.
+    const fresh = await page.context().newPage();
+    await fresh.goto("/products/heart-charm");
+    await fresh.waitForLoadState("networkidle");
+    await fresh.getByRole("link", { name: "Back to products" }).click();
+    await expect(fresh).toHaveURL(/\/types\/charms/);
+    await fresh.close();
   });
 
   test("an unknown product is a 404", async ({ page }) => {
@@ -164,13 +184,13 @@ test.describe("cart", () => {
       await expect(cartCount(page)).toHaveCount(0);
     }).toPass();
     await page.getByTestId("add-to-cart").click();
-    const toast = page.getByRole("button", { name: "View cart" });
+    const toast = page.getByRole("button", { name: "View bag" });
     await expect(toast).toBeVisible();
     await expect(page.getByText("Star charm (Yellow)")).toBeVisible();
     await expect(cartCount(page)).toHaveText("1");
-    await expect(cartButton(page)).toHaveAttribute("aria-label", "Cart, 1 item");
+    await expect(cartButton(page)).toHaveAttribute("aria-label", "Bag, 1 item");
 
-    // "View cart" in the toast opens the drawer.
+    // "View bag" in the toast opens the drawer.
     await toast.click();
     await expect(drawer(page)).toBeVisible();
     const line = drawer(page).getByTestId("cart-line");
@@ -190,12 +210,31 @@ test.describe("cart", () => {
     await expect(drawer(page)).toContainText(/\w/);
   });
 
+  test("a card's quick Add to bag adds a one-variant product (toast, badge) and links several-variant ones to their page", async ({ page }) => {
+    await expect(async () => {
+      await page.goto("/shop?vibe=cute");
+      await settle(page);
+      await expect(cartCount(page)).toHaveCount(0);
+    }).toPass();
+    // Heart charm has three variants: the card sends the shopper to choose.
+    const heart = page.locator('[data-testid="product-card"]:visible', { hasText: "Heart charm" }).first();
+    await expect(heart.getByRole("link", { name: /Choose options/ })).toHaveAttribute("href", "/products/heart-charm");
+    await expect(heart.getByTestId("quick-add")).toHaveCount(0);
+    // A one-variant product that is in stock gets the button.
+    const quick = page.locator('[data-testid="product-card"]:visible').getByTestId("quick-add").first();
+    await quick.scrollIntoViewIfNeeded();
+    await quick.click();
+    await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
+    await expect(cartCount(page)).toHaveText("1");
+    await expect(page).toHaveURL(/\/shop/); // the click did not follow the card's link
+  });
+
   test("the cart page matches the drawer; its totals are the sum of its lines", async ({ page }) => {
     await addFromPdp(page, "star-charm");
     await addFromPdp(page, "heart-charm", "Red");
     await page.goto("/cart");
     await settle(page);
-    await expect(page.getByRole("heading", { level: 1, name: "Your cart" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Your bag" })).toBeVisible();
     await expect(page.getByTestId("cart-line")).toHaveCount(2);
 
     // Change a quantity on the page.
@@ -229,7 +268,7 @@ test.describe("cart", () => {
   test("an empty cart shows the themed empty state with links to the vibes", async ({ page }) => {
     await page.goto("/cart?vibe=gothic");
     await expect(page.getByText("Your bag is an empty crypt")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Funky" })).toHaveAttribute("href", "/vibes/funky");
+    await expect(page.getByRole("link", { name: "Chaos Cabinet" })).toHaveAttribute("href", "/vibes/funky");
   });
 
   test("the header badge shows the real count on a fresh page load (the Suspense fallback does not seed 0)", async ({ page }) => {
@@ -261,17 +300,17 @@ test.describe("cart", () => {
     await page.goto("/cart");
     const header = page.locator("header").first();
     await expect(header.getByRole("link", { name: "Shop", exact: true })).toBeVisible();
-    await expect(header.getByRole("link", { name: "Back to cart" })).toHaveCount(0);
-    await expect(header.getByRole("link", { name: /^Cart/ })).toHaveCount(0);
+    await expect(header.getByRole("link", { name: "Back to bag" })).toHaveCount(0);
+    await expect(header.getByRole("link", { name: /^Bag/ })).toHaveCount(0);
     await expect(header.getByText("Secure checkout")).toHaveCount(0);
 
     await page.goto("/track");
     await expect(page.locator("header").first().getByRole("link", { name: "Track an order" })).toHaveCount(0);
-    await expect(page.locator("header").first().getByRole("link", { name: /^Cart/ })).toBeVisible();
+    await expect(page.locator("header").first().getByRole("link", { name: /^Bag/ })).toBeVisible();
 
     await page.goto("/checkout");
     await expect(page.locator("header").first().getByText("Secure checkout")).toBeVisible();
-    await expect(page.locator("header").first().getByRole("link", { name: "Back to cart" })).toBeVisible();
+    await expect(page.locator("header").first().getByRole("link", { name: "Back to bag" })).toBeVisible();
   });
 
   test("a quantity above what can be bought is capped with the server's message", async ({ page }) => {
@@ -285,7 +324,7 @@ test.describe("cart", () => {
     await qty.press("Enter");
     await expect(qty).toHaveValue(String(max));
     await page.getByTestId("add-to-cart").click();
-    await expect(page.getByRole("button", { name: "View cart" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "View bag" })).toBeVisible();
     // Adding more on top of a full line: the service caps the line and says so.
     await page.getByTestId("add-to-cart").click();
     await expect(page.getByTestId("add-message")).toContainText(/we updated your quantity/);

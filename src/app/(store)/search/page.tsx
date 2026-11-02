@@ -4,7 +4,8 @@ import { Suspense } from "react";
 import { ListingSection } from "@/components/store/listing/ListingSection";
 import { ListingSkeleton } from "@/components/store/listing/ListingSkeleton";
 import type { RawSearchParams } from "@/components/store/listing/params";
-import { Button, Input } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Field";
 import { sanitizeSearchQuery } from "@/server/services/queries/shared";
 
 export const metadata: Metadata = {

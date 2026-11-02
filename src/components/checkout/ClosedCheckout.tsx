@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { Button, EmptyState } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 /** Shown instead of the form while the shop is not taking orders (production launch gate). */
 export function ClosedCheckout({ message }: { message?: string }) {

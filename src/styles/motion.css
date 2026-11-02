@@ -1,0 +1,210 @@
+/*
+ * Motion and identity layer: the hand logo (flip, swinging charms, hover pill), the cart badge pop and the
+ * fly-to-bag ghost. Values come from tokens (--ink, --accent, --hand, --motion-ease); nothing here knows a
+ * vibe by name. Everything that moves is off under prefers-reduced-motion (see the end of the file).
+ */
+
+/* --- Hand logo --------------------------------------------------------------------------------- */
+
+.hand-btn {
+  --hand-size: 64px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 1rem;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 639px) {
+  .hand-btn {
+    --hand-size: 52px;
+  }
+}
+
+/* The stage gives the flip its depth; each vibe's variant sits inside a display:contents [data-v] wrapper. */
+.hand-stage {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--hand-size);
+  height: var(--hand-size);
+  perspective: 700px;
+}
+
+.hand-flip {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.hand-svg {
+  /* Skin colour per theme (--hand); the fallback keeps the hand skin-toned until a palette defines it. */
+  --hand-skin: var(--hand, #f8d7be);
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.hand-charm {
+  position: absolute;
+  font-size: calc(var(--hand-size) * 0.2);
+  line-height: 1;
+  pointer-events: none;
+  transform-origin: 50% 0;
+  animation: hand-swing 2s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.15s);
+}
+
+@keyframes hand-swing {
+  0%,
+  100% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(12deg);
+  }
+}
+
+/*
+ * The flip. HandButton sets data-turn on the button to "a" and "b" alternately on each click, so the
+ * (identical) keyframes below have different names and the browser restarts the animation every time.
+ * Nothing sets data-turn on page load, so the first paint never flips.
+ */
+.hand-btn[data-turn="a"] .hand-flip {
+  animation: hand-turn-a 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hand-btn[data-turn="b"] .hand-flip {
+  animation: hand-turn-b 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes hand-turn-a {
+  from {
+    transform: rotateY(180deg) rotate(-20deg);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes hand-turn-b {
+  from {
+    transform: rotateY(180deg) rotate(-20deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.hand-pill,
+.hand-tip {
+  position: absolute;
+  left: 50%;
+  z-index: 50;
+  translate: -50% 0;
+  border-radius: 9999px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms var(--motion-ease, ease-out);
+}
+
+/*
+ * "turn me" sits on the hand's own bottom edge (over the palm), inside the hand's box, so it never reaches the
+ * nav pills below. It is a mouse affordance: hidden where there is no hover.
+ */
+.hand-pill {
+  bottom: 2px;
+  padding: 2px 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.hand-tip {
+  top: calc(100% + 18px);
+  padding: 4px 10px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .hand-btn:hover .hand-pill {
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .hand-pill {
+    display: none;
+  }
+}
+.hand-btn:focus-visible .hand-pill,
+.hand-btn:focus-visible .hand-tip,
+.hand-btn[data-tip="open"] .hand-tip {
+  opacity: 1;
+}
+
+/* --- Cart badge pop ---------------------------------------------------------------------------- */
+
+.badge-pop {
+  animation: badge-pop 300ms var(--motion-ease, ease-out);
+}
+@keyframes badge-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* --- Fly to bag / wishlist (src/features/motion/fly.ts) ---------------------------------------- */
+
+.fly-ghost {
+  position: fixed;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 16px;
+  font-size: 44px;
+  line-height: 1;
+  pointer-events: none;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+.fly-ghost[data-emoji] {
+  overflow: visible;
+}
+.fly-ghost img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-charm,
+  .hand-btn[data-turn] .hand-flip,
+  .badge-pop {
+    animation: none !important;
+  }
+}

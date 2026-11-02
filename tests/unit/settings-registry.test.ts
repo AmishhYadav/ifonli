@@ -55,10 +55,9 @@ describe("settings registry", () => {
     expect(SETTINGS.guest_checkout_enabled.placeholder).toBe(true);
     expect(SETTINGS.vibe_cycle.placeholder).toEqual([
       "cute",
-      "bold",
-      "overthinking",
       "gothic",
       "funky",
+      "bold",
     ]);
     expect(SETTINGS.default_vibe.placeholder).toBe("cute");
     expect(SETTINGS.prices_include_gst.schema.safeParse(false).success).toBe(false);

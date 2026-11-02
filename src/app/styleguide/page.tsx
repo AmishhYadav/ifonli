@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { ProductCard, ProductCardSkeleton, ProductGrid, ProductGridItem } from "@/components/store";
-import { IconButton } from "@/components/ui";
+import { IconButton } from "@/components/ui/Button";
 import { VIBES, VIBE_NAMES } from "@/features/vibe/config";
 import { HandButton } from "@/features/vibe/HandButton";
 import { VibeScope } from "@/features/vibe/VibeScope";
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const columnClasses = "min-w-0 rounded-card border border-border p-4 sm:p-5";
+const columnClasses = "min-w-0 rounded-card shadow-card p-4 sm:p-5";
 
 export default function StyleguidePage() {
   assertDevPagesEnabled();

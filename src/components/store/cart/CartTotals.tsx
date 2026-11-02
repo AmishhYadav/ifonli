@@ -42,7 +42,7 @@ export function CartTotals({ cart, className }: { cart: CartView; className?: st
         </div>
         {note ? <p className="mt-0.5 text-sm text-ink-muted">{note}</p> : null}
       </div>
-      <div className="mt-1 border-t border-border pt-3">
+      <div className="mt-1 border-t border-hairline pt-3">
         <div className="flex items-baseline justify-between gap-4">
           <span className="text-lg font-bold">Total</span>
           <span className="text-xl font-bold tabular-nums" data-testid="cart-total">

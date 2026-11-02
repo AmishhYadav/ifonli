@@ -23,9 +23,48 @@ function whenIdle(run: () => void): () => void {
 }
 
 /**
+ * How long after the page has loaded the stage waits, if the visitor has not touched the page by then. The stage
+ * starts on the poster's own rest frame, so the hand-over is invisible, and the first seconds of the page (hydration,
+ * the first taps) keep the main thread to themselves.
+ */
+const SETTLE_MS = 2500;
+const INPUT_EVENTS = ["pointerdown", "keydown", "touchstart", "wheel", "scroll"] as const;
+
+/** Runs `run` once the page has loaded and either the visitor interacted or `SETTLE_MS` passed, then at idle. */
+function whenSettled(run: () => void): () => void {
+  let cancelIdle: (() => void) | null = null;
+  let timer = 0;
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    detach();
+    cancelIdle = whenIdle(run);
+  };
+  const arm = () => {
+    if (started) return;
+    timer = window.setTimeout(start, SETTLE_MS);
+    for (const type of INPUT_EVENTS) window.addEventListener(type, start, { passive: true, once: true });
+  };
+  const detach = () => {
+    window.clearTimeout(timer);
+    window.removeEventListener("load", arm);
+    for (const type of INPUT_EVENTS) window.removeEventListener(type, start);
+  };
+  if (document.readyState === "complete") arm();
+  else window.addEventListener("load", arm, { once: true });
+  return () => {
+    started = true;
+    detach();
+    cancelIdle?.();
+  };
+}
+
+/**
  * Progressive enhancement of the static poster (plan section 9). Mounted inside `#hero-stage-root`.
- * It loads the animated stage only when the hero is in the viewport, after an idle callback, and never on
- * reduced motion, data saver or a 2g-class connection. It also reports `hero_impression` and poster tile
+ * It loads the animated stage only when the hero is in the viewport, once the page has loaded and settled (first
+ * input or a short delay, then an idle callback), and never on reduced motion, data saver, a 2g-class connection or
+ * low-end hardware. It also reports `hero_impression` and poster tile
  * clicks through the analytics adapter (`stage/analytics.ts`).
  */
 export function HeroEnhancer({ tiles }: { tiles: Record<Vibe, StageTile[]> }) {
@@ -56,7 +95,7 @@ export function HeroEnhancer({ tiles }: { tiles: Record<Vibe, StageTile[]> }) {
       visibleObserver = new IntersectionObserver((entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
         visibleObserver?.disconnect();
-        cancelIdle = whenIdle(() => {
+        cancelIdle = whenSettled(() => {
           // Re-check at the moment of loading: the visitor may have switched to reduced motion meanwhile.
           if (shouldEnhance(readEnv())) setLoad(true);
         });

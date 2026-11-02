@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Badge, Icon, type BadgeTone } from "@/components/ui";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Icon } from "@/components/ui/Icon";
 import { formatINR } from "@/lib/money";
 import { resolveImageUrl } from "@/server/services/media";
 import type { AccountOrderSummary } from "@/server/services/customer-orders";
@@ -38,7 +39,7 @@ export function OrderSummaryList({
 }) {
   if (orders.length === 0) return <>{empty}</>;
   return (
-    <ul className="flex flex-col divide-y divide-border" data-testid="account-orders">
+    <ul className="flex flex-col divide-y divide-hairline" data-testid="account-orders">
       {orders.map((order) => {
         const extra = order.itemCount - order.itemNames.length;
         return (
@@ -50,7 +51,7 @@ export function OrderSummaryList({
             >
               <span className="flex flex-none -space-x-3" aria-hidden="true">
                 {order.imagePaths.length === 0 ? (
-                  <span className="grid size-14 place-items-center rounded-card border border-border bg-surface-2 text-ink-muted">
+                  <span className="grid size-14 place-items-center rounded-input art-none text-ink-muted">
                     <Icon name="package" className="size-6" />
                   </span>
                 ) : (
@@ -59,7 +60,7 @@ export function OrderSummaryList({
                     return (
                       <span
                         key={`${path}-${i}`}
-                        className="relative size-14 overflow-hidden rounded-card border border-border bg-surface-2"
+                        className="relative size-14 overflow-hidden rounded-input art-none"
                       >
                         {url ? <Image src={url} alt="" fill sizes="56px" className="object-cover" /> : null}
                       </span>

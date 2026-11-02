@@ -109,7 +109,10 @@
     position: fixed;
     inset: 0;
     z-index: 60;
-    background-color: color-mix(in srgb, black 55%, transparent);
+    /* A soft veil: lighter than a dim, with a gentle blur of the page behind. */
+    background-color: color-mix(in srgb, black 40%, transparent);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
   }
   .ui-overlay[data-state="open"] {
     animation: ui-fade-in var(--motion-dur) var(--motion-ease);
@@ -138,11 +141,16 @@
     bottom: 0;
     z-index: 61;
   }
+  /* Panels are rounded on the inner edge, so they read as a soft sheet laid over the page. */
   .ui-drawer[data-side="right"] {
     right: 0;
+    border-top-left-radius: var(--radius-card);
+    border-bottom-left-radius: var(--radius-card);
   }
   .ui-drawer[data-side="left"] {
     left: 0;
+    border-top-right-radius: var(--radius-card);
+    border-bottom-right-radius: var(--radius-card);
   }
   .ui-drawer[data-side="right"][data-state="open"] {
     animation: ui-slide-in-right var(--motion-dur) var(--motion-ease);
@@ -176,6 +184,35 @@
 
   .ui-tooltip {
     animation: ui-tip-in var(--motion-dur) var(--motion-ease);
+  }
+
+  /*
+   * Text controls (Input, Textarea, Select): soft, filled fields. No outline: the --field fill carries the shape,
+   * a hairline inset ring (ink at low alpha, so it works on every surface) sits at rest, deepens on hover, and
+   * becomes the --focus-ring colour (plus a soft halo) on focus. An invalid field turns --danger. The transparent
+   * outline keeps a visible indicator in forced-colors mode. Checkbox and Radio are tiny, so they keep a 3:1 --border.
+   */
+  .ui-control {
+    background-color: var(--field);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent);
+  }
+  .ui-control:hover:not(:disabled, :focus-visible) {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent);
+  }
+  .ui-control:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 0;
+    box-shadow:
+      inset 0 0 0 2px var(--focus-ring),
+      0 0 0 4px color-mix(in srgb, var(--focus-ring) 25%, transparent);
+  }
+  .ui-control[aria-invalid="true"] {
+    box-shadow: inset 0 0 0 2px var(--danger);
+  }
+  .ui-control[aria-invalid="true"]:focus-visible {
+    box-shadow:
+      inset 0 0 0 2px var(--danger),
+      0 0 0 4px color-mix(in srgb, var(--danger) 25%, transparent);
   }
 
   /* Native select: hide the platform arrow (an icon is drawn over it). */

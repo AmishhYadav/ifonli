@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
-import { Button, Input, VibeChip } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Field";
+import { VibeChip } from "@/components/ui/Chip";
 import { VIBES } from "@/features/vibe/config";
 import { reportClientError } from "@/lib/monitoring/client";
 
@@ -30,7 +32,7 @@ export function ErrorView({ error, reset }: { error: Error & { digest?: string }
           Try again
         </Button>
         <Button asChild variant="secondary">
-          <Link href="/">Home</Link>
+          <Link href="/home">Home</Link>
         </Button>
       </div>
       <form action="/search" method="get" role="search" className="flex w-full max-w-md items-end gap-2">

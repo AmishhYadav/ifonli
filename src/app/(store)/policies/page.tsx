@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { FinalisingNotice } from "@/components/content/FinalisingNotice";
 import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
-import { Badge, Icon } from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Icon } from "@/components/ui/Icon";
 import type { Crumb } from "@/lib/seo";
 import { getStoreInfo } from "@/server/cache/settings";
 import { getPolicyIndex } from "@/server/content/cached";
@@ -28,7 +29,7 @@ const BLURBS: Record<PolicySlug, string> = {
 };
 
 const crumbs: Crumb[] = [
-  { name: "Home", path: "/" },
+  { name: "Home", path: "/home" },
   { name: "Policies", path: "/policies" },
 ];
 
@@ -53,7 +54,7 @@ export default async function PoliciesPage() {
             <li key={policy.slug}>
               <Link
                 href={`/policies/${policy.slug}`}
-                className="flex h-full min-h-24 flex-col gap-1.5 rounded-card border-token bg-surface p-4 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-0.5 sm:p-5"
+                className="flex h-full min-h-24 flex-col gap-1.5 rounded-card bg-surface p-4 text-ink shadow-card transition-transform ease-vibe hover:-translate-y-0.5 sm:p-5"
               >
                 <span className="flex items-start justify-between gap-3">
                   <span className="font-display text-xl leading-tight">{policy.title}</span>
