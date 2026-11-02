@@ -1,20 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
 
 import "@/styles/nav-pills.css";
 
 import type { Vibe } from "@/features/vibe/config";
+import { switchTheme, warmVibeFont } from "@/features/vibe/switch";
 import { useVibe } from "@/features/vibe/useVibe";
-import { VibeLink } from "@/features/vibe/VibeLink";
 import { cn } from "@/lib/cn";
 
 export interface PillLink {
   href: string;
   label: string;
-  /** Set on the four theme pills: the vibe this pill wears when clicked. */
+  /** Set on the four theme pills: the vibe this pill switches the theme to (it is a button, not a link). */
   vibe?: Vibe;
 }
 
@@ -25,14 +25,16 @@ interface NavPillsProps {
 }
 
 /**
- * One pill. The link itself is a 44px-tall transparent target; the visible pill (32px) is the span inside, so
- * hover, focus and the active colours are soft shapes while the tap area stays full size. The strong "this is
+ * One pill. The link (or, for a theme, the button) itself is a 44px-tall transparent target; the visible pill
+ * (32px) is the span inside, so hover, focus and the active colours are soft shapes while the tap area stays full size. The strong "this is
  * the current theme" colour and the soft "this is the current page" tint are both CSS (styles/nav-pills.css):
- * `data-nav-vibe` is matched against `html[data-vibe]`, `aria-current` marks the page.
+ * `data-nav-vibe` is matched against `html[data-vibe]`, `aria-current` marks the page. The four theme pills are
+ * buttons that switch the theme in place (`aria-pressed` = the worn theme); only on a theme's own page do they
+ * also move to `/vibes/<new>` (see `switchTheme`). Types and Shop all are plain links.
  */
 function Pill({ link, active, spaced }: { link: PillLink; active: boolean; spaced?: boolean }) {
   const className = cn(
-    "nav-pill group relative inline-flex min-h-11 items-center rounded-full outline-none",
+    "nav-pill group relative inline-flex min-h-11 cursor-pointer items-center rounded-full outline-none",
     // The focus ring is drawn on a pseudo-element the size of the pill (not the 44px target).
     "after:pointer-events-none after:absolute after:inset-x-0 after:inset-y-[6px] after:rounded-full after:content-['']",
     "focus-visible:after:outline-3 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus-ring",
@@ -45,21 +47,51 @@ function Pill({ link, active, spaced }: { link: PillLink; active: boolean; space
   return (
     <li className={cn("flex-none", spaced && "ml-3 sm:ml-4")}>
       {link.vibe ? (
-        <VibeLink
-          vibe={link.vibe}
-          href={link.href}
-          data-nav-vibe={link.vibe}
-          aria-current={active ? "page" : undefined}
-          className={className}
-        >
+        <ThemeButton vibe={link.vibe} current={active} className={className}>
           {face}
-        </VibeLink>
+        </ThemeButton>
       ) : (
         <Link href={link.href} aria-current={active ? "page" : undefined} className={className}>
           {face}
         </Link>
       )}
     </li>
+  );
+}
+
+/**
+ * A theme pill: a real button that wears the theme without leaving the page. `aria-pressed` reads `useVibe`, whose
+ * server snapshot is the default vibe, so hydration matches and the real theme (set before paint by the head
+ * script) lands on the first client render; the strong colour itself is CSS and is right from the first paint.
+ */
+function ThemeButton({
+  vibe,
+  current,
+  className,
+  children,
+}: {
+  vibe: Vibe;
+  /** The visitor is on this theme's own `/vibes/<slug>` page (soft tint). */
+  current: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  const { vibe: worn } = useVibe();
+  const router = useRouter();
+  const warm = () => warmVibeFont(vibe);
+  return (
+    <button
+      type="button"
+      data-nav-vibe={vibe}
+      aria-pressed={worn === vibe}
+      aria-current={current ? "page" : undefined}
+      className={className}
+      onClick={() => void switchTheme(vibe, "nav", router)}
+      onPointerEnter={warm}
+      onFocus={warm}
+    >
+      {children}
+    </button>
   );
 }
 

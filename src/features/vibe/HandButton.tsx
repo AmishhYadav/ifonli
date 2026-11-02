@@ -7,7 +7,7 @@ import "@/styles/motion.css";
 
 import { DEFAULT_VIBE_CYCLE, VIBES, VIBE_NAMES, nextVibe, type Vibe } from "./config";
 import { getVibe, subscribe } from "./store";
-import { currentOrPendingVibe, prefersReducedMotion, switchVibeTo, warmVibeFont, whenIdle } from "./switch";
+import { currentOrPendingVibe, prefersReducedMotion, switchTheme, warmVibeFont, whenIdle } from "./switch";
 import { useVibe } from "./useVibe";
 
 const LONG_PRESS_MS = 500;
@@ -153,10 +153,8 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
 
   const switchVibe = useCallback(() => {
     const to = nextVibe(currentOrPendingVibe(), cycle);
-    // On a collection page the page follows the theme (the demo): open the next vibe's collection too.
-    const onVibePage = /^\/vibes\/[^/]+/.test(window.location.pathname);
-    void switchVibeTo(to, "hand", {
-      navigate: onVibePage ? () => router.push(`/vibes/${to}`) : undefined,
+    // Stays on the page, except on a theme's own page, which follows the theme (shared rule: switchTheme).
+    void switchTheme(to, "hand", router, {
       onSettled: () => whenIdle(() => warm(nextVibe(to, cycle))),
     });
   }, [cycle, router]);

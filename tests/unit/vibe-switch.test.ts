@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /** `switchVibeTo` against a minimal fake DOM: the site vibe lives on `documentElement.dataset.vibe`. */
-async function load(opts: { reduced: boolean; viewTransitions: boolean; vibe?: string }) {
+async function load(opts: { reduced: boolean; viewTransitions: boolean; vibe?: string; pathname?: string }) {
   const dataset: Record<string, string> = { vibe: opts.vibe ?? "cute" };
   const attrs = new Set<string>();
   const events: Array<{ detail: { from: string; to: string; source: string; usedViewTransition: boolean } }> = [];
@@ -32,7 +32,7 @@ async function load(opts: { reduced: boolean; viewTransitions: boolean; vibe?: s
   vi.stubGlobal("CustomEvent", class { constructor(public type: string, public init: object) { Object.assign(this, init); } });
   vi.stubGlobal("window", {
     matchMedia: () => ({ matches: opts.reduced }),
-    location: { href: "https://shop.example/shop", protocol: "https:" },
+    location: { href: `https://shop.example${opts.pathname ?? "/shop"}`, pathname: opts.pathname ?? "/shop", protocol: "https:" },
     history: { state: null, replaceState: () => {} },
     localStorage: { setItem: () => {} },
     setTimeout: globalThis.setTimeout,
@@ -84,5 +84,40 @@ describe("switchVibeTo", () => {
     await mod.switchVibeTo("bold", "nav", { navigate });
     expect(navigate).toHaveBeenCalledOnce();
     expect(events).toHaveLength(0);
+  });
+
+  describe("switchTheme (hand and header theme pills)", () => {
+    it("stays on the page: switches the theme and never navigates away from /home or /shop", async () => {
+      for (const pathname of ["/home", "/shop", "/types/charms"]) {
+        const { mod, dataset } = await load({ reduced: false, viewTransitions: true, pathname });
+        const push = vi.fn();
+        await mod.switchTheme("gothic", "nav", { push });
+        expect(dataset.vibe).toBe("gothic");
+        expect(push).not.toHaveBeenCalled();
+      }
+    });
+
+    it("on a theme's own page moves to /vibes/<new>, after the theme is applied", async () => {
+      const { mod, dataset } = await load({ reduced: false, viewTransitions: true, pathname: "/vibes/cute" });
+      const pushed: string[] = [];
+      await mod.switchTheme("gothic", "nav", { push: (href) => pushed.push(`${href}:${dataset.vibe}`) });
+      expect(pushed).toEqual(["/vibes/gothic:gothic"]);
+    });
+
+    it("reports the source it was given", async () => {
+      const { mod, events } = await load({ reduced: true, viewTransitions: false, pathname: "/home" });
+      await mod.switchTheme("funky", "nav", { push: () => {} });
+      await new Promise((r) => setTimeout(r, 0));
+      expect(events[0]?.detail).toMatchObject({ from: "cute", to: "funky", source: "nav" });
+    });
+
+    it("isOnVibePage matches /vibes/<slug> only", async () => {
+      const { mod } = await load({ reduced: false, viewTransitions: false });
+      expect(mod.isOnVibePage("/vibes/bold")).toBe(true);
+      expect(mod.isOnVibePage("/vibes/bold/")).toBe(true);
+      expect(mod.isOnVibePage("/vibes")).toBe(false);
+      expect(mod.isOnVibePage("/home")).toBe(false);
+      expect(mod.isOnVibePage("/shop")).toBe(false);
+    });
   });
 });
