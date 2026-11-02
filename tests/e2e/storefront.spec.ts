@@ -36,10 +36,16 @@ test.describe("home", () => {
     // Poster: tiles of the active vibe only; every vibe's set is in the DOM.
     await expect(page.locator('[data-testid^="hero-tiles-cute-"]:visible')).toHaveCount(2);
     expect(await page.locator('[data-testid^="hero-tiles-"]').count()).toBe(8);
-    // Featured: 8 cards visible out of 4 x 8 in the DOM.
+    // Featured: every vibe's own list is in the DOM (4 to 8 cards: its own products first, padded only when it
+    // has fewer than 4); only the active vibe's list shows.
     const featured = page.locator('section[aria-label="Featured products"]');
-    await expect(featured.locator('[data-testid="product-card"]:visible')).toHaveCount(8);
-    expect(await featured.locator('[data-testid="product-card"]').count()).toBe(32);
+    for (const v of ORDER) {
+      const count = await featured.locator(`div[data-v="${v}"] [data-testid="product-card"]`).count();
+      expect(count, `featured cards for ${v}`).toBeGreaterThanOrEqual(4);
+      expect(count, `featured cards for ${v}`).toBeLessThanOrEqual(8);
+    }
+    const cuteCount = await featured.locator('div[data-v="cute"] [data-testid="product-card"]').count();
+    await expect(featured.locator('[data-testid="product-card"]:visible')).toHaveCount(cuteCount);
     // Four vibe cards, each in its own scope.
     for (const v of ORDER) {
       await expect(page.locator(`#vibes article[data-vibe="${v}"]`)).toBeVisible();
@@ -336,7 +342,8 @@ test.describe("header", () => {
 
 test.describe("accessibility (axe: no serious or critical violations)", () => {
   for (const vibe of ORDER) {
-    for (const path of ["/home", "/shop", "/vibes/gothic", "/search?q=skull"]) {
+    // A vibe's own page always wears that vibe, so the collection page checked in each vibe is its own.
+    for (const path of ["/home", "/shop", `/vibes/${vibe}`, "/search?q=skull"]) {
       test(`${path} in ${vibe}`, async ({ page }) => {
         await page.goto(`${path}${path.includes("?") ? "&" : "?"}vibe=${vibe}`);
         expect(await htmlVibe(page)).toBe(vibe);
