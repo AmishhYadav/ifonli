@@ -169,12 +169,13 @@ export function selectedValueName(
 }
 
 /**
- * Gallery order: the transparent cutout leads (it sits on the product's vibe gradient, so it reads the same in
- * every theme), then the photos, whose baked-in backgrounds can clash with a dark theme. Stable within each
- * group, so the admin's own order is kept. A product with no cutout keeps its order untouched.
+ * Gallery order: the photos in the admin's order (the themed shot first, then plain background, back, side, top).
+ * The transparent cutout is only for cards and hero tiles, so it is left out whenever a product has photos; a
+ * product with only a cutout still shows it.
  */
 export function galleryOrder<T extends { isCutout: boolean }>(images: readonly T[]): T[] {
-  return [...images.filter((i) => i.isCutout), ...images.filter((i) => !i.isCutout)];
+  const photos = images.filter((i) => !i.isCutout);
+  return photos.length ? photos : [...images];
 }
 
 /** The slide to show for a variant: its own image if it has one, else null (keep the current slide). */

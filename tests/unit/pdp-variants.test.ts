@@ -116,15 +116,14 @@ describe("gallery and stock helpers", () => {
     expect(imageIndexForVariant(images, null)).toBeNull();
   });
 
-  it("leads the gallery with the cutout and keeps each group's order", () => {
+  it("shows the photos in order and leaves the cutout out when there are photos", () => {
     const photo = (id: string) => ({ ...img(id, null), isCutout: false });
     const cut = (id: string) => ({ ...img(id, null), isCutout: true });
     expect(galleryOrder([photo("p1"), cut("c1"), photo("p2"), cut("c2")]).map((i) => i.id)).toEqual([
-      "c1",
-      "c2",
       "p1",
       "p2",
     ]);
+    expect(galleryOrder([cut("c1")]).map((i) => i.id)).toEqual(["c1"]);
     expect(galleryOrder([photo("p1"), photo("p2")]).map((i) => i.id)).toEqual(["p1", "p2"]);
     expect(galleryOrder([])).toEqual([]);
   });
