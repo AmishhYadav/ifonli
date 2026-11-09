@@ -60,7 +60,7 @@ The cron jobs run every 5 and 10 minutes; Vercel allows that only on **Pro**.
 You already have `ifonli-staging` (Mumbai). Production needs its own project.
 1. Staging: Project Settings > Database > **Reset database password** (the old one is unknown). Save it in a password manager.
 2. Create **`ifonli-prod`** in region **ap-south-1 (Mumbai)** on the **Pro** plan (daily backups and point-in-time recovery).
-3. For each project, note from Connect: the **Transaction pooler** string (port 6543, for `DATABASE_URL`), the **Session pooler** string (port 5432, for `DIRECT_URL`), the project URL (`SUPABASE_URL`) and the **service_role** key (Project Settings > API).
+3. For each project, note from Connect: the **Session pooler** string (port 5432, for both `DATABASE_URL` and `DIRECT_URL`; not the transaction pooler on 6543, see RUNBOOK section 1), the project URL (`SUPABASE_URL`) and the **service_role** key (Project Settings > API).
 4. Extra safety: Project Settings > Data API > turn off the Data API, or remove `public` from "Exposed schemas". The app never uses it; it talks to Postgres directly.
 
 > Before the first `db:migrate` on staging or production, the database lockdown migration (row-level security on and public roles revoked) must be in the code. Hosted Supabase gives its public API roles full access to new tables by default. See "Still to do in code" at the end.
@@ -90,7 +90,7 @@ Set these for **Preview** (staging, test keys). Generate each secret with `opens
 
 | Variable | Value |
 |---|---|
-| `DATABASE_URL` | staging transaction pooler string (port 6543) |
+| `DATABASE_URL` | staging session pooler string (port 5432, same as `DIRECT_URL`) |
 | `DIRECT_URL` | staging session pooler string (port 5432) |
 | `NEXT_PUBLIC_SITE_URL`, `BETTER_AUTH_URL` | the staging URL, `https://...`, no trailing slash |
 | `BETTER_AUTH_SECRET`, `CRON_SECRET` | new random 64-character values (keep different per environment) |

@@ -15,7 +15,7 @@ Set in Vercel (Project, Settings, Environment Variables). Use separate **Product
 
 | Variable | Required in prod | Secret | Used for / notes |
 |---|---|---|---|
-| `DATABASE_URL` | yes | yes | Supabase **pooled** (transaction pooler, port 6543) connection string. The app uses `prepare: false`, a small pool (5 connections per instance) and requires TLS for any host that is not localhost |
+| `DATABASE_URL` | yes | yes | Supabase **session pooler** (port 5432) connection string, the same as `DIRECT_URL`. Do not use the transaction pooler (port 6543): with postgres.js it left queries hanging, failing the build ("use cache" function took too long during prerendering) and stalling pages for over a minute (checked 2026-11-10). The session pooler caps clients at the plan's pool size (15 on Free), so each instance keeps a small pool (5 connections) and the build prerenders with one worker on Vercel. The app uses `prepare: false` and requires TLS for any host that is not localhost |
 | `DIRECT_URL` | for migrations | yes | Supabase **direct** connection (port 5432). Used by `drizzle-kit migrate`; falls back to `DATABASE_URL` |
 | `NEXT_PUBLIC_SITE_URL` | yes | no | Public origin (`https://...`, no trailing slash; `http://localhost` is accepted only so a production build can be tried on one machine). Canonical URLs, sitemap, OG, links in e-mails, CSP `upgrade-insecure-requests` |
 | `BETTER_AUTH_SECRET` | yes | yes | Signs sessions and cookies, and encrypts the admins' authenticator secrets and backup codes (see section 4 before changing it). `openssl rand -hex 32`, at least 32 characters. A production server refuses to boot without it (see "Boot check" below) |
