@@ -65,7 +65,7 @@ export function ProductCardView({
   wishlist,
   className,
 }: ProductCardViewProps) {
-  const { name, typeName, slug, inStock, lowStock, hasPriceRange, primaryVibe } = product;
+  const { name, slug, inStock, lowStock, hasPriceRange, primaryVibe } = product;
   const vibeName = primaryVibe && isVibe(primaryVibe) ? VIBE_NAMES[primaryVibe] : null;
   const soldOut = !inStock;
   const off = percentOff(product.priceFromPaise, product.mrpFromPaise);
@@ -134,8 +134,7 @@ export function ProductCardView({
       {wishlist ? <div className="absolute top-1.5 right-1.5 z-10">{wishlist}</div> : null}
 
       <div className="flex flex-1 flex-col gap-0.5 pt-3">
-        <p className="truncate text-sm font-bold">{typeName}</p>
-        <h3 className="truncate font-[family-name:var(--font-body)] text-sm font-normal tracking-normal text-ink-muted">
+        <h3 className="truncate font-[family-name:var(--font-body)] text-sm font-bold tracking-normal text-ink">
           <Link
             href={`/products/${slug}`}
             className="outline-none after:absolute after:inset-0 after:content-['']"
