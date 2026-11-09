@@ -214,7 +214,7 @@ test.describe("security: no violations in a real browser", () => {
     await page.waitForTimeout(500);
 
     // The hand button re-skins the whole site: inline style/attribute changes and font swaps.
-    const hand = page.getByRole("button", { name: /Change vibe/ }).first();
+    const hand = page.getByRole("button", { name: /change vibe/i }).first();
     if (await hand.isVisible()) {
       await hand.click();
       await hand.click();

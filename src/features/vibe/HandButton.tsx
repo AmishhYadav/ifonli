@@ -182,7 +182,7 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
       type="button"
       data-vibe-hand=""
       data-tip={tipOpen ? "open" : undefined}
-      aria-label={`Change vibe, current: ${VIBE_NAMES[vibe]}, next: ${VIBE_NAMES[next]}`}
+      aria-label={`Turn Me: change vibe, current: ${VIBE_NAMES[vibe]}, next: ${VIBE_NAMES[next]}`}
       className={`hand-btn ${className}`}
       onClick={() => {
         if (longPressed.current) {

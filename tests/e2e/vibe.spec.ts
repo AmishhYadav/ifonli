@@ -86,7 +86,7 @@ async function ready(page: Page, url = PLAYGROUND) {
   // Hydrated once the aria-label tracks the active vibe.
   await expect(page.locator(BUTTON).first()).toHaveAttribute(
     "aria-label",
-    /Change vibe, current: /,
+    /Turn Me: change vibe, current: /,
   );
 }
 
@@ -108,7 +108,7 @@ test("(a) four clicks cycle cute > gothic > funky > bold > cute", async ({
     expect(await visibleName(page)).toEqual([NAMES[to]]);
     await expect(button).toHaveAttribute(
       "aria-label",
-      `Change vibe, current: ${NAMES[to]}, next: ${NAMES[next(to)]}`,
+      `Turn Me: change vibe, current: ${NAMES[to]}, next: ${NAMES[next(to)]}`,
     );
     await expect(page.locator("#vibe-live")).toHaveText(`Vibe changed to ${NAMES[to]}`);
     current = to;
