@@ -1,5 +1,6 @@
 import "server-only";
 
+import { storefrontType } from "./queries/storefront";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -87,7 +88,7 @@ export async function getProductSlugRedirect(
       and(
         eq(productSlugRedirects.oldSlug, oldSlug),
         eq(products.status, "active"),
-        eq(productTypes.active, true),
+        storefrontType(),
       ),
     )
     .limit(1);
@@ -106,7 +107,7 @@ export async function getProductBySlug(db: DbClient, slug: string): Promise<Prod
     .from(products)
     .innerJoin(productTypes, eq(products.typeId, productTypes.id))
     .where(
-      and(eq(products.slug, slug), eq(products.status, "active"), eq(productTypes.active, true)),
+      and(eq(products.slug, slug), eq(products.status, "active"), storefrontType()),
     )
     .limit(1);
   if (!row) return null;
@@ -286,7 +287,7 @@ export async function getCollections(db: DbClient, opts: QueryOptions = {}): Pro
     db
       .select()
       .from(productTypes)
-      .where(eq(productTypes.active, true))
+      .where(storefrontType())
       .orderBy(asc(productTypes.sort), asc(productTypes.slug)),
   ]);
   const vibeCount = new Map<string, number>();
@@ -495,7 +496,7 @@ export async function getAllProductSlugsForSitemap(
     .where(
       and(
         eq(products.status, "active"),
-        eq(productTypes.active, true),
+        storefrontType(),
         sql`exists (select 1 from ${variants} where ${variants.productId} = ${products.id} and ${variants.active})`,
       ),
     )

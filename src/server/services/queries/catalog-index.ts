@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray } from "drizzle-orm";
 
+import { storefrontType } from "./storefront";
 import { hasPriceRange } from "@/lib/money";
 import {
   productImages,
@@ -67,7 +68,7 @@ export async function loadCatalogIndex(
         sort: productTypes.sort,
       })
       .from(productTypes)
-      .where(eq(productTypes.active, true))
+      .where(storefrontType())
       .orderBy(asc(productTypes.sort), asc(productTypes.slug)),
   ]);
   const empty: CatalogIndex = { products: [], vibes: vibeRows, types: typeRows };
@@ -89,7 +90,7 @@ export async function loadCatalogIndex(
     .where(
       and(
         eq(products.status, "active"),
-        eq(productTypes.active, true),
+        storefrontType(),
         opts.productIds ? inArray(products.id, [...opts.productIds]) : undefined,
       ),
     );

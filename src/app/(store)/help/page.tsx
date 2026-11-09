@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { ContactForm } from "@/components/content/ContactForm";
 import { FaqList } from "@/components/content/FaqList";
+import { PincodeCheck, type PincodeCheckProps } from "@/components/content/PincodeCheck";
 import { PlaceholderValue } from "@/components/store/footer/PlaceholderValue";
 import { JsonLd } from "@/components/store/JsonLd";
 import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
@@ -11,6 +12,7 @@ import { breadcrumbJsonLd, type Crumb } from "@/lib/seo";
 import { getStoreInfo } from "@/server/cache/settings";
 import { getHelpFaqs } from "@/server/content/cached";
 import { isReviewMode } from "@/server/content/publish";
+import { getSettings } from "@/server/services/settings";
 
 export const instant = false;
 
@@ -26,14 +28,42 @@ const crumbs: Crumb[] = [
 ];
 
 const QUICK_LINKS: { href: string; label: string; hint: string; icon: IconName }[] = [
-  { href: "/track", label: "Track your order", hint: "Reference plus email or mobile", icon: "truck" },
-  { href: "/policies/shipping", label: "Shipping", hint: "Where, how long, how much", icon: "package" },
-  { href: "/policies/returns-refunds", label: "Returns and refunds", hint: "Damaged or wrong items", icon: "refresh" },
-  { href: "/policies", label: "All policies", hint: "Privacy, terms and more", icon: "shield-check" },
+  {
+    href: "/track",
+    label: "Track your order",
+    hint: "Reference plus email or mobile",
+    icon: "truck",
+  },
+  {
+    href: "/policies/shipping",
+    label: "Shipping",
+    hint: "Where, how long, how much",
+    icon: "package",
+  },
+  {
+    href: "/policies/returns-refunds",
+    label: "Returns and refunds",
+    hint: "Damaged or wrong items",
+    icon: "refresh",
+  },
+  {
+    href: "/policies",
+    label: "All policies",
+    hint: "Privacy, terms and more",
+    icon: "shield-check",
+  },
 ];
 
 export default async function HelpPage() {
-  const [groups, info] = await Promise.all([getHelpFaqs(), getStoreInfo()]);
+  const [groups, info, shipping] = await Promise.all([
+    getHelpFaqs(),
+    getStoreInfo(),
+    getSettings("shipping"),
+  ]);
+  const shippingValue = (key: string) => shipping.find((e) => e.key === key)?.value;
+  const estimates = (shippingValue("delivery_estimates_by_zone") ??
+    {}) as PincodeCheckProps["estimates"];
+  const processingDays = Number(shippingValue("processing_days") ?? 1);
   const hasDraftAnswers = isReviewMode() && groups.some((g) => g.items.some((i) => i.draft));
   // Only finished answers go into structured data (a draft answer carries placeholder markers).
   const faqEntities = groups.flatMap((g) =>
@@ -50,11 +80,15 @@ export default async function HelpPage() {
     <div className="mx-auto max-w-[1100px] px-4 pt-6 pb-4 sm:px-6">
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
       {faqEntities.length > 0 ? (
-        <JsonLd data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqEntities }} />
+        <JsonLd
+          data={{ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqEntities }}
+        />
       ) : null}
       <Breadcrumbs crumbs={crumbs} />
       <header className="mt-4 flex flex-col gap-2">
-        <h1 className="font-display text-4xl leading-tight display-fx sm:text-5xl">Help and contact</h1>
+        <h1 className="font-display text-4xl leading-tight display-fx sm:text-5xl">
+          Help and contact
+        </h1>
         <p className="max-w-2xl text-lg text-ink-muted">
           Find an answer below, or write to us. A real person reads every message.
         </p>
@@ -77,6 +111,8 @@ export default async function HelpPage() {
         ))}
       </ul>
 
+      <PincodeCheck estimates={estimates} processingDays={processingDays} />
+
       {groups.length > 0 ? (
         <section aria-labelledby="faq-heading" className="mt-14">
           <h2 id="faq-heading" className="mb-5 font-display text-3xl leading-tight">
@@ -87,8 +123,8 @@ export default async function HelpPage() {
               data-testid="faq-draft-note"
               className="mb-5 rounded-input bg-[color-mix(in_srgb,var(--warning)_10%,var(--surface))] p-3 text-base"
             >
-              <strong>Draft preview.</strong> Answers with highlighted values are hidden in production until
-              the settings behind them are filled in.
+              <strong>Draft preview.</strong> Answers with highlighted values are hidden in
+              production until the settings behind them are filled in.
             </p>
           ) : null}
           <FaqList groups={groups} />
@@ -105,7 +141,10 @@ export default async function HelpPage() {
             <p className="flex items-start gap-2">
               <Icon name="mail" className="mt-1 size-4 flex-none" />
               <PlaceholderValue value={info.supportEmail}>
-                <a href={`mailto:${info.supportEmail.value}`} className="font-semibold text-link underline underline-offset-4">
+                <a
+                  href={`mailto:${info.supportEmail.value}`}
+                  className="font-semibold text-link underline underline-offset-4"
+                >
                   {info.supportEmail.value}
                 </a>
               </PlaceholderValue>
@@ -118,13 +157,6 @@ export default async function HelpPage() {
               Support hours: <PlaceholderValue value={info.supportHours} />
               <br />
               We usually reply <PlaceholderValue value={info.responseTime} />.
-            </p>
-            <p className="text-ink-muted">
-              Placing a complaint? See the{" "}
-              <Link href="/policies/grievance" className="font-semibold text-link underline underline-offset-4">
-                grievance redressal policy
-              </Link>
-              .
             </p>
           </div>
           <ContactForm />

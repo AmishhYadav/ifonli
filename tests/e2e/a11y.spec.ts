@@ -282,8 +282,6 @@ const ADMIN_PAGES = [
   "/admin/inventory",
   "/admin/collections",
   "/admin/orders",
-  "/admin/discounts",
-  "/admin/discounts/new",
   "/admin/support",
   "/admin/content",
   "/admin/faq",

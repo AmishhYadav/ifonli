@@ -86,7 +86,6 @@ async function fillAllSettings() {
     admin_alert_emails: ["ops@ifonli.in"],
     "policy.jurisdiction_city": "Pune",
     "policy.processors": "- Razorpay\n- Resend",
-    "policy.hippers_definition": "Hippers are hip charms.",
     "policy.materials_note": "Resin and alloy.",
     "policy.working_days": "Monday to Saturday",
     "policy.courier_partners": "Delhivery",

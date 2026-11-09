@@ -33,7 +33,7 @@
 }
 .policy-prose h4 {
   margin-top: 1.5rem;
-  /* Under 18px: the body font (display fonts like Creepster do not hold up that small). */
+  /* Under 18px: the body font (display fonts like Cinzel do not hold up that small). */
   font-family: var(--font-body);
   font-weight: 700;
   letter-spacing: 0;

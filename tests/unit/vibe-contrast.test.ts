@@ -111,7 +111,7 @@ describe("token palettes", () => {
 describe("generated token CSS", () => {
   const css = generateTokenCss();
 
-  it("emits base, the four vibes and the buy scope", () => {
+  it("emits base, the four vibes, the mixed home theme and the buy scope", () => {
     expect(Object.keys(css).sort()).toEqual(
       [
         "base.css",
@@ -120,6 +120,7 @@ describe("generated token CSS", () => {
         "cute.css",
         "funky.css",
         "gothic.css",
+        "mix.css",
       ].sort(),
     );
   });

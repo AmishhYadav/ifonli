@@ -28,12 +28,6 @@ export interface StoreInfo {
   supportPhone: StoreValue;
   supportHours: StoreValue;
   responseTime: StoreValue;
-  grievance: {
-    name: StoreValue;
-    designation: StoreValue;
-    email: StoreValue;
-    phone: StoreValue;
-  };
 }
 
 export async function getVibeSettings(): Promise<VibeSettings> {
@@ -59,12 +53,6 @@ export async function getStoreInfo(): Promise<StoreInfo> {
     const entry = byKey.get(key);
     return { value: String(entry?.value ?? ""), isPlaceholder: entry?.isPlaceholder ?? true };
   };
-  const officer = byKey.get("grievance_officer");
-  const officerValue = (officer?.value ?? {}) as Record<string, string | undefined>;
-  const officerPart = (field: string): StoreValue => ({
-    value: officerValue[field] ?? "",
-    isPlaceholder: officer?.isPlaceholder ?? true,
-  });
   return {
     brandName: String(byKey.get("brand_name")?.value ?? "IfOnli"),
     legalName: text("legal_name"),
@@ -73,11 +61,5 @@ export async function getStoreInfo(): Promise<StoreInfo> {
     supportPhone: text("support_phone"),
     supportHours: text("support_hours"),
     responseTime: text("response_time"),
-    grievance: {
-      name: officerPart("name"),
-      designation: officerPart("designation"),
-      email: officerPart("email"),
-      phone: officerPart("phone"),
-    },
   };
 }

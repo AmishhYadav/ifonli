@@ -202,30 +202,30 @@ export const vibes: Record<Vibe, VibeTokens> = {
     },
   },
 
-  // Unapologetic: black and red. Dark.
+  // Unapologetic: rich burgundy with black, bone and amber. Dark, unisex.
   bold: {
     palette: {
-      bg: "#070707",
-      surface: "#121212",
-      "surface-2": "#1B1B1B",
-      field: "#242424",
-      ink: "#F5F5F5",
-      "ink-muted": "#9E9E9E",
-      accent: "#E80A28", // was #EE0B2A: 4.45:1 under white text
-      "on-accent": "#FFFFFF",
-      "accent-2": "#C20011", // deep red (light ink must stay readable on accent-2)
-      "accent-3": "#F9C718", // yellow
-      border: "#6E6E6E", // form controls only
-      hairline: "#2E2E2E",
+      bg: "#4A0F1E",
+      surface: "#5C1627",
+      "surface-2": "#6E1F32",
+      field: "#7A2639",
+      ink: "#FBF1F2",
+      "ink-muted": "#E9C3C9",
+      accent: "#F2B632", // amber; dark text sits on it
+      "on-accent": "#1A0509",
+      "accent-2": "#1A0509", // near-black (light ink must stay readable on accent-2)
+      "accent-3": "#E8D9C5", // bone
+      border: "#C98A97", // form controls only
+      hairline: "#7E2A3E",
       hand: "#D89F80",
       "focus-ring": "#F9C718",
-      success: "#4CC38A",
+      success: "#6FD8A0",
       warning: "#F9C718",
-      danger: "#FF6B7A",
-      price: "#F5F5F5",
+      danger: "#FFA3AE",
+      price: "#FBF1F2",
       sale: "#F9C718",
-      link: "#FF5468", // the red lifted to 4.5:1 for link text on black
-      "texture-ink": "#E80A28",
+      link: "#FFC4CB",
+      "texture-ink": "#F2B632",
       "texture-opacity": "0",
     },
     shape: {
@@ -315,10 +315,42 @@ export const vibes: Record<Vibe, VibeTokens> = {
   },
 };
 
-/** Vibe override ?? base, for every token. */
-export function resolveTokens(vibe: Vibe | "base"): ResolvedTokens {
+/**
+ * The mixed home page: a warm neutral ground with a near-black accent, so the four vibes' colours (cards, art tiles,
+ * product pictures) sit on it without any one of them owning the page. Applied to `html[data-mix]` (see MixMode).
+ */
+export const mix: VibeTokens = {
+  palette: {
+    bg: "#F6F2EA",
+    surface: "#FFFDF9",
+    "surface-2": "#ECE6DA",
+    field: "#EFE9DE",
+    ink: "#1E1B24",
+    "ink-muted": "#59545F",
+    accent: "#2A2433",
+    "on-accent": "#FFFFFF",
+    "accent-2": "#F2C6A4",
+    "accent-3": "#C9B8F2",
+    border: "#85807A",
+    hairline: "#E2DACB",
+    hand: "#F1D3BC",
+    "focus-ring": "#4A3A9A",
+    success: "#146C36",
+    link: "#4A3A9A",
+  },
+  shape: {
+    "font-display": '"Fredoka", "Fredoka Fallback", ui-rounded, sans-serif',
+    "display-weight": "600",
+    "display-tracking": "0",
+    "radius-card": "20px",
+    "radius-input": "14px",
+  },
+};
+
+/** Vibe override ?? base, for every token. `mix` is the neutral home theme. */
+export function resolveTokens(vibe: Vibe | "base" | "mix"): ResolvedTokens {
   if (vibe === "base") return base;
-  const v = vibes[vibe];
+  const v = vibe === "mix" ? mix : vibes[vibe];
   return {
     palette: { ...base.palette, ...v.palette },
     shape: { ...base.shape, ...v.shape },
@@ -405,6 +437,6 @@ export const EXTRA_PAIRS: Partial<Record<Vibe, readonly ContrastPair[]>> = {
   ],
 };
 
-export function pairsFor(vibe: Vibe | "base"): ContrastPair[] {
-  return [...COMMON_PAIRS, ...(vibe === "base" ? [] : (EXTRA_PAIRS[vibe] ?? []))];
+export function pairsFor(vibe: Vibe | "base" | "mix"): ContrastPair[] {
+  return [...COMMON_PAIRS, ...(vibe === "base" || vibe === "mix" ? [] : (EXTRA_PAIRS[vibe] ?? []))];
 }

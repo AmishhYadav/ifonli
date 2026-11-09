@@ -90,7 +90,7 @@ export function SearchSheetPanel({ shortcuts, defaultOpen = false }: SearchSheet
               type="search"
               autoComplete="off"
               enterKeyHint="search"
-              placeholder="Search charms, stickers, vibes..."
+              placeholder="Type it. Find it. Love it."
               maxLength={100}
               value={value}
               onChange={(event) => setValue(event.target.value)}

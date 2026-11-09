@@ -101,7 +101,8 @@ function chunk<T>(items: T[], size: number): T[][] {
 
 /**
  * Idempotent upsert of states and pincodes. Re-running refreshes name/district/state/zone but
- * NEVER touches `serviceable` / `cod_allowed`, which admins edit.
+ * NEVER touches `serviceable` / `cod_allowed`, which admins edit. New pincodes start serviceable unless
+ * they are listed in no-delivery-pincodes.json (India Post has no delivery office there).
  */
 export async function importReference(
   opts: ReferenceImportOptions = {},
@@ -159,6 +160,13 @@ export async function importReference(
     throw new Error("pincodes.csv must have columns: pincode,district,state,office_count");
   }
 
+  const noDeliveryFile = path.join(dir, "no-delivery-pincodes.json");
+  const noDelivery = new Set<string>(
+    existsSync(noDeliveryFile)
+      ? (JSON.parse(readFileSync(noDeliveryFile, "utf8")).pincodes as string[])
+      : [],
+  );
+
   const unknown = new Set<string>();
   const seen = new Set<string>();
   let skipped = 0;
@@ -182,6 +190,7 @@ export async function importReference(
       district: (r[iDistrict] ?? "").trim() || "Unknown",
       stateCode: st.code,
       zone: zonesFile.stateZones[st.name] ?? null,
+      serviceable: !noDelivery.has(pin),
     });
   }
 

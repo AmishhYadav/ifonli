@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { OrderDetailView } from "@/components/orders/OrderDetailView";
+import { RememberOrder } from "@/features/account/RememberOrder";
 import { RefreshCartBadge } from "@/components/orders/RefreshCartBadge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -78,6 +79,7 @@ async function OrderContent({
   return (
     <>
       <RefreshCartBadge />
+      <RememberOrder reference={order.ref} token={token} />
       <OrderDetailView
         order={order}
         extras={extras}

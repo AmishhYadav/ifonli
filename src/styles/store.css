@@ -28,3 +28,27 @@ html {
 [data-hero] {
   overflow-x: clip;
 }
+
+/* "Thank you for choosing us." at the foot of My Profile: quiet, a touch of the accent, a slow fade-in. */
+.profile-thanks {
+  color: var(--ink-muted);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  letter-spacing: 0.01em;
+  animation: profile-thanks-in 900ms var(--motion-ease, ease-out) both;
+}
+.profile-thanks svg {
+  color: var(--accent);
+  opacity: 0.7;
+}
+@keyframes profile-thanks-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .profile-thanks {
+    animation: none;
+  }
+}

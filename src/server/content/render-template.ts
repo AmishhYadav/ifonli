@@ -96,11 +96,11 @@ interface Resolved {
   setting: TemplateSetting | null;
   /** Remaining path walked into the value; `undefined` when something along it is missing. */
   value: unknown;
-  /** Walked into the setting (`grievance_officer.email`): its format does not apply to the part. */
+  /** Walked into the setting (`default_manufacturer.name`): its format does not apply to the part. */
   nested: boolean;
 }
 
-/** Longest registry key that prefixes the path (`grievance_officer` for `grievance_officer.email`). */
+/** Longest registry key that prefixes the path (`grievance_officer` for `default_manufacturer.name`). */
 function resolve(ctx: TemplateContext, path: string): Resolved {
   const parts = path.split(".");
   for (let i = parts.length; i >= 1; i--) {

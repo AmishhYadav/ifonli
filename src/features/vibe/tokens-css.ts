@@ -79,6 +79,20 @@ export function generateTokenCss(): Record<string, string> {
     "",
   ].join("\n");
 
+  // The mixed home theme. `html[data-mix]` (two selectors' worth of specificity) beats the `[data-vibe]` on <html>
+  // whatever the source order; a VibeScope inside redeclares the variables on its own element, so it still wins.
+  const mixed = resolveTokens("mix");
+  files["mix.css"] = [
+    HEADER,
+    "/* Mixed home: a neutral ground that all four vibes can sit on, whichever vibe the visitor wears. */",
+    "html[data-mix] {",
+    declarations(PALETTE_KEYS.map((k) => [k, mixed.palette[k]] as const)),
+    "",
+    declarations(SHAPE_KEYS.map((k) => [k, mixed.shape[k]] as const)),
+    "}",
+    "",
+  ].join("\n");
+
   // Keep `vibes` referenced so a vibe missing from tokens.ts is a type error here too.
   void vibes;
   return files;

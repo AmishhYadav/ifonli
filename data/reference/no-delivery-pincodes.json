@@ -1,0 +1,9 @@
+{
+  "_note": "Pincodes whose offices are all marked 'Non Delivery' in India Post's All India Pincode Directory (data.gov.in, snapshot 30 May 2019, checked 2026-11-09). A pincode with at least one Delivery office is treated as deliverable. Applied only when a pincode is first imported; admins can still change serviceable in Admin > Pincodes. 999999 is a junk row in the 2019 file (no pincode starts with 9 except the Army Post series, which civilians cannot use).",
+  "pincodes": [
+    "363002",
+    "363623",
+    "751027",
+    "999999"
+  ]
+}

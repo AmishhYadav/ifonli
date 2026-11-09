@@ -2,13 +2,13 @@
   {
     "category": "delivery",
     "question": "Do you deliver to my pincode?",
-    "answerMd": "Enter your pincode on any product page or at checkout and we will tell you straight away whether we can deliver, and what the estimate is. This check happens before you pay.\n\n{{#if settings.serviceability_mode == \"all_india\"}}We deliver across India, wherever our courier partners can reach. A few remote pincodes may not be covered.{{else}}We deliver to selected areas of India. The pincode check shows if yours is covered.{{/if}}",
+    "answerMd": "Enter your pincode in the box above, or at checkout, and we will tell you straight away whether we can deliver, and what the estimate is. This check happens before you pay.\n\nWe deliver to every pincode that has an India Post delivery post office.",
     "position": 1
   },
   {
     "category": "delivery",
     "question": "How long will delivery take?",
-    "answerMd": "Orders are usually processed within {{settings.processing_days}} working days. After dispatch, estimated delivery times are:\n\n- Metro region: {{settings.delivery_estimates_by_zone.metro_region}}\n- Rest of India: {{settings.delivery_estimates_by_zone.rest_of_india}}\n- North East: {{settings.delivery_estimates_by_zone.north_east}}\n- Jammu & Kashmir and Ladakh: {{settings.delivery_estimates_by_zone.jk_ladakh}}\n- Islands: {{settings.delivery_estimates_by_zone.islands}}\n\nThese are estimates, not guarantees. Your exact estimate appears when you enter your pincode. See our [Shipping Policy](/policies/shipping).",
+    "answerMd": "Orders are usually processed within {{settings.processing_days}} working days. After dispatch, estimated delivery times are:\n\n- Metro region: {{settings.delivery_estimates_by_zone.metro_region}}\n- Rest of India: {{settings.delivery_estimates_by_zone.rest_of_india}}\n- North East: {{settings.delivery_estimates_by_zone.north_east}}\n- Jammu & Kashmir and Ladakh: {{settings.delivery_estimates_by_zone.jk_ladakh}}\n- Islands: {{settings.delivery_estimates_by_zone.islands}}\n\n**Inside the MAHE Bengaluru campus, orders are delivered within 24 hours, with free delivery.**\n\nThese are estimates, not guarantees. Your exact estimate appears when you enter your pincode. See our [Shipping Policy](/policies/shipping).",
     "position": 2
   },
   {
@@ -73,62 +73,14 @@
   },
   {
     "category": "payment",
-    "question": "My coupon code is not working. Why?",
-    "answerMd": "Coupons have rules, for example dates, a minimum order value, or which products they apply to. When you apply a code, the message tells you why it did not work and what to do, for example \"add a little more to your bag\". Only one coupon can be used per order. If the message is unclear, contact {{settings.support_email}} with the code and we will look.",
-    "position": 6
-  },
-  {
-    "category": "payment",
     "question": "How are refunds paid?",
     "answerMd": "Prepaid orders are refunded to the same payment method. We start refunds within {{settings.policy.refund_initiation_days}} working days of approval, and your bank may take {{settings.policy.refund_bank_days}} to show it. For Cash on Delivery orders we refund by UPI or bank transfer within {{settings.policy.cod_refund_days}} working days of getting your details. See our [Returns and Refunds Policy](/policies/returns-refunds).",
-    "position": 7
+    "position": 6
   },
   {
     "category": "payment",
     "question": "Why does my bag show a hold on items while I pay?",
     "answerMd": "To stop items selling out while you pay, we hold them for about {{settings.reservation_ttl_minutes}} minutes at checkout. If you do not complete payment in that time, the hold ends. Nothing is charged unless your payment succeeds.",
-    "position": 8
-  },
-  {
-    "category": "product",
-    "question": "What are Hippers?",
-    "answerMd": "{{settings.policy.hippers_definition}}",
-    "position": 1
-  },
-  {
-    "category": "product",
-    "question": "What are vibes?",
-    "answerMd": "Vibes are moods: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Every product belongs to one or more vibes, so you can shop by how you feel. You can also browse by product type.",
-    "position": 2
-  },
-  {
-    "category": "product",
-    "question": "What does the hand button do?",
-    "answerMd": "The hand button at the top left changes the look of the site to the next vibe. It changes colours, fonts and style only. The products and prices stay exactly the same on every theme. Your choice is remembered on this device.",
-    "position": 3
-  },
-  {
-    "category": "product",
-    "question": "What are the sizes and materials?",
-    "answerMd": "Each product page lists its size and net quantity. Materials: {{settings.policy.materials_note}}\n\nIf you cannot find a detail you need, write to {{settings.support_email}} and tell us the product name.",
-    "position": 4
-  },
-  {
-    "category": "product",
-    "question": "Will the colours look exactly like the photos?",
-    "answerMd": "We try to match the photos as closely as we can, but screens and lighting differ, so colours may look a little different in real life.",
-    "position": 5
-  },
-  {
-    "category": "product",
-    "question": "What is in a DIY kit?",
-    "answerMd": "The product page lists what comes in each kit and the net quantity. A kit is sold as a single item with its own stock. Some parts are small, so keep them away from young children unless the product page says otherwise.",
-    "position": 6
-  },
-  {
-    "category": "product",
-    "question": "Can I save products without an account?",
-    "answerMd": "Yes. Tap the heart on a product and it is saved on this device. If you later sign in, we add your saved items to your account. Clearing your browser data on this device removes the guest list.",
     "position": 7
   },
   {
@@ -166,17 +118,5 @@
     "question": "I did not get an order confirmation email.",
     "answerMd": "Check your spam or promotions folder. Then try our [Track order](/track) page with your order reference or the email you used. If you still cannot find it, contact {{settings.support_email}} and we will resend it.",
     "position": 6
-  },
-  {
-    "category": "orders",
-    "question": "How do I contact support?",
-    "answerMd": "Use the contact form on the [Help page](/help), email {{settings.support_email}} or call {{settings.support_phone}} ({{settings.support_hours}}). Please include your order reference. We usually reply within {{settings.response_time}}.",
-    "position": 7
-  },
-  {
-    "category": "orders",
-    "question": "How do I delete my account or my data?",
-    "answerMd": "If you have an account, go to your account settings to export your data or delete your account. You can also email {{settings.grievance_officer.email}} with the subject \"Privacy request\". See our [Privacy Notice](/policies/privacy).",
-    "position": 8
   }
 ]

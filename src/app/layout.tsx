@@ -7,6 +7,7 @@ import { BODY_FONT_FILE, DEFAULT_VIBE, DEFAULT_VIBE_CYCLE } from "@/features/vib
 import { VibeFilters } from "@/features/vibe/VibeFilters";
 import { VibeHeadScript } from "@/features/vibe/VibeHeadScript";
 import { InAppHistoryTracker } from "@/features/navigation/InAppHistoryTracker";
+import { MixMode } from "@/features/vibe/MixMode";
 import { VibeUrlSync } from "@/features/vibe/VibeUrlSync";
 import { siteUrl } from "@/lib/seo";
 import { getVibeSettings, type VibeSettings } from "@/server/cache/settings";
@@ -58,6 +59,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ToastProvider>{children}</ToastProvider>
         <div id="vibe-live" role="status" aria-live="polite" className="sr-only" />
         <Suspense fallback={null}>
+          <MixMode />
           <VibeUrlSync />
           <InAppHistoryTracker />
         </Suspense>

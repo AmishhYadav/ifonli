@@ -14,7 +14,6 @@ import { hydrateCart } from "./cart-store";
 import { CartLines } from "./CartLines";
 import { CartNotices } from "./CartNotices";
 import { CartTotals } from "./CartTotals";
-import { CouponForm } from "./CouponForm";
 import { ReturnNote } from "./ReturnNote";
 import { useCartStore, useOptimisticCart } from "./useCart";
 
@@ -27,8 +26,7 @@ interface CartPageViewProps {
 }
 
 /**
- * The /cart page body. Same lines and maths as the drawer (they share the store), with room for the coupon
- * field. Buy scope: palette only, plain and clear.
+ * The /cart page body. Same lines and maths as the drawer (they share the store). Buy scope: palette only, plain and clear.
  */
 export function CartPageView({ initial, returnPolicyText, emptyTitle, emptyBody }: CartPageViewProps) {
   const { cart: stored, notices, error, announcement } = useCartStore();
@@ -103,7 +101,6 @@ export function CartPageView({ initial, returnPolicyText, emptyTitle, emptyBody 
         <h2 id="cart-summary-heading" className="text-xl font-bold">
           Order summary
         </h2>
-        <CouponForm coupon={cart.coupon} />
         <div aria-busy={pending} className={pending ? "opacity-70 transition-opacity" : "transition-opacity"}>
           <CartTotals cart={cart} />
         </div>

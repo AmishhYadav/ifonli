@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isRetiredType } from "./queries/storefront";
 import { asc, eq, inArray } from "drizzle-orm";
 
 import {
@@ -114,7 +115,7 @@ export async function loadVariantSnapshots(
       imgs.find((i) => i.variantId === null && i.kind === "cutout") ??
       imgs.find((i) => i.kind === "photo") ??
       imgs[0];
-    const productOk = r.productStatus === "active" && r.typeActive;
+    const productOk = r.productStatus === "active" && r.typeActive && !isRetiredType(r.typeSlug);
     out.set(r.variantId, {
       variantId: r.variantId,
       productId: r.productId,

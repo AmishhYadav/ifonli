@@ -3,22 +3,16 @@
 
   "legal_name": "IfOnli Studio",
   "brand_name": "IfOnli",
-  "registered_address": "2nd Floor, 14 Hill Road, Bandra West, Mumbai, Maharashtra 400050, India",
-  "state": "Maharashtra",
+  "registered_address": "T. A. Pai Management Institute, Manipal Academy of Higher Education (MAHE), Govindapura, Yelahanka, Bengaluru, Karnataka – 560064, India",
+  "state": "Karnataka",
   "gstin": null,
-  "support_email": "support@ifonli.in",
-  "support_phone": "+91 98765 43210",
-  "support_hours": "Mon–Sat, 10:00–18:00 IST",
+  "support_email": "shop.ifonli@gmail.com",
+  "support_phone": "+91 88284 72665",
+  "support_hours": "Mon–Sun, 10:00–22:00 IST",
   "response_time": "24 hours on working days",
-  "grievance_officer": {
-    "name": "Amish Yadav",
-    "designation": "Founder and Grievance Officer",
-    "email": "grievance@ifonli.in",
-    "phone": "+91 98765 43210"
-  },
   "default_manufacturer": {
     "name": "IfOnli Studio",
-    "address": "2nd Floor, 14 Hill Road, Bandra West, Mumbai, Maharashtra 400050, India"
+    "address": "T. A. Pai Management Institute, Manipal Academy of Higher Education (MAHE), Govindapura, Yelahanka, Bengaluru, Karnataka – 560064, India"
   },
   "default_country_of_origin": "India",
 
@@ -28,7 +22,7 @@
   "flat_fee": 4900,
   "free_threshold": 29900,
   "zone_overrides": {},
-  "processing_days": 2,
+  "processing_days": 1,
   "delivery_estimates_by_zone": {
     "metro_region": { "minDays": 2, "maxDays": 4 },
     "rest_of_india": { "minDays": 3, "maxDays": 6 },
@@ -76,11 +70,10 @@
 
   "policy.jurisdiction_city": "Mumbai",
   "policy.processors": "**Razorpay** (online payments and refunds), our **courier partners** (delivery), **Resend** (order e-mails and sign-in codes), **Supabase** (database and image storage, Mumbai region) and **Vercel** (website hosting).",
-  "policy.hippers_definition": "**Hippers** are our clip-on accessories: snap clips, claw clips and bag hooks with a charm-like personality. Clip one into your hair, onto a tote strap, a belt loop or a zip pull, and move it to something else whenever your vibe changes. No tools, no piercing, nothing permanent.",
-  "policy.materials_note": "charms and Hippers are made from zinc alloy or stainless steel with enamel, resin or acrylic details. 3D stickers are layered vinyl with a clear domed resin top. DIY kits use glass, acrylic and polymer-clay beads with stainless-steel rings and findings. Keep pieces away from water, perfume and harsh cleaners so the finish lasts.",
+  "policy.materials_note": "charms are made from zinc alloy or stainless steel with enamel, resin or acrylic details. 3D stickers are layered vinyl with a clear domed resin top. DIY kits use glass, acrylic and polymer-clay beads with stainless-steel rings and findings. Keep pieces away from water, perfume and harsh cleaners so the finish lasts.",
   "policy.handmade_note": "Many pieces are finished by hand, so small differences in colour, shape and finish from the photos are normal and are not defects.",
   "policy.working_days": "Monday to Saturday",
-  "policy.courier_partners": "Delhivery and India Post (Speed Post)",
+  "policy.courier_partners": "India Post",
   "policy.delivery_attempts": 3,
   "policy.rto_handling": "we contact you by e-mail. For a prepaid order you can ask us to send it again (you pay the shipping again) or take a refund of the order value minus the original shipping fee. A cash-on-delivery order is cancelled, and nothing is charged.",
   "policy.refund_initiation_days": 2,
@@ -88,7 +81,7 @@
   "policy.cod_refund_days": 3,
   "policy.replacement_days": "3 working days",
   "policy.return_conditions": "- The item is unused and in its original packaging, with all parts and tags.\n- You ask for the return from the Help page within the return window, with your order reference.\n- We check the item when it reaches us and start the refund once it passes the check.",
-  "policy.non_returnable_items": "- Opened DIY kits and loose beads\n- Hippers that have been worn in the hair (for hygiene)\n- 3D stickers that have been peeled off their backing\n- Items marked final sale",
+  "policy.non_returnable_items": "- Opened DIY kits and loose beads\n- 3D stickers that have been peeled off their backing\n- Items marked final sale",
   "policy.return_shipping_rule": "for a change-of-mind return you send the parcel back to us with a tracked courier and pay the return shipping. For a damaged, defective or wrong item we arrange the pickup at no cost to you.",
   "policy.shipping_fee_refund_rule": "refunded in full when the whole order is cancelled before dispatch, or when an item arrives damaged, defective or wrong. They are not refunded on other partial refunds.",
   "policy.retention_order_records": "8 years from the end of the financial year in which the order was placed, because tax law requires it",

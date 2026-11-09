@@ -13,6 +13,13 @@ export const DEFAULT_VIBE: Vibe = "cute";
 /** `"random"` picks a vibe client-side when nothing is stored (settings.default_vibe may be "random"). */
 export type DefaultVibeSetting = Vibe | "random";
 
+/**
+ * Pages that wear the neutral mixed theme (`html[data-mix]`, tokens/mix.css) instead of the visitor's vibe: the
+ * home page is the whole of IfOnli, so it looks the same whichever vibe was picked last.
+ */
+export const MIX_PATH = /^\/home\/?$/;
+export const MIX_ATTRIBUTE = "data-mix";
+
 export const VIBE_COOKIE = "ifonli_vibe";
 export const VIBE_STORAGE_KEY = "ifonli_vibe";
 export const VIBE_URL_PARAM = "vibe";

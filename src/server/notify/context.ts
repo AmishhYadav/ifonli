@@ -17,7 +17,6 @@ export async function loadStoreInfo(db: DbClient): Promise<StoreInfo> {
     "support_email",
     "support_phone",
     "support_hours",
-    "grievance_officer",
   ]);
   return {
     brandName: s.brand_name.value,
@@ -26,7 +25,6 @@ export async function loadStoreInfo(db: DbClient): Promise<StoreInfo> {
     supportEmail: s.support_email.value,
     supportPhone: s.support_phone.value,
     supportHours: s.support_hours.value,
-    grievance: s.grievance_officer.value,
   };
 }
 

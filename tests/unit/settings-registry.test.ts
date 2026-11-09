@@ -95,7 +95,6 @@ describe("settings registry", () => {
     const POLICY_KEYS = [
       "policy.jurisdiction_city",
       "policy.processors",
-      "policy.hippers_definition",
       "policy.materials_note",
       "policy.handmade_note",
       "policy.working_days",
@@ -138,7 +137,6 @@ describe("settings registry", () => {
     it("marks Markdown strings, and only handmade_note is optional for launch", () => {
       for (const key of [
         "policy.processors",
-        "policy.hippers_definition",
         "policy.materials_note",
         "policy.rto_handling",
         "policy.return_conditions",

@@ -32,7 +32,7 @@ export const vibes = pgTable("vibes", {
   ...timestamps(),
 }).enableRLS();
 
-/** Charms, Hippers, 3D stickers, DIY accessories. Data, not code, so the owner can archive one. */
+/** Charms, 3D stickers, DIY accessories (Hippers is switched off, see migration 0007). Data, not code, so the owner can archive one. */
 export const productTypes = pgTable("product_types", {
   id: pk(),
   slug: text("slug").notNull().unique(),

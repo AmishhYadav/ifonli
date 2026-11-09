@@ -53,7 +53,6 @@ const UNTICKED = false as unknown as true;
 
 const POLICY_LINKS = [
   { href: "/policies/returns-refunds", label: "Returns and refunds policy" },
-  { href: "/policies/terms", label: "Terms of use" },
   { href: "/policies/privacy", label: "Privacy policy" },
 ] as const;
 

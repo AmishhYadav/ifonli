@@ -92,13 +92,6 @@ function Footer({ ctx, c }: { ctx: EmailContext; c: EmailPalette }) {
       <p style={{ margin: "0 0 8px" }}>
         {store.legalName}, {store.address}
       </p>
-      <p style={{ margin: 0 }}>
-        Grievance officer: {store.grievance.name}, {store.grievance.designation} (
-        <Link href={`mailto:${store.grievance.email}`} style={link}>
-          {store.grievance.email}
-        </Link>
-        , {store.grievance.phone})
-      </p>
     </>
   );
 }

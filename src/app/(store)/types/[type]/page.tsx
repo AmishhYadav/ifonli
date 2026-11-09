@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { JsonLd } from "@/components/store/JsonLd";
 import { CollectionHeader } from "@/components/store/listing/CollectionHeader";
+import { KIT_SLOTS, KIT_TYPE_SLUG } from "@/components/store/kit/kit-store";
 import { ListingSection } from "@/components/store/listing/ListingSection";
 import { ListingSkeleton } from "@/components/store/listing/ListingSkeleton";
 import type { RawSearchParams } from "@/components/store/listing/params";
@@ -66,7 +67,11 @@ export default async function TypePage({
         crumbs={crumbs}
         title={type.name}
         description={textOr(type.definition, `${type.name} in all four vibes.`)}
-      />
+      >
+        {type.slug === KIT_TYPE_SLUG ? (
+          <p className="mt-3 text-base font-semibold">Pick any {KIT_SLOTS} items — they&apos;ll drop into your set below.</p>
+        ) : null}
+      </CollectionHeader>
       <Suspense fallback={<ListingSkeleton />}>
         <ListingSection
           basePath={`/types/${type.slug}`}

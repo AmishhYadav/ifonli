@@ -9,9 +9,9 @@ import type { RawSearchParams } from "@/components/store/listing/params";
 import { breadcrumbJsonLd, type Crumb } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Shop all charms, Hippers, 3D stickers and DIY kits",
+  title: "Shop all charms, 3D stickers and DIY kits",
   description:
-    "Every IfOnli charm, Hipper, 3D sticker and DIY kit in one place. Filter by vibe, type and price.",
+    "Every IfOnli charm, 3D sticker and DIY kit in one place. Filter by vibe, type and price.",
   alternates: { canonical: "/shop" },
 };
 

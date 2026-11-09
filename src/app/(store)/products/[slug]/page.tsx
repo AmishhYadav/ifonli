@@ -116,7 +116,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     { name: product.type.name, path: `/types/${product.type.slug}` },
     { name: product.name, path: `/products/${product.slug}` },
   ];
-  const vibes = product.vibes.flatMap((v) => (isVibe(v.slug) ? [{ ...v, slug: v.slug }] : []));
+  // A product belongs to one mood on its page: the primary one (some products are also listed under a second mood).
+  const allVibes = product.vibes.flatMap((v) => (isVibe(v.slug) ? [{ ...v, slug: v.slug }] : []));
+  const vibes = allVibes.filter((v) => v.slug === product.primaryVibe).concat(allVibes).slice(0, 1);
 
   return (
     <>

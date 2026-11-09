@@ -3,7 +3,7 @@
  * page re-skins with the visitor's vibe and each mood panel with its own (`data-vibe` scope).
  *
  * Layout model: the DEFAULT is a plain, fully visible stack of chapters (no JS, reduced motion, print).
- * `.landing[data-motion]` (set before first paint by an inline script, and by LandingMotion) switches on the
+ * `.landing[data-motion]` (set by LandingMotion) switches on the
  * scroll choreography layout: sticky stages for the moods and the portal. GSAP only ever animates
  * transform, opacity and the portal's clip-path.
  */

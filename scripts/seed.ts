@@ -27,6 +27,8 @@ const PRODUCT_TYPES = [
     name: "Hippers",
     sort: 2,
     definition: 'PLACEHOLDER — owner to define "Hippers"',
+    // Retired from the storefront (migration 0007); the row stays so old order lines keep their product type.
+    active: false,
   },
   {
     slug: "3d-stickers",

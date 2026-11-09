@@ -84,7 +84,7 @@ export const faqs = pgTable(
 
 export const policies = pgTable("policies", {
   id: pk(),
-  /** shipping | cancellation | returns-refunds | privacy | terms | grievance */
+  /** shipping | cancellation | returns-refunds | privacy | seller-information */
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
   bodyMd: text("body_md").notNull().default(""),

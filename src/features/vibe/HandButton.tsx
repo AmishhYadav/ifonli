@@ -110,7 +110,7 @@ interface Props {
  * any source (this hand, a nav pill, a vibe page), by alternating `data-turn` on the button (see
  * styles/motion.css); nothing sets it on load, so there is no flip at page load, and never under reduced
  * motion. A click switches the site (shared `switchVibeTo`) and, on a `/vibes/<slug>` page, also opens the
- * next vibe's collection so the page follows the theme. Plan section 8.4.
+ * next vibe's collection so the page follows the theme. A "Turn Me" label always sits under the hand (no hover needed). Plan section 8.4.
  */
 export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props) {
   const { vibe } = useVibe();
@@ -217,7 +217,7 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
         ))}
       </span>
       <span aria-hidden="true" className="hand-pill">
-        turn me &#x21BB;
+        Turn Me <span className="hand-pill-arrow">&#x21BB;</span>
       </span>
       <span aria-hidden="true" className="hand-tip">
         {VIBES.map((v) => (

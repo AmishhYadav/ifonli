@@ -33,7 +33,7 @@ async function SearchResults({ searchParams }: { searchParams: Promise<RawSearch
               name="q"
               type="search"
               defaultValue={q}
-              placeholder="Search charms, stickers, vibes..."
+              placeholder="Type it. Find it. Love it."
               maxLength={100}
             />
           </div>

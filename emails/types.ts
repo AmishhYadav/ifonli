@@ -8,7 +8,6 @@ export interface StoreInfo {
   supportEmail: string;
   supportPhone: string;
   supportHours: string;
-  grievance: { name: string; designation: string; email: string; phone: string };
 }
 
 export interface OrderViewItem {

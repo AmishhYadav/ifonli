@@ -9,6 +9,8 @@ import { cn } from "@/lib/cn";
 import { formatINR } from "@/lib/money";
 import type { ProductCard as ProductCardData } from "@/server/services/queries/types";
 
+import { KitButton } from "./kit/KitButton";
+import { KIT_TYPE_SLUG } from "./kit/kit-store";
 import { QuickAdd } from "./QuickAdd";
 
 /** An image ready for `next/image` (the shape `imageProps()` returns). */
@@ -160,13 +162,24 @@ export function ProductCardView({
       </div>
 
       <div className="pt-3">
-        <QuickAdd
-          productId={product.id}
-          productName={name}
-          slug={slug}
-          variantId={product.quickAddVariantId}
-          soldOut={soldOut}
-        />
+        {product.typeSlug === KIT_TYPE_SLUG && product.quickAddVariantId && !soldOut ? (
+          <KitButton
+            productId={product.id}
+            productName={name}
+            slug={slug}
+            variantId={product.quickAddVariantId}
+            imageSrc={image?.src ?? null}
+            pricePaise={product.priceFromPaise}
+          />
+        ) : (
+          <QuickAdd
+            productId={product.id}
+            productName={name}
+            slug={slug}
+            variantId={product.quickAddVariantId}
+            soldOut={soldOut}
+          />
+        )}
       </div>
     </article>
   );

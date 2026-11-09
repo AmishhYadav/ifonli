@@ -15,7 +15,7 @@ const ROOT = path.resolve(__dirname, "..");
 let failures = 0;
 let total = 0;
 
-for (const vibe of ["base", ...VIBES] as const) {
+for (const vibe of ["base", "mix", ...VIBES] as const) {
   const { palette } = resolveTokens(vibe);
   console.log(`\n${vibe}`);
   console.log("  pair                        min    ratio  result");

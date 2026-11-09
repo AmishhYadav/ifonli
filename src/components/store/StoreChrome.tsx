@@ -9,6 +9,7 @@ import { AnalyticsMount } from "@/features/analytics/AnalyticsMount";
 import { Footer } from "./footer/Footer";
 import { AnnouncementBar } from "./header/AnnouncementBar";
 import { Header } from "./header/Header";
+import { KitTray } from "./kit/KitTray";
 import { OfflineNotice } from "./OfflineNotice";
 
 /** Skip link, announcement bar, header, `<main id="main">` and footer: the frame of every discovery page. */
@@ -31,6 +32,7 @@ export function StoreChrome({ children }: { children: ReactNode }) {
       <Suspense fallback={null}>
         <WishlistAccountSync />
       </Suspense>
+      <KitTray />
       <AnalyticsMount />
     </>
   );

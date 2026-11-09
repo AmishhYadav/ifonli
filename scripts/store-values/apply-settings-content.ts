@@ -308,6 +308,7 @@ async function applyAnnouncement(db: Db, schema: Schema, actor: Actor): Promise<
   const parts: string[] = [];
   if (s.free_threshold.value > 0)
     parts.push(`Free shipping on orders of ${rupees(s.free_threshold.value)} or more`);
+  parts.push("MAHE Bengaluru campus: delivered in 24 hours");
   if (s.cod_enabled.value) parts.push("Cash on delivery available");
   if (parts.length === 0) {
     log("announcement", "nothing true to announce; left alone");

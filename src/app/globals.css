@@ -6,6 +6,7 @@
 @import "../styles/tokens/bold.css";
 @import "../styles/tokens/gothic.css";
 @import "../styles/tokens/funky.css";
+@import "../styles/tokens/mix.css";
 /* buy.css must come after every vibe file (see scripts/build-tokens.ts). */
 @import "../styles/tokens/buy.css";
 @import "../styles/vibe.css";
@@ -85,7 +86,7 @@
 @utility font-body {
   font-family: var(--font-body);
 }
-/* Small labels (under ~18px): the body font, bold, spaced caps. Display fonts (Creepster, Rubik Glitch) fall apart that small. */
+/* Small labels (under ~18px): the body font, bold, spaced caps. Display fonts (Cinzel, Rubik Glitch) fall apart that small. */
 @utility font-label {
   font-family: var(--font-body);
   font-weight: 700;

@@ -5,6 +5,7 @@
  */
 import {
   DEFAULT_VIBE,
+  MIX_ATTRIBUTE,
   VIBE_CHANGE_EVENT,
   VIBE_COOKIE,
   VIBE_COOKIE_MAX_AGE,
@@ -140,6 +141,9 @@ export function setVibe(to: Vibe, options: SetVibeOptions): void {
   const from = getVibe();
   const startedAt = options.startedAt ?? performance.now();
 
+  // Turning the hand is an explicit "show me this mood": the neutral home theme steps aside until the visitor
+  // navigates (MixMode puts it back on the next route change, so the home page starts mixed again).
+  if (options.source === "hand") document.documentElement.removeAttribute(MIX_ATTRIBUTE);
   if (from !== to) beginSwitch(options.settled);
   document.documentElement.dataset.vibe = to;
   if (from !== to) flushSkippedStyles();

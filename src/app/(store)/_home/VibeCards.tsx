@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { TileFan } from "@/components/store/TileFan";
-import { VibeCopy } from "@/components/store/VibeCopy";
 import { VIBE_TAGLINES } from "@/components/store/vibe-taglines";
 import { Icon } from "@/components/ui/Icon";
 import { isVibe, type Vibe } from "@/features/vibe/config";
@@ -18,7 +17,7 @@ const ART: Record<Vibe, string> = {
   gothic: "art-gothic",
 };
 
-/** Four collection cards, each wrapped in its own VibeScope (its own palette, shape, type and texture). */
+/** Four collection cards, each wrapped in its own VibeScope (its own palette, shape and type): the four moods side by side on the neutral home page. */
 export async function VibeCards() {
   const [collections, tiles] = await Promise.all([getCollections(), getHeroTilesForAllVibes(3)]);
   const vibes = collections.vibes.filter((v) => isVibe(v.slug));
@@ -29,7 +28,7 @@ export async function VibeCards() {
       aria-label="Shop by vibe"
       className="below-fold mx-auto mt-14 max-w-[1440px] px-4 sm:px-6"
     >
-      <VibeCopy k="home.vibesTitle" as="h2" className="font-display text-3xl display-fx sm:text-4xl" />
+      <h2 className="font-display text-3xl display-fx sm:text-4xl">Pick your mood</h2>
       <ul className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
         {vibes.map((v) => {
           const vibe = v.slug as Vibe;
@@ -48,7 +47,12 @@ export async function VibeCards() {
                   <TileFan tiles={covers} size="card" />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-4 sm:gap-2.5 sm:p-5">
-                  <h3 className="font-display text-2xl leading-tight display-fx sm:text-3xl">
+                  <h3
+                    className={cn(
+                      "font-display text-2xl leading-tight display-fx sm:text-3xl",
+                      vibe === "bold" && "title-unapologetic title-unapologetic-sm",
+                    )}
+                  >
                     <Link
                       href={`/vibes/${v.slug}`}
                       className="outline-none after:absolute after:inset-0 after:content-['']"

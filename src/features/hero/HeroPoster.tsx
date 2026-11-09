@@ -2,9 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { VibeCopy } from "@/components/store/VibeCopy";
 import { Button } from "@/components/ui/Button";
-import type { Vibe } from "@/features/vibe/config";
+import { VIBES, type Vibe } from "@/features/vibe/config";
 import { cn } from "@/lib/cn";
 import { getHeroTilesForAllVibes } from "@/server/cache/catalog";
 import { getVibeSettings } from "@/server/cache/settings";
@@ -12,7 +11,7 @@ import { imageProps } from "@/server/services/media";
 import type { HeroTile } from "@/server/services/catalog";
 
 import { HeroEnhancer } from "./HeroEnhancer";
-import { backingOf, shapeOf } from "./stage/look";
+import { shapeOf } from "./stage/look";
 import { stageTilesFor } from "./stageTiles";
 
 /**
@@ -27,17 +26,43 @@ const TILTS = ["-2deg", "1.5deg", "0deg", "2deg", "-1deg", "0deg", "1deg"] as co
 
 interface PosterTile {
   tile: HeroTile;
+  /** The vibe this tile was dealt from: its backing wears that vibe's colours. */
+  vibe: Vibe;
   /** Position in the whole poster (drives backing colour and shape). */
   index: number;
   /** Repeated to fill the grid: hidden from assistive tech and the tab order. */
   duplicate: boolean;
 }
 
+/** The home page is every vibe at once: deal the four vibes' tiles round-robin, each product once. */
+function dealTiles(sets: Record<string, HeroTile[]>): { tile: HeroTile; vibe: Vibe }[] {
+  const seen = new Set<string>();
+  const dealt: { tile: HeroTile; vibe: Vibe }[] = [];
+  const longest = Math.max(0, ...VIBES.map((v) => sets[v]?.length ?? 0));
+  for (let i = 0; i < longest; i += 1) {
+    for (const vibe of VIBES) {
+      const tile = sets[vibe]?.[i];
+      if (!tile || seen.has(tile.productId)) continue;
+      seen.add(tile.productId);
+      dealt.push({ tile, vibe });
+    }
+  }
+  return dealt;
+}
+
+/** Each backing is a tint of the tile's own vibe (the .art-<vibe> gradients), so the poster is a collage of all four. */
+const ART: Record<Vibe, string> = {
+  cute: "art-cute",
+  funky: "art-funky",
+  bold: "art-bold",
+  gothic: "art-gothic",
+};
+
 /** Fewer curated tiles than grid cells: repeat them (plan section 9) rather than leave holes. */
-function fillTiles(tiles: HeroTile[], count: number): PosterTile[] {
+function fillTiles(tiles: { tile: HeroTile; vibe: Vibe }[], count: number): PosterTile[] {
   if (tiles.length === 0) return [];
   return Array.from({ length: count }, (_, index) => ({
-    tile: tiles[index % tiles.length]!,
+    ...tiles[index % tiles.length]!,
     index,
     duplicate: index >= tiles.length,
   }));
@@ -50,15 +75,7 @@ function tileVisibility(position: number): string {
   return "";
 }
 
-function TileList({
-  cells,
-  vibe,
-  side,
-}: {
-  cells: PosterTile[];
-  vibe: Vibe;
-  side: "left" | "right";
-}) {
+function TileList({ cells, side }: { cells: PosterTile[]; side: "left" | "right" }) {
   return (
     <ul
       className={cn(
@@ -67,10 +84,10 @@ function TileList({
           ? "order-1 lg:col-start-1 lg:row-start-1"
           : "order-2 lg:col-start-3 lg:row-start-1",
       )}
-      data-testid={`hero-tiles-${vibe}-${side}`}
+      data-testid={`hero-tiles-${side}`}
       data-poster-list=""
     >
-      {cells.map(({ tile, index, duplicate }, position) => {
+      {cells.map(({ tile, vibe, index, duplicate }, position) => {
         let src: string | null = null;
         try {
           src = imageProps(tile.cutout).src;
@@ -83,7 +100,7 @@ function TileList({
             key={`${tile.productId}-${index}`}
             className={cn(
               "hero-tile relative aspect-square shadow-card ease-vibe",
-              backingOf(index),
+              ART[vibe],
               shapeOf(index),
               tileVisibility(position),
             )}
@@ -117,22 +134,6 @@ function TileList({
   );
 }
 
-function TileSet({ vibe, tiles }: { vibe: Vibe; tiles: HeroTile[] }) {
-  const cells = fillTiles(tiles, TILES_PER_LIST * 2);
-  if (cells.length === 0) return null;
-  // Interleave so both sides get distinct products when there are few curated tiles.
-  const left = cells.filter((_, i) => i % 2 === 0);
-  const right = cells.filter((_, i) => i % 2 === 1);
-  return (
-    // data-v wrapper is display: contents, shown only when this is the active vibe (zero-network switch).
-    // Its lists therefore take part directly in the hero grid.
-    <div data-v={vibe}>
-      <TileList cells={left} vibe={vibe} side="left" />
-      <TileList cells={right} vibe={vibe} side="right" />
-    </div>
-  );
-}
-
 /**
  * Static poster hero (plan section 9): product cutouts on vibe-coloured square/circle backings in a grid,
  * with the headline, sub-line and Shop button in a separate top layer that is never animated away.
@@ -145,12 +146,17 @@ function TileSet({ vibe, tiles }: { vibe: Vibe; tiles: HeroTile[] }) {
  * The admin setting `hero_enabled` off means the enhancer is never mounted: the poster is the whole hero.
  */
 export async function HeroPoster({ stage }: { stage?: ReactNode }) {
-  const [sets, { cycle, defaultVibe, heroEnabled }] = await Promise.all([
+  const [sets, { heroEnabled }] = await Promise.all([
     getHeroTilesForAllVibes(TILES_PER_LIST * 2),
     getVibeSettings(),
   ]);
-  const first = defaultVibe === "random" ? cycle[0] : defaultVibe;
-  const order = [first, ...cycle.filter((v) => v !== first)].filter((v): v is Vibe => Boolean(v));
+  const dealt = dealTiles(sets);
+  const cells = fillTiles(dealt, TILES_PER_LIST * 2);
+  // Interleave so both sides get distinct products when there are few curated tiles.
+  const left = cells.filter((_, i) => i % 2 === 0);
+  const right = cells.filter((_, i) => i % 2 === 1);
+  // The animated stage swaps tiles per worn vibe; every vibe gets the same mixed list so it always shows all four.
+  const mixedSets = Object.fromEntries(VIBES.map((v) => [v, dealt.map((d) => d.tile)]));
 
   return (
     <section
@@ -159,9 +165,8 @@ export async function HeroPoster({ stage }: { stage?: ReactNode }) {
       className="relative mx-auto max-w-[1440px] px-4 pt-5 pb-14 sm:px-6 lg:pt-8"
     >
       <div className="relative grid gap-3 sm:gap-4 lg:grid-cols-[1fr_minmax(26rem,34rem)_1fr] lg:items-center lg:gap-6">
-        {order.map((vibe) => (
-          <TileSet key={vibe} vibe={vibe} tiles={sets[vibe] ?? []} />
-        ))}
+        <TileList cells={left} side="left" />
+        <TileList cells={right} side="right" />
 
         {/* Mount point for the animated HeroStage. It renders its own accessible links and Pause/Play control. */}
         <div
@@ -169,7 +174,7 @@ export async function HeroPoster({ stage }: { stage?: ReactNode }) {
           data-hero-stage=""
           className="pointer-events-none absolute inset-0"
         >
-          {stage ?? (heroEnabled ? <HeroEnhancer tiles={stageTilesFor(sets)} /> : null)}
+          {stage ?? (heroEnabled ? <HeroEnhancer tiles={stageTilesFor(mixedSets)} /> : null)}
         </div>
 
         {/* Text layer: always above the tiles, never animated away. */}
@@ -177,20 +182,13 @@ export async function HeroPoster({ stage }: { stage?: ReactNode }) {
           data-hero-card=""
           className="relative z-10 order-3 mt-1 rounded-card bg-[color-mix(in_srgb,var(--surface)_80%,transparent)] p-6 text-ink shadow-card backdrop-blur-md sm:p-8 lg:col-start-2 lg:row-start-1 lg:mt-0 lg:p-10"
         >
-          <VibeCopy
-            k="hero.headline"
-            as="h1"
-            className="font-display text-4xl leading-[1.05] display-fx sm:text-5xl"
-          />
-          <VibeCopy k="hero.sub" as="p" className="mt-4 text-lg text-ink-muted" />
+          <h1 className="font-display text-4xl leading-[1.05] display-fx sm:text-5xl">Four moods. One IfOnli.</h1>
+          <p className="mt-4 text-lg text-ink-muted">
+            Cute, quirky, bold or a little bit dark: charms, 3D stickers and DIY kits for every side of you.
+          </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg" iconEnd="arrow-right" data-testid="hero-shop">
-              <Link href="/shop">
-                <VibeCopy k="hero.cta" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href="#vibes">Pick a vibe</Link>
+              <Link href="/shop">Shop now</Link>
             </Button>
           </div>
         </div>

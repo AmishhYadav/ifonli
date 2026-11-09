@@ -3,21 +3,14 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { VIBES } from "@/features/vibe/config";
-
 const css = readFileSync(path.resolve(process.cwd(), "src/styles/nav-pills.css"), "utf8");
 
 describe("nav pill states (styles/nav-pills.css)", () => {
-  it("lights the pill of every vibe from html[data-vibe], with no React state", () => {
-    for (const v of VIBES) {
-      expect(css).toContain(`:root[data-vibe="${v}"] .nav-pill[data-nav-vibe="${v}"] .nav-pill-face`);
-    }
-  });
-
-  it("keeps the strong theme colour out of the page-active (aria-current) rule", () => {
-    const soft = css.match(/\.nav-pill\[aria-current="page"\][^{]*\{([^}]*)\}/)?.[1] ?? "";
-    expect(soft).toContain("color-mix(");
-    expect(soft).not.toMatch(/background:\s*var\(--accent\)\s*;/);
+  it("fills the pill of the current page (aria-current) and has no per-vibe pill rules left", () => {
+    const active = css.match(/\.nav-pill\[aria-current="page"\][^{]*\{([^}]*)\}/)?.[1] ?? "";
+    expect(active).toMatch(/background:\s*var\(--accent\)\s*;/);
+    expect(active).toMatch(/color:\s*var\(--on-accent\)\s*;/);
+    expect(css).not.toContain("data-nav-vibe");
   });
 
   it("fades each pill-row edge only while there is more to scroll to on that side", () => {

@@ -31,7 +31,6 @@ export function fixtureContext(vibe: Vibe | null = null, order: Partial<OrderVie
       supportEmail: "care@example.test",
       supportPhone: "+91 98000 00000",
       supportHours: "Mon-Sat, 10:00-18:00 IST",
-      grievance: { name: "A. Officer", designation: "Grievance Officer", email: "grievance@example.test", phone: "+91 98000 00001" },
     },
     siteUrl: "https://ifonli.example.test",
     vibe,

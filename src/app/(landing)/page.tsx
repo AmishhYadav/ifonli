@@ -10,19 +10,11 @@ import { FALLBACK_LANDING_FACTS, getLandingFacts, type LandingFacts } from "@/se
 import { getStoreInfo } from "@/server/cache/settings";
 
 export const metadata: Metadata = {
-  title: { absolute: "IfOnli: charms, Hippers, 3D stickers and DIY kits" },
+  title: { absolute: "IfOnli: charms, 3D stickers and DIY kits" },
   description:
-    "Charms, Hippers, 3D stickers and DIY kits in four moods: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Made in India.",
+    "Charms, 3D stickers and DIY kits in four moods: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Made in India.",
   alternates: { canonical: "/" },
 };
-
-/**
- * Motion layout is opt-in: this runs while the HTML is parsed, before first paint, and only turns it on for
- * visitors who have not asked for reduced motion. Without JS (or with reduced motion) the page stays a plain
- * stack of fully visible chapters.
- */
-const MOTION_FLAG_SCRIPT =
-  "if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.currentScript.parentElement.setAttribute('data-motion','on');";
 
 async function OrganizationLd() {
   const info = await getStoreInfo();
@@ -54,7 +46,6 @@ export default async function LandingPage() {
     <>
       <OrganizationLd />
       <div className="landing" id="landing" data-landing suppressHydrationWarning>
-        <script dangerouslySetInnerHTML={{ __html: MOTION_FLAG_SCRIPT }} />
         <Background />
         <div className="l-content">
           <Opening />

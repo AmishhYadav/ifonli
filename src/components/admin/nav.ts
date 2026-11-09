@@ -91,14 +91,6 @@ export const NAV: NavGroupDef[] = [
         blurb: "Order list, fulfilment updates, tracking, packing slips and refunds.",
       },
       {
-        slug: "discounts",
-        label: "Discounts",
-        icon: "discounts",
-        permission: "coupon:view",
-        built: true,
-        blurb: "Coupon codes, limits and scope.",
-      },
-      {
         slug: "customers",
         label: "Customers",
         icon: "customers",

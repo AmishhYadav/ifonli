@@ -367,7 +367,7 @@ test("(i) first load requests only the body font and the active display font", a
   await expect
     .poll(() => requested.includes("fredoka-wght500-700-latin.woff2"), { timeout: 8000 })
     .toBe(true);
-  expect(requested.filter((f) => /creepster|rubik/.test(f))).toEqual([]);
+  expect(requested.filter((f) => /cinzel|rubik/.test(f))).toEqual([]);
   // Each file at most once (preload and @font-face share one request).
   // (WebKit re-requests a script-inserted font preload once; known engine quirk, still only 1 display font.)
   if (browserName !== "webkit") expect(requested.length).toBe(new Set(requested).size);

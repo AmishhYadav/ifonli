@@ -10,6 +10,7 @@
   --hand-size: 64px;
   position: relative;
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-width: 44px;
@@ -107,7 +108,6 @@
   }
 }
 
-.hand-pill,
 .hand-tip {
   position: absolute;
   left: 50%;
@@ -121,17 +121,42 @@
 }
 
 /*
- * "turn me" sits on the hand's own bottom edge (over the palm), inside the hand's box, so it never reaches the
- * nav pills below. It is a mouse affordance: hidden where there is no hover.
+ * "Turn Me" sits directly under the hand, always visible (touch and keyboard users have no hover). It is part of the
+ * button, so the whole hand + label is one tap target; the little arrow spins when the hand is hovered or focused.
  */
 .hand-pill {
-  bottom: 2px;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: -4px;
+  padding: 2px 9px;
+  border-radius: 9999px;
   background: var(--accent);
   color: var(--on-accent);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   line-height: 1.4;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  rotate: -3deg;
+  box-shadow: var(--shadow-button);
+  pointer-events: none;
+  transition:
+    rotate 250ms var(--motion-ease, ease-out),
+    scale 250ms var(--motion-ease, ease-out);
+}
+.hand-pill-arrow {
+  display: inline-block;
+  transition: transform 450ms var(--motion-ease, ease-out);
+}
+.hand-btn:hover .hand-pill,
+.hand-btn:focus-visible .hand-pill {
+  rotate: 2deg;
+  scale: 1.06;
+}
+.hand-btn:hover .hand-pill-arrow,
+.hand-btn:focus-visible .hand-pill-arrow {
+  transform: rotate(360deg);
 }
 
 .hand-tip {
@@ -143,17 +168,6 @@
   font-weight: 500;
 }
 
-@media (hover: hover) {
-  .hand-btn:hover .hand-pill {
-    opacity: 1;
-  }
-}
-@media (hover: none) {
-  .hand-pill {
-    display: none;
-  }
-}
-.hand-btn:focus-visible .hand-pill,
 .hand-btn:focus-visible .hand-tip,
 .hand-btn[data-tip="open"] .hand-tip {
   opacity: 1;
@@ -206,5 +220,9 @@
   .hand-btn[data-turn] .hand-flip,
   .badge-pop {
     animation: none !important;
+  }
+  .hand-pill,
+  .hand-pill-arrow {
+    transition: none;
   }
 }

@@ -379,11 +379,16 @@ test.describe("guest order to account", () => {
     await page.getByTestId("report-problem").click();
     const report = page.getByRole("dialog", { name: "Report a problem" });
     await expect(report.getByRole("radio")).toHaveCount(1);
-    await report.getByTestId("report-submit").click();
+    await report.getByTestId("report-next").click();
     await expect(report.getByText("Choose what went wrong")).toBeVisible();
-    await expect(report.getByText(/Write at least 10 characters/)).toBeVisible();
     await report.getByRole("radio", { name: "Something else" }).check();
+    await report.getByTestId("report-next").click();
+    await report.getByTestId("report-next").click();
+    await expect(report.getByText(/Write at least 10 characters/)).toBeVisible();
     await report.getByTestId("report-description").fill("Please can the parcel be left with the neighbour?");
+    await report.getByTestId("report-next").click();
+    await report.getByTestId("report-next").click();
+    await expect(report.getByText(/keep the item and the packaging/)).toBeVisible();
     await report.getByTestId("report-submit").click();
     const sent = page.getByRole("dialog", { name: "We've got your report" });
     await expect(sent.getByTestId("report-done")).toContainText(email);

@@ -86,6 +86,8 @@ export async function switchVibeTo(to: Vibe, source: VibeSource, options: Switch
 
   if (!reduced && typeof document.startViewTransition === "function") {
     const transition = document.startViewTransition(() => apply(true));
+    // A newer switch skips this transition: `ready` then rejects with an AbortError, which is expected.
+    transition.ready.catch(() => {});
     transition.finished.then(release, release);
   } else {
     apply(false);

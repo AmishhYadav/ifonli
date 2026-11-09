@@ -12,8 +12,6 @@ No business values are written into these files. Every fee, threshold, timeline,
 | `policies/cancellation.md` | `/policies/cancellation` | |
 | `policies/returns-refunds.md` | `/policies/returns-refunds` | Both `return_policy_type` branches in one file |
 | `policies/privacy.md` | `/policies/privacy` | DPDP Act 2023 aligned notice |
-| `policies/terms.md` | `/policies/terms` | |
-| `policies/grievance.md` | `/policies/grievance` | Consumer Protection (E-Commerce) Rules 2020 |
 | `policies/seller-information.md` | `/policies/seller-information` | NEW route: not in plan section 10 yet. Link it from the footer |
 | `faq.json` | `/help` (FAQ accordion) and admin FAQ seed | Seeds the `faqs` table. Answers use the same template renderer |
 
@@ -54,7 +52,7 @@ The renderer is deliberately tiny. It runs on the Markdown source **before** the
 
 `{{settings.<dot.path>}}`
 
-- The path must start with `settings.`. Dots walk into objects (`settings.grievance_officer.email`).
+- The path must start with `settings.`. Dots walk into objects (`settings.default_manufacturer.name`).
 - Spaces inside the braces are allowed but not used in these files.
 - Rendering by value type:
   - **string / number**: printed as is.
@@ -114,10 +112,6 @@ Every token below appears in `content/**`. "Existing" means the key is in plan s
 | `settings.support_phone` | string |
 | `settings.support_hours` | string |
 | `settings.response_time` | string |
-| `settings.grievance_officer.name` | string |
-| `settings.grievance_officer.designation` | string |
-| `settings.grievance_officer.email` | string |
-| `settings.grievance_officer.phone` | string |
 | `settings.default_manufacturer.name` | string |
 | `settings.default_manufacturer.address` | string |
 | `settings.default_country_of_origin` | string |
@@ -169,7 +163,6 @@ Every token below appears in `content/**`. "Existing" means the key is in plan s
 |---|---|---|---|
 | `settings.policy.jurisdiction_city` | string | terms | City whose courts have jurisdiction |
 | `settings.policy.processors` | md string | privacy | Names of the actual service providers (payment, courier, email/WhatsApp, hosting, analytics) |
-| `settings.policy.hippers_definition` | md string | FAQ | What "Hippers" are |
 | `settings.policy.materials_note` | md string | FAQ | Generic materials statement |
 | `settings.policy.handmade_note` | string, optional | terms | Handmade/variation notice, if any |
 | `settings.policy.working_days` | string | shipping | Which days count as working days, for example the days of the week |
@@ -193,7 +186,6 @@ Required-ness: `return_conditions`, `non_returnable_items` and `return_shipping_
 
 A few statements are written as fixed text because they come from law or from the plan, not from business choice. Review them with the lawyer:
 
-- Grievance acknowledgement within 48 hours and resolution within one month (Consumer Protection (E-Commerce) Rules, 2020).
 - National Consumer Helpline 1915 / +91 8800001915, consumerhelpline.gov.in, and e-Jagriti (e-jagriti.gov.in).
 - Prices include all taxes; one coupon per order; guest checkout; email one-time-code sign-in; guest wishlist stored on the device.
 - Customer age: 18 and over.

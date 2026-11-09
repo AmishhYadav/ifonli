@@ -60,7 +60,7 @@ If the page does not work for you, email {{settings.support_email}} with the sam
 - We reply within {{settings.response_time}}.
 - If your report is accepted, we offer either a **refund** or a **replacement**, depending on the item and stock.
 - A replacement is dispatched within {{settings.policy.replacement_days}}. You are not charged for it.
-- If we cannot accept your report, we tell you why. You can then contact our Grievance Officer. See our [Grievance Redressal](/policies/grievance) page.
+- If we cannot accept your report, we tell you why. You can then contact us using the details on our [Seller information](/policies/seller-information) page.
 
 ## How refunds work
 
@@ -80,8 +80,8 @@ If the page does not work for you, email {{settings.support_email}} with the sam
 **Partial refunds**
 
 - If only some items in an order are affected, we refund only those items.
-- If a coupon was used, the discount is shared across the items in proportion to their price. The refund for an item is the amount you actually paid for it after its share of the discount.
 - Shipping and Cash on Delivery fees: {{settings.policy.shipping_fee_refund_rule}}
+- A full refund covers the price of the items only. The shipping charge you paid to us is not included, except in the cases described above.
 - The total we refund will never be more than the amount you paid.
 
 **Refund not received?**

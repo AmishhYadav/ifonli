@@ -6,28 +6,28 @@
       "description": "Soft, sweet and a little bit squishy. Pastel colours, tiny shapes and happy little details for anyone whose bag, phone or hair clip should look like a good mood.",
       "heroCopy": "Tiny things, big happy feelings.",
       "seoTitle": "Mochi: soft, cute charms and stickers",
-      "seoDesc": "Soft, sweet charms, Hippers, 3D stickers and DIY kits in pastel colours and tiny shapes. Cash on delivery available."
+      "seoDesc": "Soft, sweet charms, 3D stickers and DIY kits in pastel colours and tiny shapes. Cash on delivery available."
     },
     "funky": {
       "name": "Chaos Cabinet",
       "description": "Funky, quirky and gloriously unhinged. Retro swirls, bright clashes and playful oddities that turn a plain tote or phone case into a party.",
       "heroCopy": "Groovy little things, made to clash.",
       "seoTitle": "Chaos Cabinet: funky, quirky charms",
-      "seoDesc": "Bright, quirky, retro-inspired charms, Hippers, 3D stickers and DIY kits for people who like a little chaos. Cash on delivery available."
+      "seoDesc": "Bright, quirky, retro-inspired charms, 3D stickers and DIY kits for people who like a little chaos. Cash on delivery available."
     },
     "bold": {
       "name": "Unapologetic",
       "description": "Main character energy only. Black, red and loud pieces for people who want their bag, jacket or hair clip to be noticed from across the room.",
       "heroCopy": "Loud colours. Zero apologies.",
       "seoTitle": "Unapologetic: bold charms and stickers",
-      "seoDesc": "Chunky, high-contrast charms, Hippers, 3D stickers and DIY kits for people who like to stand out. Cash on delivery available."
+      "seoDesc": "Chunky, high-contrast charms, 3D stickers and DIY kits for people who like to stand out. Cash on delivery available."
     },
     "gothic": {
       "name": "After the Dark",
       "description": "For souls who bloom at midnight. Dark enamel, silver tones and a little drama for people who prefer moonlight to sunshine.",
       "heroCopy": "Dress your things in shadow.",
       "seoTitle": "After the Dark: moody charms and stickers",
-      "seoDesc": "Moody charms, Hippers, 3D stickers and DIY kits in black, silver and deep jewel tones. Cash on delivery available."
+      "seoDesc": "Moody charms, 3D stickers and DIY kits in black, silver and deep jewel tones. Cash on delivery available."
     }
   },
   "types": {
@@ -36,12 +36,6 @@
       "definition": "Small decorative pieces that hang from your bag, keys, phone or zip. Made from zinc alloy or stainless steel with enamel, resin or acrylic details.",
       "seoTitle": "Charms for bags, keys and phones",
       "seoDesc": "Shop charms in every vibe: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Enamel, resin and acrylic details on zinc alloy or steel."
-    },
-    "hippers": {
-      "name": "Hippers",
-      "definition": "Hippers are our clip-on accessories: snap clips, claw clips and bag hooks with a charm-like personality. Clip one into your hair, onto a tote strap, a belt loop or a zip pull, and move it to something else whenever your vibe changes. No tools, no piercing, nothing permanent.",
-      "seoTitle": "Hippers: clip-on accessories",
-      "seoDesc": "Hippers are clip-on snap clips, claw clips and bag hooks. Wear them in your hair or on a tote, belt loop or zip pull. No piercing."
     },
     "3d-stickers": {
       "name": "3D Stickers",

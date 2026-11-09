@@ -15,8 +15,6 @@ export const POLICY_LINKS = [
   { slug: "cancellation", label: "Cancellation policy" },
   { slug: "returns-refunds", label: "Returns and refunds" },
   { slug: "privacy", label: "Privacy policy" },
-  { slug: "terms", label: "Terms of use" },
-  { slug: "grievance", label: "Grievance redressal" },
   { slug: "seller-information", label: "Seller information" },
 ] as const;
 
@@ -34,7 +32,6 @@ function Column({ title, children }: { title: string; children: React.ReactNode 
 
 export async function Footer() {
   const [info, collections] = await Promise.all([getStoreInfo(), getCollections()]);
-  const officer = info.grievance;
 
   return (
     <footer className="mt-20 rounded-t-card bg-surface text-ink below-fold [--cv-h:30rem]">
@@ -42,7 +39,7 @@ export async function Footer() {
         <div className="flex flex-col gap-3">
           <Logo className="self-start" />
           <p className="max-w-xs text-base text-ink-muted">
-            Charms, Hippers, 3D stickers and DIY kits in four moods. Made in India.
+            Charms, 3D stickers and DIY kits in four moods. Made in India.
           </p>
           <ul className="flex flex-wrap gap-x-4">
             {collections.vibes.map((v) => (
@@ -118,18 +115,6 @@ export async function Footer() {
               <span className="pl-6 text-ink-muted">
                 <PlaceholderValue value={info.supportHours} />
               </span>
-            </p>
-            <p>
-              <span className="block font-semibold">Grievance officer</span>
-              <PlaceholderValue value={officer.name} />, <PlaceholderValue value={officer.designation} />
-              <br />
-              <PlaceholderValue value={officer.email}>
-                <a href={`mailto:${officer.email.value}`} className="underline underline-offset-4">
-                  {officer.email.value}
-                </a>
-              </PlaceholderValue>
-              {" / "}
-              <PlaceholderValue value={officer.phone} />
             </p>
           </address>
         </Column>

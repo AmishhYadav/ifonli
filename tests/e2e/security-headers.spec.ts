@@ -424,8 +424,6 @@ test.describe("security: signed-in admin pages", () => {
       "/admin/products/new",
       "/admin/orders",
       "/admin/inventory",
-      "/admin/discounts",
-      "/admin/discounts/new",
       "/admin/collections",
       "/admin/customers",
       "/admin/support",

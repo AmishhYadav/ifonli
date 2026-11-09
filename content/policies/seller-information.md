@@ -35,17 +35,6 @@ This page lists who we are and the details that Indian e-commerce and packaged-c
 
 Contact form: [Help page](/help).
 
-## Grievance Officer
-
-| | |
-|---|---|
-| Name | {{settings.grievance_officer.name}} |
-| Designation | {{settings.grievance_officer.designation}} |
-| Email | {{settings.grievance_officer.email}} |
-| Phone | {{settings.grievance_officer.phone}} |
-
-We acknowledge complaints within 48 hours and resolve them within one month. See [Grievance Redressal](/policies/grievance).
-
 ## Product information
 
 Each product page shows the details required for packaged goods:
@@ -81,5 +70,3 @@ When a product page shows different details, the product page is correct for tha
 - [Cancellation Policy](/policies/cancellation)
 - [Returns and Refunds Policy](/policies/returns-refunds)
 - [Privacy Notice](/policies/privacy)
-- [Terms of Use and Sale](/policies/terms)
-- [Grievance Redressal](/policies/grievance)

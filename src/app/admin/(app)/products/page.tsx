@@ -74,7 +74,7 @@ export default async function ProductsPage({
     <>
       <PageHeader
         title="Products"
-        description="Charms, Hippers, 3D stickers and DIY kits."
+        description="Charms, 3D stickers and DIY kits."
         actions={
           canCreate ? (
             <Button asChild>

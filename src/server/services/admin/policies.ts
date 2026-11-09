@@ -37,8 +37,6 @@ export const POLICY_TITLES: Record<PolicySlug, string> = {
   cancellation: "Cancellation policy",
   "returns-refunds": "Returns and refunds policy",
   privacy: "Privacy notice",
-  terms: "Terms of use",
-  grievance: "Grievance redressal",
   "seller-information": "Seller information",
 };
 

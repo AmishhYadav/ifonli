@@ -43,9 +43,9 @@ export function buildFacts(facts: LandingFacts): Fact[] {
   }
   out.push({
     id: "moods",
-    figure: "5",
-    count: 5,
-    text: "Moods to shop by, four kinds of tiny things, all made in India.",
+    figure: "4",
+    count: 4,
+    text: "Moods to shop by, three kinds of tiny things, all made in India.",
   });
   return out;
 }

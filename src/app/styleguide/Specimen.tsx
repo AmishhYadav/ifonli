@@ -157,7 +157,7 @@ export function Specimen({ column }: { column: (typeof VIBES)[number] | "buy" })
           title="Your bag is empty"
           action={<Button size="sm">Browse the shop</Button>}
         >
-          Charms, Hippers and stickers are waiting.
+          Charms and stickers are waiting.
         </EmptyState>
       </Block>
 

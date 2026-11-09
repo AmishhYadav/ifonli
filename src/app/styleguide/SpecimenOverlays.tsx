@@ -88,7 +88,7 @@ export function SpecimenOverlays() {
         <DrawerContent side="left" title="Menu">
           <nav aria-label="Sample">
             <ul className="flex flex-col gap-1">
-              {["Shop", "Hippers", "DIY kits", "Track order"].map((item) => (
+              {["Shop", "DIY", "DIY kits", "Track order"].map((item) => (
                 <li key={item}>
                   <a href="#top" className="flex min-h-11 items-center text-lg font-semibold">
                     {item}

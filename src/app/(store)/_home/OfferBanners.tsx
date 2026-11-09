@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { VIBES, type Vibe } from "@/features/vibe/config";
+import { VIBES, isVibe } from "@/features/vibe/config";
 import { getActiveBanners } from "@/server/cache/content";
 import type { ActiveBanner } from "@/server/services/content";
 import { resolveImageUrl } from "@/server/services/media";
@@ -16,7 +16,11 @@ function Banner({ banner }: { banner: ActiveBanner }) {
     }
   }
   const body = (
-    <div className="relative flex min-h-40 items-center gap-5 overflow-hidden rounded-card bg-accent p-6 text-on-accent shadow-card sm:p-8">
+    // A vibe-specific banner wears its own vibe's colours; a global one takes the home page's neutral ones.
+    <div
+      data-vibe={isVibe(banner.vibeSlug) ? banner.vibeSlug : undefined}
+      className="relative flex min-h-40 items-center gap-5 overflow-hidden rounded-card bg-accent p-6 text-on-accent shadow-card sm:p-8"
+    >
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <h3 className="font-display text-2xl leading-tight sm:text-3xl">{banner.title}</h3>
         {banner.body ? <p className="text-base">{banner.body}</p> : null}
@@ -57,32 +61,19 @@ function BannerGrid({ banners }: { banners: ActiveBanner[] }) {
 }
 
 /**
- * `home_offer` banners: global ones always, vibe-specific ones only while that vibe is active (CSS). With no
- * vibe-specific banner there is one list; otherwise each vibe gets its own (global + its own) inside a `[data-v]`
- * wrapper, so the last-row rule is right for whichever vibe is showing.
+ * `home_offer` banners: the home page is every vibe at once, so it shows the global banners and each vibe's own, once
+ * each, the vibe-specific ones in their own colours.
  */
 export async function OfferBanners() {
   const perVibe = await Promise.all(
     VIBES.map((vibe) => getActiveBanners({ placement: "home_offer", vibe })),
   );
-  const lists = VIBES.map((vibe, i) => ({ vibe, banners: perVibe[i] ?? [] }));
-  const global = (perVibe[0] ?? []).filter((b) => b.vibeSlug === null);
-  const hasSpecific = lists.some((l) => l.banners.some((b) => b.vibeSlug !== null));
+  const banners = [...new Map(perVibe.flat().map((b) => [b.id, b])).values()];
 
-  if (global.length === 0 && !hasSpecific) return null;
+  if (banners.length === 0) return null;
   return (
     <section aria-label="Offers" className="below-fold mx-auto mt-16 max-w-[1440px] px-4 sm:px-6">
-      {hasSpecific ? (
-        lists
-          .filter((l): l is { vibe: Vibe; banners: ActiveBanner[] } => l.banners.length > 0)
-          .map(({ vibe, banners }) => (
-            <div key={vibe} data-v={vibe}>
-              <BannerGrid banners={banners} />
-            </div>
-          ))
-      ) : (
-        <BannerGrid banners={global} />
-      )}
+      <BannerGrid banners={banners} />
     </section>
   );
 }

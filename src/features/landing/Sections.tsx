@@ -59,7 +59,7 @@ export function Opening() {
           </h1>
           <p className="l-open__tag">Tiny things. Big feelings.</p>
           <p className="l-open__sub">
-            Charms, Hippers, 3D stickers and DIY kits in four moods. Made in India.
+            Charms, 3D stickers and DIY kits in four moods. Made in India.
           </p>
         </div>
       </div>
@@ -72,13 +72,13 @@ export function Opening() {
   );
 }
 
-/** Chapter 2: the four kinds of thing we make. */
+/** Chapter 2: the three kinds of thing we make. */
 export function Makes() {
   return (
     <section className="l-makes" aria-labelledby="makes-title" data-makes>
       <div className="l-wrap">
         <h2 id="makes-title" className="l-h2" data-reveal>
-          Four kinds of tiny.
+          Three kinds of tiny.
         </h2>
         <p className="l-lead" data-reveal>
           Pick one, or collect them all.

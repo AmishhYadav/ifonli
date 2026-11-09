@@ -7,7 +7,7 @@ import { getCollections } from "@/server/cache/catalog";
 /** Decorative accent dots (text stays on surface/ink, a checked pair in every vibe). */
 const DOTS = ["bg-accent", "bg-accent-2", "bg-accent-3", "bg-accent-2"] as const;
 
-/** Product-type entry points (Charms, Hippers, 3D stickers, DIY). */
+/** Product-type entry points (Charms, 3D stickers, DIY): whichever types the shop has switched on. */
 export async function TypeLinks() {
   const { types } = await getCollections();
   if (types.length === 0) return null;

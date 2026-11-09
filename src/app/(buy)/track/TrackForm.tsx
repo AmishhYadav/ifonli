@@ -94,11 +94,11 @@ function ShipmentCard({ order }: { order: TrackedOrder }) {
   );
 }
 
-/** Order lookup form and, on a match, the order's status, shipment and history. */
-export function TrackForm() {
+/** Order lookup form and, on a match, the order's status, shipment and history. `initialContact` pre-fills the email or mobile. */
+export function TrackForm({ initialContact }: { initialContact?: string } = {}) {
   const [state, action, pending] = useActionState(trackOrder, INITIAL_TRACK_STATE);
   const [ref, setRef] = useState(state.values.ref);
-  const [contact, setContact] = useState(state.values.contact);
+  const [contact, setContact] = useState(initialContact ?? state.values.contact);
   const resultRef = useRef<HTMLDivElement>(null);
   const refInput = useRef<HTMLInputElement>(null);
   const contactInput = useRef<HTMLInputElement>(null);

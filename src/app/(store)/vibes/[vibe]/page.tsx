@@ -10,6 +10,7 @@ import type { RawSearchParams } from "@/components/store/listing/params";
 import { VIBE_TAGLINES } from "@/components/store/vibe-taglines";
 import { isVibe } from "@/features/vibe/config";
 import { WearOnVisit } from "@/features/vibe/WearOnVisit";
+import { cn } from "@/lib/cn";
 import { breadcrumbJsonLd, textOr, type Crumb } from "@/lib/seo";
 import { TileFan } from "@/components/store/TileFan";
 import { getCollections, getHeroTilesForAllVibes } from "@/server/cache/catalog";
@@ -75,11 +76,21 @@ export default async function VibePage({
         <section
           aria-label={`${vibe.name} vibe`}
           data-testid="vibe-hero"
-          className="relative isolate mt-4 flex flex-col gap-4 overflow-hidden rounded-card bg-surface p-6 text-ink shadow-card sm:p-10"
+          className={cn(
+            "relative isolate mt-4 flex flex-col gap-4 overflow-hidden rounded-card p-6 text-ink shadow-card sm:p-10",
+            vibe.vibe === "bold" ? "bg-surface-2" : "bg-surface",
+          )}
         >
           <TileFan tiles={covers} size="lg" className="pointer-events-none absolute top-1/2 right-10 hidden -translate-y-1/2 lg:flex" />
           <p className="text-sm font-bold tracking-widest text-ink-muted uppercase">Vibe</p>
-          <h1 className="font-display text-5xl leading-none display-fx sm:text-7xl">{vibe.name}</h1>
+          <h1
+            className={cn(
+              "font-display text-5xl leading-none display-fx sm:text-7xl",
+              vibe.vibe === "bold" && "title-unapologetic",
+            )}
+          >
+            {vibe.name}
+          </h1>
           <p className="max-w-2xl text-lg">{blurb}</p>
           <p className="pt-2 text-base font-semibold">{vibe.productCount} products</p>
         </section>
