@@ -37,10 +37,10 @@ export async function Header() {
     >
       <HeaderOffset />
       <header className="sticky top-0 z-40 border-b border-hairline bg-bg sm:static sm:border-b-0 sm:bg-transparent">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-4 pt-2 pb-1.5 sm:gap-3 sm:px-6 sm:pb-0">
-          {/* Not squeezed (its "Turn Me" label would hang past the screen edge) except on a 320px phone, which has no room. */}
-          <HandButton cycle={cycle} className="header-hand min-[360px]:shrink-0" />
-          <Logo tagline className="ml-1" />
+        <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-4 pt-2 pb-1.5 max-[359px]:gap-1 max-[359px]:pr-3 sm:gap-3 sm:px-6 sm:pb-0">
+          {/* Never squeezed (its "Turn Me" label would hang past the screen edge): on a 320px phone the hand and the wordmark are a little smaller instead (motion.css, Logo.tsx). */}
+          <HandButton cycle={cycle} className="header-hand shrink-0" />
+          <Logo tagline className="ml-1 max-[359px]:ml-0" />
 
           <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
             <SearchSheet shortcuts={shortcuts} />

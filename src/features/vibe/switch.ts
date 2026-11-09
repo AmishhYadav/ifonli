@@ -6,7 +6,7 @@
  * reduced motion, and keeps the `ifonli:vibe-change` event / analytics `source` accurate.
  * Client-only: call it from event handlers and effects.
  */
-import { DISPLAY_FONT_LOAD, type Vibe } from "./config";
+import { DISPLAY_FONT_LOAD, nextVibe, type Vibe } from "./config";
 import { getVibe, setVibe, type VibeSource } from "./store";
 
 const FONT_WAIT_MS = 120;
@@ -14,10 +14,39 @@ const FONT_WAIT_MS = 120;
 const warmed = new Set<Vibe>();
 
 /** Idle-time warm-up of a vibe's display font (so the NEXT switch needs no network). */
-export function warmVibeFont(vibe: Vibe): void {
-  if (warmed.has(vibe)) return;
+export function warmVibeFont(vibe: Vibe): Promise<unknown> {
+  if (warmed.has(vibe)) return Promise.resolve();
   warmed.add(vibe);
-  document.fonts?.load(DISPLAY_FONT_LOAD[vibe]).catch(() => {});
+  return document.fonts?.load(DISPLAY_FONT_LOAD[vibe]).catch(() => {}) ?? Promise.resolve();
+}
+
+interface NetworkInformationLike {
+  saveData?: boolean;
+  effectiveType?: string;
+}
+
+/** Whether spending bandwidth on fonts nobody asked for yet is acceptable: not Save-Data, not a 2g-class link. */
+export function mayWarmEverything(): boolean {
+  const connection = (navigator as Navigator & { connection?: NetworkInformationLike }).connection;
+  if (connection?.saveData === true) return false;
+  return connection?.effectiveType !== "slow-2g" && connection?.effectiveType !== "2g";
+}
+
+/**
+ * After the page is idle, fetch the display fonts of every OTHER vibe (the one the next click goes to first), one at
+ * a time, each in its own idle slot. The first switch to any vibe then never waits on a font download, which was a
+ * dropped-frames hitch on a phone. Never before the load event (the caller waits for it), never on Save-Data / 2g.
+ */
+export function warmOtherVibeFonts(current: Vibe, cycle: readonly Vibe[]): void {
+  const first = nextVibe(current, cycle);
+  const order = [first, ...cycle.filter((v) => v !== current && v !== first)];
+  const rest = mayWarmEverything() ? order : [first];
+  const step = (index: number) => {
+    const vibe = rest[index];
+    if (!vibe) return;
+    void warmVibeFont(vibe).then(() => whenIdle(() => step(index + 1)));
+  };
+  step(0);
 }
 
 export function whenIdle(callback: () => void): void {

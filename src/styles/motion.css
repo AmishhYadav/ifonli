@@ -149,6 +149,20 @@
   display: inline-block;
   transition: transform 450ms var(--motion-ease, ease-out);
 }
+
+/* A 320px phone has no room for the full-size hand next to the wordmark and three 44px buttons: a smaller hand and a
+   tighter "Turn Me" pill (no spinning arrow) keep the button at the normal 16px gutter instead of squeezing it past the screen edge. */
+@media (max-width: 359px) {
+  .hand-btn {
+    --hand-size: 44px;
+  }
+  .hand-pill {
+    padding-inline: 6px;
+  }
+  .hand-pill-arrow {
+    display: none;
+  }
+}
 .hand-btn:hover .hand-pill,
 .hand-btn:focus-visible .hand-pill {
   rotate: 2deg;

@@ -34,7 +34,7 @@ test.describe("landing page", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName("IfOnli");
     await expect(page.getByText("Tiny things. Big feelings.")).toBeVisible();
-    for (const name of ["Four kinds of tiny.", "Four moods, one for every you.", "Small things, handled with care.", "Ready? Step inside."]) {
+    for (const name of ["Three kinds of tiny.", "Four moods, one for every you.", "Small things, handled with care.", "Ready? Step inside."]) {
       await expect(page.getByRole("heading", { level: 2, name })).toBeAttached();
     }
     const enter = page.getByRole("link", { name: "Enter the store" });
@@ -151,9 +151,8 @@ test.describe("reduced motion", () => {
     await expect(page.locator("html.lenis")).toHaveCount(0);
     for (const text of [
       "Tiny things. Big feelings.",
-      "Four kinds of tiny.",
+      "Three kinds of tiny.",
       "Charms",
-      "Hippers",
       "3D Stickers",
       "DIY Accessories",
       "Mochi",

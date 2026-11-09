@@ -16,9 +16,9 @@ export async function TypeLinks() {
       <h2 id="types-title" className="font-display text-3xl display-fx sm:text-4xl">
         Shop by type
       </h2>
-      <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <ul className="mt-6 grid grid-cols-2 gap-3 in-data-[vibe=bold]:max-[419px]:grid-cols-1 sm:gap-4 lg:grid-cols-4">
         {types.map((t, i) => (
-          <li key={t.slug}>
+          <li key={t.slug} className="min-w-0">
             <Link
               href={`/types/${t.slug}`}
               className={cn(
@@ -29,7 +29,8 @@ export async function TypeLinks() {
                 aria-hidden="true"
                 className={cn("size-8 rounded-full", DOTS[i % DOTS.length])}
               />
-              <span className="font-display text-2xl leading-tight sm:text-3xl">{t.name}</span>
+              {/* Bungee Shade is too wide for "Accessories" in a half-width tile: one column on a small phone in that vibe, and a title that hyphenates instead of spilling wherever it still does not fit. */}
+              <span className="font-display text-2xl leading-tight hyphens-auto [overflow-wrap:anywhere] sm:text-3xl">{t.name}</span>
               <span className="flex items-center justify-between text-sm font-semibold">
                 {t.productCount} products
                 <Icon name="arrow-right" className="size-5 transition-transform ease-vibe group-hover:translate-x-1" />

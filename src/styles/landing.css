@@ -133,6 +133,40 @@ html[data-vibe="funky"] .landing {
   }
 }
 
+/*
+ * A backdrop blur re-blurs everything scrolling under the pill on every frame, which a touch phone or any low-power
+ * device cannot do at 60fps next to the scrubbed stages. There the pills are near-opaque instead (still a little
+ * see-through, so the overlap reads as intended; the text keeps its contrast on the surface colour).
+ */
+@media (hover: none) and (pointer: coarse) {
+  .l-pill,
+  .l-top__skip:hover,
+  .l-top__logo:hover {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .l-pill {
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+  }
+  .l-top__skip:hover,
+  .l-top__logo:hover {
+    background: var(--surface-2);
+  }
+}
+html[data-low-power] .l-pill,
+html[data-low-power] .l-top__skip:hover,
+html[data-low-power] .l-top__logo:hover {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-low-power] .l-pill {
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+}
+html[data-low-power] .l-top__skip:hover,
+html[data-low-power] .l-top__logo:hover {
+  background: var(--surface-2);
+}
+
 /* ---------------------------------------------------------------- background */
 
 .l-bg {
@@ -268,6 +302,16 @@ html[data-vibe="funky"] .landing {
 }
 .l-blob--c .l-blob__fill[data-state="accent"] {
   background-image: radial-gradient(closest-side, color-mix(in srgb, var(--accent-3) 55%, transparent), transparent);
+}
+
+/* Low power: the blobs sit still (the motion code does not scrub them either) and the masked texture layers, each
+   as large as the screen and repainted under every curtain, are left out: flat colour moves far cheaper. */
+html[data-low-power] .l-blob {
+  animation: none;
+}
+html[data-low-power] .l-bg .l-bg__fill::before,
+html[data-low-power] .l-bg .l-bg__fill[data-vibe]:not(:root)::before {
+  display: none;
 }
 
 @keyframes l-float {
@@ -592,11 +636,27 @@ html[data-vibe="funky"] .landing {
   color: var(--ink);
 }
 
+/* "Unapologetic" is cut into UNA- / POLO- / GETIC (Sections.tsx): one block per piece, the hyphen is generated and
+   kept out of the accessible name. The widest line (POLO-, ~3.8em) is what the size is fitted to. */
+.l-mood__part {
+  display: block;
+}
+.l-mood__part--hy::after {
+  content: "-";
+  content: "-" / "";
+}
+
+/* The copy column is the container the name is sized to (cqi), so a name that must fit its column never clips. */
+.l-mood__copy {
+  container-type: inline-size;
+}
+
 .l-mood[data-vibe="cute"] {
   --n: clamp(4rem, 16vw, 15rem);
 }
 .l-mood[data-vibe="bold"] {
-  --n: clamp(3.25rem, 10vw, 11rem);
+  /* 3 lines at line-height .92: never taller than ~58svh, never wider than the column (POLO- is ~3.8em). */
+  --n: min(11rem, 25cqi, 20svh);
 }
 .l-mood[data-vibe="gothic"] {
   --n: clamp(4rem, 12.5vw, 12rem);
@@ -646,12 +706,8 @@ html[data-vibe="funky"] .landing {
   .l-mood[data-vibe="cute"] {
     --n: clamp(4rem, 24vw, 7rem);
   }
-  /* Bungee Shade is ~9.8em wide for this word: size it to the panel (10cqi of .l-mood__in) so it never clips. */
-  .l-mood__in {
-    container-type: inline-size;
-  }
   .l-mood[data-vibe="bold"] {
-    --n: min(6.5rem, 10cqi);
+    --n: min(6.5rem, 25cqi, 15svh);
   }
   .l-mood[data-vibe="gothic"] {
     --n: clamp(4rem, 22vw, 7rem);

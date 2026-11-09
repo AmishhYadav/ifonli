@@ -5,6 +5,7 @@ import Lenis from "lenis";
 import { VIBES } from "@/features/vibe/config";
 
 import type { BgState } from "./data";
+import { hasLowPowerFlag } from "./power";
 
 /**
  * Landing scroll choreography. Client only, loaded with a dynamic import so none of it (gsap, ScrollTrigger,
@@ -191,20 +192,25 @@ export function startLandingMotion({ root, fontDescriptors, onEnter }: MotionOpt
     resetBg();
     const restore: Array<() => void> = [];
 
-    /* page-long: texture offset + blob parallax (different rates and scrub lags) */
+    /* page-long: texture offset + blob parallax (different rates and scrub lags). A low-power device (Boot.tsx flags
+       it) keeps the background still: three screen-sized blobs and a CSS variable that restyles the whole background
+       on every scroll frame are exactly what a phone cannot afford; the colours and curtains still change. */
+    const decorate = !hasLowPowerFlag();
     const pageTrigger = { trigger: root, start: "top top", end: "bottom bottom" } as const;
-    gsap.to(S, {
-      page: 1,
-      ease: "none",
-      onUpdate: () => bg?.style.setProperty("--l-tex", S.page.toFixed(4)),
-      scrollTrigger: { ...pageTrigger, scrub: 1.4 },
-    });
+    if (decorate) {
+      gsap.to(S, {
+        page: 1,
+        ease: "none",
+        onUpdate: () => bg?.style.setProperty("--l-tex", S.page.toFixed(4)),
+        scrollTrigger: { ...pageTrigger, scrub: 1.4 },
+      });
+    }
     const blobConfig: Record<string, { y: number; x: number; scale: number; scrub: number }> = {
       a: { y: -0.45, x: 0.07, scale: 1.3, scrub: 0.9 },
       b: { y: -0.75, x: -0.09, scale: 0.82, scrub: 1.3 },
       c: { y: -1.15, x: 0.1, scale: 1.5, scrub: 1.8 },
     };
-    for (const blob of all("[data-blob]")) {
+    for (const blob of decorate ? all("[data-blob]") : []) {
       const cfg = blobConfig[blob.dataset.blob ?? "a"]!;
       gsap.to(blob, {
         y: () => cfg.y * window.innerHeight * (desktop ? 1 : 0.8),

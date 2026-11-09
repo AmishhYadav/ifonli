@@ -335,7 +335,7 @@ test("(h) every switch completes in < 900 ms (chromium desktop)", async ({ page 
   console.log(`vibe switch durations (ms): ${durations.join(", ")}`);
 });
 
-test("(i) first load requests only the body font and the active display font", async ({
+test("(i) first load requests only the body font and the active display font, the others warm after idle", async ({
   page,
   browserName,
 }) => {
@@ -359,15 +359,24 @@ test("(i) first load requests only the body font and the active display font", a
       .map((e) => new URL(e.name).pathname.split("/").pop()!);
   });
   expect([...new Set(beforeLoad)].sort()).toEqual(
-    ["bebas-neue-wght400-latin.woff2", "nunito-wght400-800-latin.woff2"].sort(),
+    ["bungee-shade-wght400-latin.woff2", "nunito-wght400-800-latin.woff2"].sort(),
   );
   expect(new Set(requested).has("fredoka-wght500-700-latin.woff2")).toBe(false);
 
-  // Only after idle: the FOLLOWING vibe's font (the cycle wraps from bold to cute = Fredoka), and nothing else yet.
+  // Only after idle: the FOLLOWING vibe's font first (the cycle wraps from bold to cute = Fredoka), then the rest
+  // one after another (After the Dark = Creepster, Chaos Cabinet = Rubik Glitch), so no switch waits on a download.
   await expect
     .poll(() => requested.includes("fredoka-wght500-700-latin.woff2"), { timeout: 8000 })
     .toBe(true);
-  expect(requested.filter((f) => /cinzel|rubik/.test(f))).toEqual([]);
+  await expect
+    .poll(
+      () =>
+        ["creepster-wght400-latin.woff2", "rubik-glitch-wght400-latin.woff2"].every((f) =>
+          requested.includes(f),
+        ),
+      { timeout: 12000 },
+    )
+    .toBe(true);
   // Each file at most once (preload and @font-face share one request).
   // (WebKit re-requests a script-inserted font preload once; known engine quirk, still only 1 display font.)
   if (browserName !== "webkit") expect(requested.length).toBe(new Set(requested).size);

@@ -7,12 +7,18 @@ import "@/styles/motion.css";
 
 import { DEFAULT_VIBE_CYCLE, VIBES, VIBE_NAMES, nextVibe, type Vibe } from "./config";
 import { getVibe, subscribe } from "./store";
-import { currentOrPendingVibe, prefersReducedMotion, switchTheme, warmVibeFont, whenIdle } from "./switch";
+import {
+  currentOrPendingVibe,
+  prefersReducedMotion,
+  switchTheme,
+  warmOtherVibeFonts,
+  warmVibeFont,
+  whenIdle,
+} from "./switch";
 import { useVibe } from "./useVibe";
 
 const LONG_PRESS_MS = 500;
 const TIP_HOLD_MS = 1600;
-const warm = warmVibeFont;
 
 /** The charms that hang at the five fingertips. A vibe without an entry (a renamed or new one) uses the first set. */
 const CHARMS: Partial<Record<string, readonly string[]>> = {
@@ -123,9 +129,10 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
   const longPressed = useRef(false);
   const lastPointer = useRef("");
 
-  // Warm the vibe the next click will go to, once the page has finished loading.
+  // Once the page has finished loading and is idle, warm the display fonts of the other vibes (the next click's
+  // first), so no switch waits on a font download. Nothing starts before the load event.
   useEffect(() => {
-    const run = () => whenIdle(() => warm(nextVibe(getVibe(), cycle)));
+    const run = () => whenIdle(() => warmOtherVibeFonts(getVibe(), cycle));
     if (document.readyState === "complete") run();
     else window.addEventListener("load", run, { once: true });
     return () => window.removeEventListener("load", run);
@@ -155,14 +162,14 @@ export function HandButton({ cycle = DEFAULT_VIBE_CYCLE, className = "" }: Props
     const to = nextVibe(currentOrPendingVibe(), cycle);
     // Stays on the page, except on a theme's own page, which follows the theme (shared rule: switchTheme).
     void switchTheme(to, "hand", router, {
-      onSettled: () => whenIdle(() => warm(nextVibe(to, cycle))),
+      onSettled: () => whenIdle(() => warmOtherVibeFonts(to, cycle)),
     });
   }, [cycle, router]);
 
   const clearPress = () => window.clearTimeout(pressTimer.current);
 
   // The visitor is about to click: make sure the vibe this click goes to is warm (a no-op once it is).
-  const warmNext = () => warm(nextVibe(currentOrPendingVibe(), cycle));
+  const warmNext = () => void warmVibeFont(nextVibe(currentOrPendingVibe(), cycle));
 
   const hideTipSoon = () => {
     window.clearTimeout(tipTimer.current);

@@ -3,13 +3,33 @@ import type { CSSProperties } from "react";
 
 import { VIBE_TAGLINES } from "@/components/store/vibe-taglines";
 import { buttonVariants } from "@/components/ui/buttonStyles";
-import { VIBES, VIBE_NAMES } from "@/features/vibe/config";
+import { VIBES, VIBE_NAMES, type Vibe } from "@/features/vibe/config";
 
 import { Cutout } from "./Cutout";
 import { HERO_CUTOUTS, MAKES, MOOD_CUTOUTS, PORTAL_CUTOUTS } from "./data";
 import type { Fact } from "./facts";
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>;
+
+/**
+ * Bungee Shade is ~9.7em wide for "Unapologetic": on one line it would be tiny on a phone and spill out of its column
+ * on a tablet or laptop. The word is cut into a ragged-balanced block instead (UNA- / POLO- / GETIC, CSS adds the
+ * hyphens). The pieces are plain text, so the heading's text stays "Unapologetic"; its accessible name is set explicitly (block pieces would otherwise be read as separate words).
+ */
+const MOOD_NAME_PARTS: Partial<Record<Vibe, readonly string[]>> = {
+  bold: ["Una", "polo", "getic"],
+};
+
+/** The mood's name; a name with a designed break renders as one block per piece (every piece but the last is hyphenated). */
+function MoodName({ vibe }: { vibe: Vibe }) {
+  const parts = MOOD_NAME_PARTS[vibe];
+  if (!parts) return VIBE_NAMES[vibe];
+  return parts.map((part, i) => (
+    <span key={part} className={i < parts.length - 1 ? "l-mood__part l-mood__part--hy" : "l-mood__part"}>
+      {part}
+    </span>
+  ));
+}
 
 const LETTERS = ["I", "f", "O", "n", "l", "i"] as const;
 
@@ -124,8 +144,12 @@ export function Moods() {
                       ))}
                     </span>
                   </p>
-                  <h3 className="l-mood__name" data-mood-name>
-                    {VIBE_NAMES[vibe]}
+                  <h3
+                    className="l-mood__name"
+                    data-mood-name
+                    aria-label={MOOD_NAME_PARTS[vibe] ? VIBE_NAMES[vibe] : undefined}
+                  >
+                    <MoodName vibe={vibe} />
                   </h3>
                   <p className="l-mood__tag" data-mood-tag>
                     {VIBE_TAGLINES[vibe]}

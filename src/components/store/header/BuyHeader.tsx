@@ -23,7 +23,7 @@ const bar = "mx-auto flex min-h-16 max-w-5xl items-center justify-between gap-3 
 function Brand({ cycle }: { cycle: readonly Vibe[] }) {
   return (
     <div className="flex min-w-0 items-center gap-1">
-      <HandButton cycle={cycle} className="header-hand min-[360px]:shrink-0" />
+      <HandButton cycle={cycle} className="header-hand shrink-0" />
       <Logo tagline className="ml-1" />
     </div>
   );
