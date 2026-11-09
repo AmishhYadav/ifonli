@@ -3,10 +3,11 @@
  * database through the app's own admin services, so every write is validated, audited and clears
  * `is_placeholder`. Idempotent: re-running changes nothing once the values are in place.
  *
- *   pnpm exec tsx --conditions=react-server scripts/store-values/apply-settings-content.ts [--check] [--allow-remote]
+ *   pnpm exec tsx --conditions=react-server scripts/store-values/apply-settings-content.ts [--check] [--skip-policies] [--allow-remote]
  *
  *   (no flag)  apply everything, then run the check
  *   --check    only run the check: launch checklist, policy rendering, FAQ visibility
+ *   --skip-policies  leave published policies (versions, effective dates) untouched
  *
  * Inputs: content/store-values/settings.json (registry key -> value, money in paise) and
  * content/store-values/collections.json. The actor is the owner staff account owner@ifonli.local.
@@ -67,7 +68,8 @@ async function main() {
 
     failures += await applySettings(db, schema, actor);
     failures += await applyCollections(db, schema, actor);
-    failures += await applyPolicies(db, schema, actor);
+    if (process.argv.includes("--skip-policies")) log("policies", "skipped (--skip-policies)");
+    else failures += await applyPolicies(db, schema, actor);
     failures += await applyAnnouncement(db, schema, actor);
   }
 

@@ -266,7 +266,7 @@ export const vibes: Record<Vibe, VibeTokens> = {
       "texture-opacity": "0",
     },
     shape: {
-      "font-display": '"Creepster", "Creepster Fallback", "Times New Roman", serif',
+      "font-display": '"Lilita One", "Lilita One Fallback", Arial, sans-serif',
       "display-weight": "400",
       "display-tracking": "0",
       "radius-card": "20px",

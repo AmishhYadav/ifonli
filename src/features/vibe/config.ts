@@ -33,7 +33,7 @@ export const DISPLAY_FONT_FILES: Record<Vibe, string> = {
   cute: "/fonts/fredoka-wght500-700-latin.woff2",
   funky: "/fonts/rubik-glitch-wght400-latin.woff2",
   bold: "/fonts/bebas-neue-wght400-latin.woff2",
-  gothic: "/fonts/creepster-wght400-latin.woff2",
+  gothic: "/fonts/lilita-one-wght400-latin.woff2",
 };
 
 /** `document.fonts.load()` descriptors, matching the @font-face rules in styles/fonts.css. */
@@ -41,7 +41,7 @@ export const DISPLAY_FONT_LOAD: Record<Vibe, string> = {
   cute: '600 1em "Fredoka"',
   funky: '400 1em "Rubik Glitch"',
   bold: '400 1em "Bebas Neue"',
-  gothic: '400 1em "Creepster"',
+  gothic: '400 1em "Lilita One"',
 };
 
 export function isVibe(value: unknown): value is Vibe {

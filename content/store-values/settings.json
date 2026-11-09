@@ -26,7 +26,7 @@
   "shipping_tax_rule": "dominant_line_rate",
 
   "flat_fee": 4900,
-  "free_threshold": 49900,
+  "free_threshold": 29900,
   "zone_overrides": {},
   "processing_days": 2,
   "delivery_estimates_by_zone": {
