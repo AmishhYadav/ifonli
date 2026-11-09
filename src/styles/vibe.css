@@ -160,7 +160,7 @@ html[data-vibe-switching] ::after {
 /*
  * Unapologetic's title: Bungee Shade (its own extruded shade gives the slight 3D), black fill, and a soft bone-coloured
  * outline with a faint shimmer, like light catching fur. Used only on the Unapologetic collection page and its card;
- * the rest of that vibe's headings stay Bebas Neue so they read on the burgundy.
+ * the rest of that vibe's headings use the same Bungee Shade (the vibe's display font) in the plain ink colour.
  */
 .title-unapologetic {
   font-family: "Bungee Shade", "Bungee Shade Fallback", Impact, sans-serif;

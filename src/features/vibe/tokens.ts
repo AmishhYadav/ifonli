@@ -229,7 +229,7 @@ export const vibes: Record<Vibe, VibeTokens> = {
       "texture-opacity": "0",
     },
     shape: {
-      "font-display": '"Bebas Neue", "Bebas Neue Fallback", Impact, sans-serif',
+      "font-display": '"Bungee Shade", "Bungee Shade Fallback", Impact, sans-serif',
       "display-weight": "400",
       "display-tracking": "0.02em",
       "radius-card": "20px",
@@ -266,7 +266,7 @@ export const vibes: Record<Vibe, VibeTokens> = {
       "texture-opacity": "0",
     },
     shape: {
-      "font-display": '"Lilita One", "Lilita One Fallback", Arial, sans-serif',
+      "font-display": '"Creepster", "Creepster Fallback", "Times New Roman", serif',
       "display-weight": "400",
       "display-tracking": "0",
       "radius-card": "20px",
