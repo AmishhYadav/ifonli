@@ -41,7 +41,7 @@ test.describe("landing page", () => {
     await expect(enter).toHaveAttribute("href", "/home");
     await expect(page.getByRole("link", { name: "Skip intro" })).toHaveAttribute("href", "/home");
     // Landing metadata and the Organization data moved here from the store home.
-    await expect(page).toHaveTitle("IfOnli: charms, Hippers, 3D stickers and DIY kits");
+    await expect(page).toHaveTitle("IfOnli: charms, 3D stickers and DIY kits");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^https?:\/\/[^/]+\/?$/);
     expect(await page.locator('script[type="application/ld+json"]').allTextContents()).toEqual(
       expect.arrayContaining([expect.stringContaining('"Organization"')]),
