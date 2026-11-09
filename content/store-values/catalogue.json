@@ -1,999 +1,215 @@
 {
-  "_note": "Catalogue store values for the IfOnli college-project build (2026-11-01). One entry per product, keyed by slug (slugs never change). Prices and MRP are whole rupees (stored as paise). Stock is the target on-hand per variant; the script moves it with ledger adjustments only. Materials, sizes and kit contents are the studio's working specs and not independently verified. Applied by scripts/store-values/apply-catalogue.ts.",
-
+  "_note": "Real catalogue from Charm_Product_Catalogue_Updated.docx (2026-11-09). Names and descriptions are verbatim from the doc. Price and MRP are whole rupees (Rs 40; Midnight Energy Can Rs 50). Stock and weight are working values, not from the doc: adjust in admin. Images are in public/products/<slug>-cutout.png, -1.jpg (styled) and -2.jpg (original photo). The Cola Cap Classic (doc item 19) is left out until a photo without a hand is supplied. Applied by scripts/store-values/apply-catalogue.ts.",
   "products": [
     {
-      "slug": "heart-charm",
-      "descriptionMd": "A plump little heart for the days you feel soft. Glossy enamel, a gold-tone loop and a lobster clasp, so it hooks onto a bag zip, keys or a tote strap in a second. It comes in red, pink and lilac (pictured: pink).\n\n- **Size:** about 34 mm wide, 32 mm tall\n- **Material:** zinc alloy, colour-filled enamel, gold-tone finish\n- **Care:** wipe with a dry cloth and keep it away from perfume",
-      "seoTitle": "Heart charm for bags, keys and zips",
-      "seoDesc": "Glossy enamel heart charm with a gold-tone loop and lobster clasp. About 34 mm wide, in red, pink or lilac. Clip it on a bag, keys or a tote strap.",
-      "vibes": [
-        { "vibe": "cute", "rank": 0 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 14,
-      "netQuantity": "1 piece",
-      "dimensions": "3.4 cm × 3.2 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Red", "sku": "IFO-CH-HEART-RED", "price": 179, "mrp": 179, "stock": 24 },
-        { "title": "Pink", "sku": "IFO-CH-HEART-PINK", "price": 179, "mrp": 179, "stock": 3 },
-        { "title": "Lilac", "sku": "IFO-CH-HEART-LILAC", "price": 179, "mrp": 179, "stock": 60 }
-      ],
-      "image": {
-        "visual": "Pink glossy enamel heart charm with a gold-tone loop",
-        "bg1": ["#FFE3EC", "pale pink"],
-        "bg2": ["#28325A", "navy"],
-        "sizeMm": 34,
-        "tilt": -6
-      }
+      "slug": "moonlit-ghost-duo",
+      "name": "Moonlit Ghost Duo",
+      "descriptionMd": "A playful Halloween pairing featuring a little ghost in a black-and-red hat with a cheerful yellow moon behind it. A fun statement charm for bags, keychains and DIY accessories.",
+      "vibe": "gothic",
+      "sku": "IFO-CH-MOONLIT-GHOST-DUO",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "star-charm",
-      "descriptionMd": "A bright five-point star to wish on, or just to look at. Smooth enamel with a gold-tone outline, a small loop and a lobster clasp. Clip it to a school bag, a pencil pouch or your keys and let it catch the light. Choose yellow or silver (pictured: yellow).\n\n- **Size:** about 34 mm wide, 36 mm tall\n- **Material:** zinc alloy with enamel fill\n- **Care:** wipe dry after rain and store it apart from other metal charms to avoid scratches",
-      "seoTitle": "Star charm in yellow or silver",
-      "seoDesc": "Enamel star charm with a gold-tone outline, a small loop and a lobster clasp. About 36 mm tall, in yellow or silver. Clip it on a bag, pouch or keys.",
-      "vibes": [
-        { "vibe": "cute", "rank": 1 },
-        { "vibe": "bold", "rank": null }
-      ],
-      "weightG": 12,
-      "netQuantity": "1 piece",
-      "dimensions": "3.4 cm × 3.6 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Yellow", "sku": "IFO-CH-STAR-YELLOW", "price": 199, "mrp": 239, "stock": 44 },
-        { "title": "Silver", "sku": "IFO-CH-STAR-SILVER", "price": 199, "mrp": 239, "stock": 28 }
-      ],
-      "image": {
-        "visual": "Yellow enamel star charm with a gold-tone outline and loop",
-        "bg1": ["#FFF4C7", "soft butter yellow"],
-        "bg2": ["#3A2D6B", "indigo"],
-        "sizeMm": 36,
-        "tilt": 5
-      }
+      "slug": "little-boo-ghost",
+      "name": "Little Boo Ghost",
+      "descriptionMd": "A sweet, minimal ghost charm with a soft ivory finish and tiny black facial details. Its simple, cute look makes it easy to pair with colourful charm stacks.",
+      "vibe": "gothic",
+      "sku": "IFO-CH-LITTLE-BOO-GHOST",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "mushroom-charm",
-      "descriptionMd": "A red-capped mushroom with a sleepy little face, as if it lives in a secret garden. The white spots are raised enamel and the stem has a tiny smile. A gold-tone loop and lobster clasp let it hang from a bag, a lanyard or a zip pull.\n\n- **Size:** about 34 mm wide, 38 mm tall\n- **Material:** zinc alloy, enamel, gold-tone loop\n- **Care:** wipe with a soft dry cloth and avoid soaking it",
-      "seoTitle": "Mushroom charm with a smiling stem",
-      "seoDesc": "Red-capped enamel mushroom charm with white spots, a gold-tone loop and a lobster clasp. About 38 mm tall. Hangs from a bag, lanyard or zip pull.",
-      "vibes": [
-        { "vibe": "cute", "rank": 2 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 15,
-      "netQuantity": "1 piece",
-      "dimensions": "3.4 cm × 3.8 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Default", "sku": "IFO-CH-MUSHROOM", "price": 249, "mrp": 299, "stock": 22 }
-      ],
-      "image": {
-        "visual": "Red-capped mushroom charm with white spots and a smiling cream stem",
-        "bg1": ["#FFE9DC", "peach cream"],
-        "bg2": ["#1F4D45", "deep green"],
-        "sizeMm": 38,
-        "tilt": -5
-      }
+      "slug": "midnight-boo",
+      "name": "Midnight Boo",
+      "descriptionMd": "A mischievous black ghost charm outlined in gold, with a playful expression. Perfect for adding a spooky-cute touch to your everyday accessories.",
+      "vibe": "gothic",
+      "sku": "IFO-CH-MIDNIGHT-BOO",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "cherry-pair-charm",
-      "descriptionMd": "Two glossy cherries on one green stem, because a pair is better than one. The leaf and stem are enamel too, and a small ring at the stem takes the lobster clasp. Looks sweet on a tote strap, a pencil case zip or a bunch of keys.\n\n- **Size:** about 35 mm wide, 40 mm tall\n- **Material:** zinc alloy with coloured enamel\n- **Care:** keep it dry and wipe clean with a soft cloth",
-      "seoTitle": "Cherry pair charm for bags and keys",
-      "seoDesc": "Two glossy enamel cherries on a green stem with a leaf, finished with a ring and lobster clasp. About 40 mm tall. Clip it on a tote, zip or keys.",
-      "vibes": [
-        { "vibe": "cute", "rank": 3 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 13,
-      "netQuantity": "1 piece",
-      "dimensions": "3.5 cm × 4 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Default", "sku": "IFO-CH-CHERRY", "price": 229, "mrp": 229, "stock": 35 }
-      ],
-      "image": {
-        "visual": "Pair of red enamel cherries on a green stem with a leaf",
-        "bg1": ["#FFE6E0", "blush"],
-        "bg2": ["#2B2F4F", "slate navy"],
-        "sizeMm": 40,
-        "tilt": 6
-      }
+      "slug": "grumpy-jack-pumpkin",
+      "name": "Grumpy Jack Pumpkin",
+      "descriptionMd": "A bright red pumpkin face with bold, mischievous features and a gold-tone outline. Bring a little Halloween attitude to your keychain or bag.",
+      "vibe": "gothic",
+      "sku": "IFO-CH-GRUMPY-JACK-PUMPKIN",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "smiley-charm",
-      "descriptionMd": "A round yellow smiley that is a little too happy about everything. Pink cheeks, a wide grin and a glossy finish. The gold-tone loop and lobster clasp make it easy to hang from a bag, a keychain or a hoodie zip.\n\n- **Size:** about 32 mm wide, 36 mm tall with the loop\n- **Material:** zinc alloy with enamel\n- **Care:** wipe clean with a dry cloth and keep it away from sharp keys",
-      "seoTitle": "Smiley charm with pink cheeks",
-      "seoDesc": "Glossy yellow enamel smiley charm with pink cheeks, a gold-tone loop and a lobster clasp. About 36 mm tall. Hang it from a bag, keys or hoodie zip.",
-      "vibes": [
-        { "vibe": "funky", "rank": 0 },
-        { "vibe": "cute", "rank": null }
-      ],
-      "weightG": 14,
-      "netQuantity": "1 piece",
-      "dimensions": "3.2 cm × 3.6 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Default", "sku": "IFO-CH-SMILEY", "price": 149, "mrp": 149, "stock": 41 }
-      ],
-      "image": {
-        "visual": "Yellow smiley-face charm with pink cheeks and a gold-tone loop",
-        "bg1": ["#FFE8D6", "peach"],
-        "bg2": ["#2D4C8A", "cobalt blue"],
-        "sizeMm": 36,
-        "tilt": -4
-      }
+      "slug": "creepy-cute-spider",
+      "name": "Creepy-Cute Spider",
+      "descriptionMd": "A tiny black spider with fine gold-tone legs and a cheeky smile. A quirky little accent for anyone who loves spooky details.",
+      "vibe": "gothic",
+      "sku": "IFO-CH-CREEPY-CUTE-SPIDER",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "lightning-bolt-charm",
-      "descriptionMd": "A chunky yellow bolt for the loud days. Gold-tone outline, glossy enamel and a loop at the top for the lobster clasp. Clip it to a backpack strap, a gym bag or your keys and let it do the talking.\n\n- **Size:** about 26 mm wide, 42 mm tall\n- **Material:** zinc alloy with enamel fill\n- **Care:** wipe it dry and keep it away from perfume and water",
-      "seoTitle": "Lightning bolt charm in yellow enamel",
-      "seoDesc": "Chunky yellow enamel lightning bolt charm with a gold-tone outline, loop and lobster clasp. About 42 mm tall. Clip it on a backpack, gym bag or keys.",
-      "vibes": [
-        { "vibe": "bold", "rank": 0 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 12,
-      "netQuantity": "1 piece",
-      "dimensions": "2.6 cm × 4.2 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Default", "sku": "IFO-CH-BOLT", "price": 179, "mrp": 179, "stock": 0 }
-      ],
-      "image": {
-        "visual": "Yellow enamel lightning bolt charm with a gold-tone outline and loop",
-        "bg1": ["#FFF0A8", "pale yellow"],
-        "bg2": ["#1B1B1B", "charcoal"],
-        "sizeMm": 42,
-        "tilt": 7
-      }
+      "slug": "split-personality-phantom",
+      "name": "Split-Personality Phantom",
+      "descriptionMd": "A two-tone ghost charm in contrasting cream and dark finishes, with a simple expressive face. A distinctive pick for a playful, alternative charm mix.",
+      "vibe": "gothic",
+      "sku": "IFO-CH-SPLIT-PERSONALITY-PHANTOM",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "skull-charm",
-      "descriptionMd": "A grinning skull for the days you feel a little dramatic. The face is enamel-filled with deep black eyes and a tiny crack at the brow. Choose bone, a creamy off-white (pictured), or midnight, a dark purple-black. It hangs from a gold-tone loop and lobster clasp.\n\n- **Size:** about 31 mm wide, 36 mm tall\n- **Material:** zinc alloy with enamel\n- **Care:** wipe clean with a dry cloth and avoid soaking",
-      "seoTitle": "Skull charm in bone or midnight",
-      "seoDesc": "Enamel skull charm with a gold-tone loop and lobster clasp, in creamy bone or dark midnight. About 36 mm tall. A small, dramatic touch for bags and keys.",
-      "vibes": [
-        { "vibe": "gothic", "rank": 0 },
-        { "vibe": "bold", "rank": null }
-      ],
-      "weightG": 15,
-      "netQuantity": "1 piece",
-      "dimensions": "3.1 cm × 3.6 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Bone", "sku": "IFO-CH-SKULL-BONE", "price": 299, "mrp": 349, "stock": 26 },
-        {
-          "title": "Midnight",
-          "sku": "IFO-CH-SKULL-MIDNIGHT",
-          "price": 299,
-          "mrp": 349,
-          "stock": 19
-        }
-      ],
-      "image": {
-        "visual": "Cream skull charm with black eyes and a gold-tone loop",
-        "bg1": ["#E6DDF2", "soft lilac"],
-        "bg2": ["#2A2035", "deep plum"],
-        "sizeMm": 36,
-        "tilt": -6
-      }
+      "slug": "heartbreaker-glitter",
+      "name": "Heartbreaker Glitter",
+      "descriptionMd": "A glittery red heart with raised detailing and a bold, playful finish. A little sparkle with a rebellious edge for bags, bracelets and DIY creations.",
+      "vibe": "bold",
+      "sku": "IFO-CH-HEARTBREAKER-GLITTER",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "ghost-charm",
-      "descriptionMd": "A friendly little ghost with pink cheeks and a worried look, for people who replay conversations at 2 a.m. Soft lavender-white enamel, a wavy hem and a gold-tone loop with a lobster clasp. It looks good on a dark tote or a school bag.\n\n- **Size:** about 28 mm wide, 42 mm tall\n- **Material:** zinc alloy with enamel\n- **Care:** wipe with a soft dry cloth and store it flat",
-      "seoTitle": "Ghost charm with a worried face",
-      "seoDesc": "Lavender-white enamel ghost charm with pink cheeks, a gold-tone loop and a lobster clasp. About 42 mm tall. Gentle spooky energy for a tote or school bag.",
-      "vibes": [{ "vibe": "gothic", "rank": 1 }],
-      "weightG": 13,
-      "netQuantity": "1 piece",
-      "dimensions": "2.8 cm × 4.2 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Default", "sku": "IFO-CH-GHOST", "price": 279, "mrp": 279, "stock": 14 }
-      ],
-      "image": {
-        "visual": "Lavender-white ghost charm with a surprised face and a wavy hem",
-        "bg1": ["#CFC4E6", "dusty lilac"],
-        "bg2": ["#241B38", "dark violet"],
-        "sizeMm": 42,
-        "tilt": 5
-      }
+      "slug": "hot-temper-chilli",
+      "name": "Hot Temper Chilli",
+      "descriptionMd": "A glossy red chilli pepper with a green stem and gold-tone edging. Add a spicy pop of colour and personality to your charm collection.",
+      "vibe": "bold",
+      "sku": "IFO-CH-HOT-TEMPER-CHILLI",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "crescent-moon-charm",
-      "descriptionMd": "A pale gold crescent for late-night thinkers, with two tiny sparkles beside it. The enamel has a soft cream shine and a darker gold rim. Hang it from a bag, a keyring or a diary strap using the lobster clasp on its small loop.\n\n- **Size:** about 35 mm wide, 38 mm tall\n- **Material:** zinc alloy with enamel, gold-tone rim\n- **Care:** keep it dry and wipe with a soft cloth",
-      "seoTitle": "Crescent moon charm with sparkles",
-      "seoDesc": "Pale gold enamel crescent moon charm with two small sparkles, a loop and a lobster clasp. About 38 mm tall. For bags, keyrings and diary straps.",
-      "vibes": [{ "vibe": "gothic", "rank": 2 }],
-      "weightG": 12,
-      "netQuantity": "1 piece",
-      "dimensions": "3.5 cm × 3.8 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Default", "sku": "IFO-CH-MOON", "price": 349, "mrp": 399, "stock": 9 }
-      ],
-      "image": {
-        "visual": "Pale gold crescent moon charm with two small sparkles",
-        "bg1": ["#DDE4F5", "pale periwinkle"],
-        "bg2": ["#1E2A55", "midnight blue"],
-        "sizeMm": 38,
-        "tilt": -5
-      }
+      "slug": "little-life-token",
+      "name": "Little Life Token",
+      "descriptionMd": "A petite round ivory charm with raised lettering and a gold-tone border. A subtle, message-inspired detail for bracelets, keychains and bags.",
+      "vibe": "cute",
+      "sku": "IFO-CH-LITTLE-LIFE-TOKEN",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "evil-eye-bead-charm",
-      "descriptionMd": "A deep blue evil-eye with a sky-blue iris, made to keep an eye on things for you. Layered enamel in cobalt, white and light blue, with a gold-tone loop and a lobster clasp. It pairs well with keys, a gym bag or a car mirror hook.\n\n- **Size:** about 32 mm wide, 36 mm tall\n- **Material:** zinc alloy with enamel\n- **Care:** wipe with a dry cloth and avoid heat and perfume",
-      "seoTitle": "Evil-eye charm in layered blue enamel",
-      "seoDesc": "Blue and white enamel evil-eye charm with a gold-tone loop and lobster clasp. About 36 mm tall. Hang it from keys, a gym bag or a car mirror hook.",
-      "vibes": [{ "vibe": "gothic", "rank": 3 }],
-      "weightG": 16,
-      "netQuantity": "1 piece",
-      "dimensions": "3.2 cm × 3.6 cm",
-      "hsnCode": "7117",
-      "gstRateBp": 300,
-      "variants": [
-        { "title": "Default", "sku": "IFO-CH-EVILEYE", "price": 219, "mrp": 219, "stock": 31 }
-      ],
-      "image": {
-        "visual": "Blue and white evil-eye charm with a gold-tone loop",
-        "bg1": ["#FFF0D0", "warm cream"],
-        "bg2": ["#B5553A", "terracotta"],
-        "sizeMm": 36,
-        "tilt": 6
-      }
-    },
-
-    {
-      "slug": "bow-hair-clip",
-      "descriptionMd": "A pink bow on a metal snap clip, for the days you want to look like you tried. The loops hold their shape and the clip lies flat against your hair. Choose blush (pictured), black or cream. Snap it in at the side, at the back of a ponytail or onto a bag strap.\n\n- **Size:** about 60 mm wide, 36 mm tall\n- **Material:** fabric bow on a metal snap clip\n- **Care:** spot clean with a damp cloth; do not machine wash",
-      "seoTitle": "Bow hair clip in blush, black or cream",
-      "seoDesc": "Fabric bow on a metal snap clip, about 60 mm wide, in blush, black or cream. Snap it into your hair or onto a bag strap for an easy finishing touch.",
-      "vibes": [{ "vibe": "cute", "rank": 4 }],
-      "weightG": 20,
-      "netQuantity": "1 piece",
-      "dimensions": "6 cm × 3.6 cm",
-      "hsnCode": "9615",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Blush", "sku": "IFO-HP-BOW-BLUSH", "price": 249, "mrp": 299, "stock": 38 },
-        { "title": "Black", "sku": "IFO-HP-BOW-BLACK", "price": 249, "mrp": 299, "stock": 27 },
-        { "title": "Cream", "sku": "IFO-HP-BOW-CREAM", "price": 249, "mrp": 299, "stock": 16 }
-      ],
-      "image": {
-        "visual": "Pink bow hair clip on a gold-tone snap clip bar",
-        "bg1": ["#FFE8F0", "pale rose"],
-        "bg2": ["#3A2E5C", "violet"],
-        "sizeMm": 60,
-        "tilt": -5
-      }
+      "slug": "midnight-energy-can",
+      "name": "Midnight Energy Can",
+      "descriptionMd": "A miniature black energy-drink can charm with a vivid claw-mark graphic and metallic-look ends. A bold, fun choice for street-style accessories.",
+      "vibe": "gothic",
+      "sku": "IFO-CH-MIDNIGHT-ENERGY-CAN",
+      "price": 50,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "daisy-pin",
-      "descriptionMd": "A white daisy with a sunny yellow centre on a round gold-tone base, mounted on a snap clip. Wear it in your fringe, on a bag strap or on a collar for a small patch of spring. Choose a single clip or a pack of three.\n\n- **Size:** about 35 mm across\n- **Material:** zinc alloy rim, enamel petals, metal snap clip\n- **Care:** wipe dry with a soft cloth and keep it away from water",
-      "seoTitle": "Daisy clip pin, single or pack of three",
-      "seoDesc": "Round gold-rimmed daisy clip pin, about 35 mm across, on a metal snap clip. Wear it in your hair, on a bag strap or a collar. Pack of 1 or pack of 3.",
-      "vibes": [
-        { "vibe": "cute", "rank": 5 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 16,
-      "netQuantity": "1 piece (Pack of 1) or 3 pieces (Pack of 3), as selected",
-      "dimensions": "3.5 cm across",
-      "hsnCode": "9615",
-      "gstRateBp": 1800,
-      "variants": [
-        {
-          "title": "Pack of 1",
-          "sku": "IFO-HP-DAISY-PACK1",
-          "price": 229,
-          "mrp": 229,
-          "stock": 33
-        },
-        {
-          "title": "Pack of 3",
-          "sku": "IFO-HP-DAISY-PACK3",
-          "price": 599,
-          "mrp": 599,
-          "stock": 12,
-          "weightG": 48
-        }
-      ],
-      "image": {
-        "visual": "White daisy with a yellow centre on a round gold-rimmed clip",
-        "bg1": ["#FFF6D6", "butter yellow"],
-        "bg2": ["#D9779F", "rose"],
-        "sizeMm": 35,
-        "tilt": 6
-      }
+      "slug": "vampire-rebel-bite",
+      "name": "Vampire Rebel Bite",
+      "descriptionMd": "A bold vampire-teeth charm with a mischievous, gothic edge. Made for statement bags, keychains and anyone who likes their accessories a little bit daring.",
+      "vibe": "bold",
+      "sku": "IFO-CH-VAMPIRE-REBEL-BITE",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "flame-pin",
-      "descriptionMd": "A bright orange flame on a night-purple base, framed by a gold-tone rim. It is made for turning up the heat on a plain ponytail or a denim jacket. The snap clip grips hair, a bag strap or a jacket collar.\n\n- **Size:** about 35 mm across\n- **Material:** zinc alloy rim with enamel, metal snap clip\n- **Care:** wipe with a dry cloth and keep it away from water and perfume",
-      "seoTitle": "Flame clip pin on a dark purple base",
-      "seoDesc": "Round gold-rimmed clip pin with an orange flame on a dark purple base, about 35 mm across. Snaps onto hair, a bag strap or a jacket collar.",
-      "vibes": [
-        { "vibe": "bold", "rank": 1 },
-        { "vibe": "gothic", "rank": null }
-      ],
-      "weightG": 16,
-      "netQuantity": "1 piece",
-      "dimensions": "3.5 cm across",
-      "hsnCode": "9615",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-HP-FLAME", "price": 299, "mrp": 299, "stock": 24 }
-      ],
-      "image": {
-        "visual": "Orange flame on a dark purple round gold-rimmed clip",
-        "bg1": ["#FFE4D2", "peach"],
-        "bg2": ["#232B4B", "ink blue"],
-        "sizeMm": 35,
-        "tilt": -6
-      }
+      "slug": "red-rush-energy-can",
+      "name": "Red Rush Energy Can",
+      "descriptionMd": "A miniature red energy-drink can charm with a bold claw-mark graphic and metallic-look ends. Pair it with other quirky pieces for an eye-catching charm stack.",
+      "vibe": "bold",
+      "sku": "IFO-CH-RED-RUSH-ENERGY-CAN",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "crossed-bones-pin",
-      "descriptionMd": "Cream crossed bones on a black enamel base with a gold-tone rim, because subtlety is overrated. The clip snaps onto hair, a bag strap, the edge of a beanie or a jacket collar. It looks sharp with dark outfits and with pastel ones.\n\n- **Size:** about 35 mm across\n- **Material:** zinc alloy rim with enamel, metal snap clip\n- **Care:** wipe dry and avoid soaking or harsh cleaners",
-      "seoTitle": "Crossed bones clip pin in black and cream",
-      "seoDesc": "Round gold-rimmed clip pin with cream crossed bones on black enamel, about 35 mm across. Snaps onto hair, a bag strap, a beanie or a jacket collar.",
-      "vibes": [
-        { "vibe": "gothic", "rank": 4 },
-        { "vibe": "bold", "rank": null }
-      ],
-      "weightG": 16,
-      "netQuantity": "1 piece",
-      "dimensions": "3.5 cm across",
-      "hsnCode": "9615",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-HP-BONES", "price": 349, "mrp": 399, "stock": 17 }
-      ],
-      "image": {
-        "visual": "Cream crossed bones on a black round gold-rimmed clip",
-        "bg1": ["#E8E2D6", "bone grey"],
-        "bg2": ["#7A4FB5", "violet"],
-        "sizeMm": 35,
-        "tilt": 5
-      }
+      "slug": "diet-coke-mini",
+      "name": "Diet Coke Mini",
+      "descriptionMd": "A miniature Diet Coke can charm with a vintage-inspired silver finish and bold red lettering. A nostalgic little statement piece for bags, keychains and everyday charm stacks.",
+      "vibe": "funky",
+      "sku": "IFO-CH-DIET-COKE-MINI",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "rainbow-pin",
-      "descriptionMd": "A rainbow arching over two puffy clouds on a sky-blue base, for a cloudy mood. Gold-tone rim, enamel colour and a snap clip at the back. Wear it in your hair, on a tote strap or at the front of a cap.\n\n- **Size:** about 35 mm across\n- **Material:** zinc alloy rim with enamel, metal snap clip\n- **Care:** wipe with a soft dry cloth and keep it away from water",
-      "seoTitle": "Rainbow clip pin on a sky-blue base",
-      "seoDesc": "Round gold-rimmed clip pin with a rainbow and two clouds on sky-blue enamel, about 35 mm across. Wear it in your hair, on a tote strap or a cap.",
-      "vibes": [
-        { "vibe": "funky", "rank": 1 },
-        { "vibe": "cute", "rank": null }
-      ],
-      "weightG": 16,
-      "netQuantity": "1 piece",
-      "dimensions": "3.5 cm across",
-      "hsnCode": "9615",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-HP-RAINBOW", "price": 249, "mrp": 249, "stock": 29 }
-      ],
-      "image": {
-        "visual": "Rainbow over two clouds on a round blue gold-rimmed clip",
-        "bg1": ["#E3F2FF", "pale sky"],
-        "bg2": ["#FF8FB1", "bubblegum pink"],
-        "sizeMm": 35,
-        "tilt": -5
-      }
+      "slug": "shadow-pup",
+      "name": "Shadow Pup",
+      "descriptionMd": "A glossy black puppy charm with sweet expressive eyes and tiny playful details. Add a little dose of mischief and personality to your bag or keychain.",
+      "vibe": "cute",
+      "sku": "IFO-CH-SHADOW-PUP",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "coffee-cup-pin",
-      "descriptionMd": "A coffee cup with a little red heart, on a warm cream base, for slow mornings. Steam curls up inside a gold-tone rim. The snap clip holds it in your hair, on a sling bag strap or on a hoodie pocket.\n\n- **Size:** about 35 mm across\n- **Material:** zinc alloy rim with enamel, metal snap clip\n- **Care:** wipe dry and keep it away from water and perfume",
-      "seoTitle": "Coffee cup clip pin with a red heart",
-      "seoDesc": "Round gold-rimmed clip pin with a coffee cup and red heart on cream enamel, about 35 mm across. Clips onto hair, a sling bag strap or a hoodie pocket.",
-      "vibes": [{ "vibe": "funky", "rank": null }],
-      "weightG": 17,
-      "netQuantity": "1 piece",
-      "dimensions": "3.5 cm across",
-      "hsnCode": "9615",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-HP-COFFEE", "price": 269, "mrp": 269, "stock": 21 }
-      ],
-      "image": {
-        "visual": "Coffee cup with a red heart on a round cream gold-rimmed clip",
-        "bg1": ["#FBEBD3", "latte cream"],
-        "bg2": ["#2E4057", "slate"],
-        "sizeMm": 35,
-        "tilt": 6
-      }
-    },
-
-    {
-      "slug": "puffy-cloud-sticker",
-      "descriptionMd": "A fluffy blue cloud with a sleepy smile and pink cheeks, to carry your head up there. It is a raised, soft-touch vinyl sticker with a white border, so it feels like a tiny pillow under your thumb. Stick it on a phone case, a laptop lid or a notebook cover.\n\n- **Size:** about 60 mm wide, 38 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** clean and dry the surface first, press for ten seconds and avoid rubbing it hard",
-      "seoTitle": "Puffy cloud 3D sticker",
-      "seoDesc": "Raised, soft-touch vinyl cloud sticker with a sleepy face and white border, about 60 mm wide. Peel and stick on a phone case, laptop lid or notebook.",
-      "vibes": [{ "vibe": "cute", "rank": 6 }],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "6 cm × 3.8 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-CLOUD", "price": 149, "mrp": 149, "stock": 46 }
-      ],
-      "image": {
-        "visual": "Light blue puffy cloud sticker with a sleepy face and white border",
-        "bg1": ["#E2ECFF", "pale blue"],
-        "bg2": ["#3B4A7A", "dusk blue"],
-        "sizeMm": 60,
-        "tilt": -5
-      }
+      "slug": "hidden-leaf-hero",
+      "name": "Hidden Leaf Hero",
+      "descriptionMd": "A mini orange-haired ninja character charm with spiky hair and a signature headband. A fun pick for anime fans and collectible keychain displays.",
+      "vibe": "funky",
+      "sku": "IFO-CH-HIDDEN-LEAF-HERO",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "puffy-strawberry-sticker",
-      "descriptionMd": "A puffy red strawberry with green leaves, extra sweet by design. The surface is raised and soft to touch, with a white border that keeps the edges neat. Stick it on a water bottle, a phone case or a journal, and press it down firmly.\n\n- **Size:** about 43 mm wide, 50 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** apply to a clean, dry, smooth surface and wipe gently with a damp cloth",
-      "seoTitle": "Puffy strawberry 3D sticker",
-      "seoDesc": "Raised, soft-touch vinyl strawberry sticker with green leaves and a white border, about 50 mm tall. Peel and stick on a bottle, phone case or journal.",
-      "vibes": [
-        { "vibe": "cute", "rank": 7 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "4.3 cm × 5 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-STRAWBERRY", "price": 129, "mrp": 129, "stock": 52 }
-      ],
-      "image": {
-        "visual": "Red puffy strawberry sticker with green leaves and a white border",
-        "bg1": ["#FFE3E8", "pale pink"],
-        "bg2": ["#2F6B4F", "forest green"],
-        "sizeMm": 50,
-        "tilt": 6
-      }
+      "slug": "midnight-sweetheart",
+      "name": "Midnight Sweetheart",
+      "descriptionMd": "A Kuromi-inspired character charm with a black jester hood, pastel floral accents and a sweet little expression. Cute with just the right amount of attitude.",
+      "vibe": "cute",
+      "sku": "IFO-CH-MIDNIGHT-SWEETHEART",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "puffy-cat-face-sticker",
-      "descriptionMd": "An orange cat face with pink cheeks and whiskers, judging you lovingly. Raised, soft-touch vinyl with a white border and a peel-and-stick back. Put it on a phone case, a laptop or a notebook. Buy one, or a pack of three to share with friends.\n\n- **Size:** about 43 mm wide, 45 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** stick on a clean, dry surface and press for ten seconds",
-      "seoTitle": "Puffy cat face 3D sticker, single or pack of three",
-      "seoDesc": "Raised, soft-touch vinyl cat face sticker with pink cheeks and a white border, about 45 mm tall. Peel and stick on a phone case or laptop. Pack of 1 or 3.",
-      "vibes": [
-        { "vibe": "cute", "rank": 8 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 6,
-      "netQuantity": "1 piece (Pack of 1) or 3 pieces (Pack of 3), as selected",
-      "dimensions": "4.3 cm × 4.5 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Pack of 1", "sku": "IFO-ST-CAT-PACK1", "price": 99, "mrp": 119, "stock": 40 },
-        {
-          "title": "Pack of 3",
-          "sku": "IFO-ST-CAT-PACK3",
-          "price": 249,
-          "mrp": 297,
-          "stock": 15,
-          "weightG": 18
-        }
-      ],
-      "image": {
-        "visual": "Orange cat face sticker with pink cheeks and a white border",
-        "bg1": ["#FFE9D1", "pale apricot"],
-        "bg2": ["#3E6DB5", "denim blue"],
-        "sizeMm": 45,
-        "tilt": -6
-      }
+      "slug": "strawberry-glaze",
+      "name": "Strawberry Glaze",
+      "descriptionMd": "A delicious-looking strawberry doughnut charm with golden pastry tones and glossy icing details. A playful treat for your bag, pouch or DIY accessories.",
+      "vibe": "cute",
+      "sku": "IFO-CH-STRAWBERRY-GLAZE",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "wow-bubble-letters-sticker",
-      "descriptionMd": "Big bubble letters for big reactions: W in orange, O in yellow, W in blue. The letters are raised and soft to touch, with a white outline. Stick it on a laptop lid, a helmet or a notebook, wherever a loud WOW is needed.\n\n- **Size:** about 70 mm wide, 36 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** press onto a clean, dry, smooth surface and avoid soaking it for the first day",
-      "seoTitle": "WOW bubble letters 3D sticker",
-      "seoDesc": "Raised, soft-touch vinyl WOW sticker in orange, yellow and blue bubble letters, about 70 mm wide. Peel and stick on a laptop, helmet or notebook.",
-      "vibes": [
-        { "vibe": "bold", "rank": 2 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "7 cm × 3.6 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-WOW", "price": 179, "mrp": 209, "stock": 2 }
-      ],
-      "image": {
-        "visual": "Orange, yellow and blue WOW bubble-letter sticker",
-        "bg1": ["#FFF2B8", "soft yellow"],
-        "bg2": ["#2B2B52", "deep indigo"],
-        "sizeMm": 70,
-        "tilt": -4
-      }
+      "slug": "pixel-pop-camera",
+      "name": "Pixel Pop Camera",
+      "descriptionMd": "A pastel-blue miniature camera charm featuring playful buttons, a bold circular lens and tiny decorative details. Perfect for adding a nostalgic pop to your accessories.",
+      "vibe": "funky",
+      "sku": "IFO-CH-PIXEL-POP-CAMERA",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "thought-bubble-hmm-sticker",
-      "descriptionMd": "A white thought bubble that says \"hmm?\" in blue letters, so you do not have to. The bubble and its two small dots are raised and soft to touch. Stick it on a phone case, a diary cover or a laptop lid for the days you are weighing things up.\n\n- **Size:** about 55 mm wide, 54 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** clean and dry the surface first, then press firmly for ten seconds",
-      "seoTitle": "Thought bubble \"hmm?\" 3D sticker",
-      "seoDesc": "Raised, soft-touch vinyl thought bubble sticker that says hmm? in blue, about 55 mm wide. Peel and stick on a phone case, diary or laptop lid.",
-      "vibes": [{ "vibe": "funky", "rank": null }],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "5.5 cm × 5.4 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-HMM", "price": 119, "mrp": 119, "stock": 34 }
-      ],
-      "image": {
-        "visual": "White thought-bubble sticker that says hmm? in blue letters",
-        "bg1": ["#E3E9F8", "pale periwinkle"],
-        "bg2": ["#E9A93B", "mustard"],
-        "sizeMm": 55,
-        "tilt": 5
-      }
+      "slug": "brew-mood",
+      "name": "Brew Mood",
+      "descriptionMd": "A cute coffee-cup charm with a rich brown cup, creamy foam and a little smile. The perfect pick for coffee lovers and cosy everyday styling.",
+      "vibe": "funky",
+      "sku": "IFO-CH-BREW-MOOD",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "spiral-notebook-doodle-sticker",
-      "descriptionMd": "A cream spiral notebook scribbled with a star, a swirl and a question mark, for ideas you will definitely revisit. The page has a soft raised finish and a white border. Stick it on a laptop, a journal cover or a pencil box.\n\n- **Size:** about 52 mm wide, 55 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** apply on a clean, dry, smooth surface and wipe gently with a damp cloth",
-      "seoTitle": "Spiral notebook doodle 3D sticker",
-      "seoDesc": "Raised, soft-touch vinyl sticker of a spiral notebook with a star, swirl and question mark, about 55 mm tall. Peel and stick on a laptop or journal.",
-      "vibes": [{ "vibe": "funky", "rank": null }],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "5.2 cm × 5.5 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-NOTEBOOK", "price": 159, "mrp": 159, "stock": 23 }
-      ],
-      "image": {
-        "visual": "Cream spiral notebook doodle sticker with a star, a spiral and a question mark",
-        "bg1": ["#FDEFD8", "warm cream"],
-        "bg2": ["#5A7A9A", "steel blue"],
-        "sizeMm": 55,
-        "tilt": -5
-      }
+      "slug": "pain-pop",
+      "name": "Pain Pop",
+      "descriptionMd": "A miniature novelty charm with a yellow-and-orange design and a blue clip attachment. A quirky collectible for adding colour and character to your keychain.",
+      "vibe": "funky",
+      "sku": "IFO-CH-PAIN-POP",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     },
     {
-      "slug": "puffy-bat-sticker",
-      "descriptionMd": "A dark purple bat with pink eyes and wings spread wide, who mostly just hangs around. Raised, soft-touch vinyl with a white border that makes it stand out on black laptops and phone cases. Peel and stick it wherever you want a little night.\n\n- **Size:** about 60 mm wide, 38 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** press onto a clean, dry surface and avoid peeling it up and down",
-      "seoTitle": "Puffy bat 3D sticker in dark purple",
-      "seoDesc": "Raised, soft-touch vinyl bat sticker in dark purple with pink eyes and a white border, about 60 mm wide. Peel and stick on a laptop or phone case.",
-      "vibes": [{ "vibe": "gothic", "rank": 5 }],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "6 cm × 3.8 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-BAT", "price": 149, "mrp": 149, "stock": 28 }
-      ],
-      "image": {
-        "visual": "Dark purple bat sticker with pink eyes and a white border",
-        "bg1": ["#E7DCF5", "soft lilac"],
-        "bg2": ["#F4E9D1", "parchment"],
-        "sizeMm": 60,
-        "tilt": 5
-      }
-    },
-    {
-      "slug": "candle-sticker",
-      "descriptionMd": "A cream candle on a gold holder, with a small orange flame. You get all the glow and none of the wax, so it is safe on a notebook or a phone case. The sticker is raised and soft to touch, with a white border.\n\n- **Size:** about 38 mm wide, 55 mm tall\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** stick on a clean, dry, smooth surface and press for ten seconds",
-      "seoTitle": "Candle 3D sticker with a tiny flame",
-      "seoDesc": "Raised, soft-touch vinyl candle sticker with a gold holder and orange flame, about 55 mm tall. Peel and stick on a notebook, phone case or laptop.",
-      "vibes": [{ "vibe": "gothic", "rank": 6 }],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "3.8 cm × 5.5 cm",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-CANDLE", "price": 169, "mrp": 169, "stock": 0 }
-      ],
-      "image": {
-        "visual": "Cream candle sticker with a small orange flame on a gold holder",
-        "bg1": ["#E9E0F5", "pale lavender"],
-        "bg2": ["#2D2147", "deep purple"],
-        "sizeMm": 55,
-        "tilt": -5
-      }
-    },
-    {
-      "slug": "groovy-flower-sticker",
-      "descriptionMd": "A groovy pink and orange flower with a smiling yellow centre, straight out of a good mood. The petals are raised and soft to touch, with a white border all around. Stick it on a phone case, a water bottle or a laptop lid.\n\n- **Size:** about 50 mm across\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** clean and dry the surface first, then press firmly and avoid scrubbing",
-      "seoTitle": "Groovy flower 3D sticker",
-      "seoDesc": "Raised, soft-touch vinyl sticker of a pink and orange flower with a smiling yellow centre, about 50 mm across. Peel and stick on a bottle or phone case.",
-      "vibes": [
-        { "vibe": "funky", "rank": 2 },
-        { "vibe": "cute", "rank": null }
-      ],
-      "weightG": 6,
-      "netQuantity": "1 piece",
-      "dimensions": "5 cm across",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-FLOWER", "price": 179, "mrp": 179, "stock": 37 }
-      ],
-      "image": {
-        "visual": "Pink and orange groovy flower sticker with a smiling yellow centre",
-        "bg1": ["#FFF1C4", "butter yellow"],
-        "bg2": ["#2B6E6B", "teal"],
-        "sizeMm": 50,
-        "tilt": 6
-      }
-    },
-    {
-      "slug": "retro-sun-sticker",
-      "descriptionMd": "A retro sun with long orange rays and a striped yellow centre, which always wakes up on time. The rays are raised and soft to touch, with a white border. Stick it on a laptop, a helmet or a diary, and let it brighten a dull surface.\n\n- **Size:** about 55 mm across\n- **Material:** domed vinyl with a peel-and-stick back\n- **Care:** press onto a clean, dry, smooth surface and avoid long soaking",
-      "seoTitle": "Retro sun 3D sticker",
-      "seoDesc": "Raised, soft-touch vinyl sticker of a retro sun with orange rays and a striped yellow centre, about 55 mm across. Peel and stick on a laptop or diary.",
-      "vibes": [
-        { "vibe": "funky", "rank": 3 },
-        { "vibe": "bold", "rank": null }
-      ],
-      "weightG": 7,
-      "netQuantity": "1 piece",
-      "dimensions": "5.5 cm across",
-      "hsnCode": "3919",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-ST-SUN", "price": 199, "mrp": 229, "stock": 11 }
-      ],
-      "image": {
-        "visual": "Retro sun sticker with orange rays and a striped yellow centre",
-        "bg1": ["#FFE9CC", "pale apricot"],
-        "bg2": ["#5B2A86", "grape purple"],
-        "sizeMm": 55,
-        "tilt": -4
-      }
-    },
-
-    {
-      "slug": "bead-strand",
-      "name": "Bead strand kit",
-      "isKit": true,
-      "descriptionMd": "Everything you need to string one bracelet or bag strap in an evening. The pastel mix has glossy pink, teal, yellow, purple and orange acrylic beads, and neon and earth mixes are also available. Thread them in any order, tie off with a clasp and wear it or clip it on a bag.\n\n- **Size:** finished strand about 18 cm, beads about 8 mm\n- **Contains:** 120 acrylic beads, 1 m stretch cord, 2 clasps\n- **Care:** keep away from water and sharp edges",
-      "seoTitle": "Bead strand DIY kit in three colour mixes",
-      "seoDesc": "DIY kit with 120 glossy acrylic beads, 1 m stretch cord and 2 clasps for one bracelet or bag strap. Pastel, neon or earth mix. String it in any order.",
-      "vibes": [
-        { "vibe": "cute", "rank": 9 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 95,
-      "netQuantity": "1 kit: 120 beads, 1 m cord, 2 clasps",
-      "dimensions": "Finished strand about 18 cm long",
-      "hsnCode": "7018",
-      "gstRateBp": 1800,
-      "variants": [
-        {
-          "title": "Pastel mix",
-          "sku": "IFO-DY-BEADS-PASTEL",
-          "price": 449,
-          "mrp": 549,
-          "stock": 18
-        },
-        { "title": "Neon mix", "sku": "IFO-DY-BEADS-NEON", "price": 449, "mrp": 549, "stock": 12 },
-        { "title": "Earth mix", "sku": "IFO-DY-BEADS-EARTH", "price": 449, "mrp": 549, "stock": 9 }
-      ],
-      "image": {
-        "visual": "String of pastel pink, teal, yellow and purple beads on a brown cord",
-        "bg1": ["#FFE8F2", "pale pink"],
-        "bg2": ["#34425F", "slate blue"],
-        "sizeMm": 180,
-        "tilt": -4
-      }
-    },
-    {
-      "slug": "chain-links",
-      "name": "Chain link kit",
-      "isKit": true,
-      "descriptionMd": "Twelve gold-tone chain links for building something bold: a bag chain, a necklace layer or a keychain. Open each link, hook it through the next and close it again; a small ring tool is included. Accent beads and two clasps let you finish it your way.\n\n- **Size:** each link about 38 mm × 20 mm\n- **Contains:** 12 links, 12 accent beads, 2 clasps, 1 ring tool\n- **Care:** wipe dry; keep it away from perfume and water",
-      "seoTitle": "Chain link DIY kit with 12 gold-tone links",
-      "seoDesc": "DIY kit with 12 gold-tone chain links, 12 accent beads, 2 clasps and a ring tool. Build a bag chain, a necklace layer or a keychain your own way.",
-      "vibes": [
-        { "vibe": "bold", "rank": 3 },
-        { "vibe": "gothic", "rank": null }
-      ],
-      "weightG": 70,
-      "netQuantity": "1 kit: 12 links, 12 beads, 2 clasps, 1 ring tool",
-      "dimensions": "Each link about 3.8 cm × 2 cm",
-      "hsnCode": "7018",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-DY-CHAIN", "price": 399, "mrp": 399, "stock": 4 }
-      ],
-      "image": {
-        "visual": "Three gold-tone chain links in a diagonal row",
-        "bg1": ["#EFE8D8", "oat"],
-        "bg2": ["#2A2A3C", "dark slate"],
-        "sizeMm": 90,
-        "tilt": 0
-      }
-    },
-    {
-      "slug": "letter-beads-if",
-      "name": "IF letter bead kit",
-      "isKit": true,
-      "descriptionMd": "Two glossy letter beads that spell IF, in pink and gold with dark lettering, plus teal spacer beads and cord to string them on. Make a short bracelet, a bag charm or a phone strap, and decide for yourself what the IF means. Cord and a clasp are included.\n\n- **Size:** letter beads about 18 mm each, strung length about 11 cm\n- **Contains:** 2 letter beads (I, F), 16 spacer beads, 1 m cord, 1 clasp\n- **Care:** keep away from water and sharp edges",
-      "seoTitle": "IF letter bead DIY kit",
-      "seoDesc": "DIY kit with two pink and gold letter beads that spell IF, 16 teal spacer beads, 1 m cord and a clasp. Make a bracelet, bag charm or phone strap.",
-      "vibes": [
-        { "vibe": "bold", "rank": 4 },
-        { "vibe": "cute", "rank": null }
-      ],
-      "weightG": 60,
-      "netQuantity": "1 kit: 2 letter beads, 16 beads, 1 m cord, 1 clasp",
-      "dimensions": "Letter beads about 1.8 cm each",
-      "hsnCode": "7018",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-DY-LETTERS-IF", "price": 349, "mrp": 349, "stock": 15 }
-      ],
-      "image": {
-        "visual": "Pink and gold letter beads spelling IF between teal beads",
-        "bg1": ["#E4F5F2", "mint"],
-        "bg2": ["#4B2A5E", "plum"],
-        "sizeMm": 110,
-        "tilt": -3
-      }
-    },
-    {
-      "slug": "charm-bracelet-kit",
-      "isKit": true,
-      "descriptionMd": "A gold-tone chain bracelet with three charms to clip on: a pink heart, a teal bead drop and a little star. Hang the charms in any order, swap them later, and use the extra beads if you like. The chain closes with a clasp and adjusts across a few links for a snug fit.\n\n- **Size:** bracelet about 7.5 cm across when closed\n- **Contains:** 1 chain bracelet, 3 charms, 2 spare clasps, 20 beads\n- **Care:** wipe dry and store it flat",
-      "seoTitle": "Charm bracelet DIY kit with three charms",
-      "seoDesc": "DIY kit with a gold-tone chain bracelet, a heart, a bead drop and a star charm, 2 spare clasps and 20 beads. Clip the charms on in any order.",
-      "vibes": [
-        { "vibe": "cute", "rank": 10 },
-        { "vibe": "funky", "rank": null }
-      ],
-      "weightG": 75,
-      "netQuantity": "1 kit: 1 bracelet, 3 charms, 2 clasps, 20 beads",
-      "dimensions": "Bracelet about 7.5 cm across, charms drop about 2 cm",
-      "hsnCode": "7018",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-DY-BRACELET", "price": 599, "mrp": 699, "stock": 13 }
-      ],
-      "image": {
-        "visual": "Gold-tone chain bracelet with a heart, a teal bead and a star charm",
-        "bg1": ["#FFE9E0", "pale peach"],
-        "bg2": ["#2F3B5C", "slate blue"],
-        "sizeMm": 85,
-        "tilt": 4
-      }
-    },
-    {
-      "slug": "phone-strap-kit",
-      "isKit": true,
-      "descriptionMd": "String a short beaded phone strap in coral or teal beads, in a pattern that is entirely yours. The kit has a strap tab to loop through your phone case, a gold-tone star charm for the end and a spool of cord. Easy to finish in one sitting, with no tools.\n\n- **Size:** finished strap about 13 cm long, 8 cm wide when looped\n- **Contains:** 90 beads, 1 star charm, 1 strap tab, 40 cm cord\n- **Care:** keep away from water and avoid tugging",
-      "seoTitle": "Phone strap DIY kit in coral or teal",
-      "seoDesc": "DIY kit with 90 beads, a gold-tone star charm, a strap tab and cord for one beaded phone strap. Coral or teal. No tools needed.",
-      "vibes": [
-        { "vibe": "funky", "rank": 4 },
-        { "vibe": "bold", "rank": null }
-      ],
-      "weightG": 85,
-      "netQuantity": "1 kit: 90 beads, 1 charm, 1 strap tab, 40 cm cord",
-      "dimensions": "Finished strap about 13 cm × 8 cm",
-      "hsnCode": "7018",
-      "gstRateBp": 1800,
-      "variants": [
-        {
-          "title": "Coral",
-          "sku": "IFO-DY-PHONESTRAP-CORAL",
-          "price": 499,
-          "mrp": 499,
-          "stock": 10
-        },
-        { "title": "Teal", "sku": "IFO-DY-PHONESTRAP-TEAL", "price": 499, "mrp": 499, "stock": 8 }
-      ],
-      "image": {
-        "visual": "Beaded phone strap loop with a small tab and a gold star charm",
-        "bg1": ["#E9E2FF", "pale lavender"],
-        "bg2": ["#263A5A", "navy"],
-        "sizeMm": 130,
-        "tilt": -3
-      }
-    },
-    {
-      "slug": "keychain-ring-tag",
-      "name": "Keychain ring and tag kit",
-      "isKit": true,
-      "descriptionMd": "A silver-tone split ring with a pink star tag, ready for your charms and beads. String the beads on the cord, clip on a charm or two, and hang the tag from your keys or your bag. The back of the tag is smooth enough to write a name on with a marker.\n\n- **Size:** ring about 40 mm across, tag about 25 mm, 9 cm long in all\n- **Contains:** 1 split ring, 1 star tag, 1 swivel clasp, 12 beads, 50 cm cord\n- **Care:** wipe dry and keep away from water",
-      "seoTitle": "Keychain ring and star tag DIY kit",
-      "seoDesc": "DIY kit with a silver-tone split ring, a pink star tag, a swivel clasp, 12 beads and cord. Add your own charms and hang it from keys or a bag.",
-      "vibes": [{ "vibe": "bold", "rank": 5 }],
-      "weightG": 65,
-      "netQuantity": "1 kit: 1 ring, 1 tag, 1 clasp, 12 beads, 50 cm cord",
-      "dimensions": "Ring about 4 cm across, 9 cm long in all",
-      "hsnCode": "7018",
-      "gstRateBp": 1800,
-      "variants": [
-        { "title": "Default", "sku": "IFO-DY-KEYCHAIN", "price": 299, "mrp": 299, "stock": 26 }
-      ],
-      "image": {
-        "visual": "Silver-tone ring with a pink star tag",
-        "bg1": ["#FFE6F0", "pale pink"],
-        "bg2": ["#2F4858", "deep teal"],
-        "sizeMm": 90,
-        "tilt": 5
-      }
-    }
-  ],
-
-  "artFiles": {
-    "heart-charm": "charm-heart.svg",
-    "star-charm": "charm-star.svg",
-    "mushroom-charm": "charm-mushroom.svg",
-    "cherry-pair-charm": "charm-cherries.svg",
-    "smiley-charm": "charm-smiley.svg",
-    "lightning-bolt-charm": "charm-lightning.svg",
-    "skull-charm": "charm-skull.svg",
-    "ghost-charm": "charm-ghost.svg",
-    "crescent-moon-charm": "charm-moon.svg",
-    "evil-eye-bead-charm": "charm-evil-eye.svg",
-    "bow-hair-clip": "hipper-bow-clip.svg",
-    "daisy-pin": "hipper-daisy-pin.svg",
-    "flame-pin": "hipper-flame-pin.svg",
-    "crossed-bones-pin": "hipper-crossed-bones-pin.svg",
-    "rainbow-pin": "hipper-rainbow-pin.svg",
-    "coffee-cup-pin": "hipper-coffee-pin.svg",
-    "puffy-cloud-sticker": "sticker3d-cloud.svg",
-    "puffy-strawberry-sticker": "sticker3d-strawberry.svg",
-    "puffy-cat-face-sticker": "sticker3d-cat-face.svg",
-    "wow-bubble-letters-sticker": "sticker3d-wow.svg",
-    "thought-bubble-hmm-sticker": "sticker3d-hmm-bubble.svg",
-    "spiral-notebook-doodle-sticker": "sticker3d-notebook-doodle.svg",
-    "puffy-bat-sticker": "sticker3d-bat.svg",
-    "candle-sticker": "sticker3d-candle.svg",
-    "groovy-flower-sticker": "sticker3d-groovy-flower.svg",
-    "retro-sun-sticker": "sticker3d-retro-sun.svg",
-    "bead-strand": "diy-bead-strand.svg",
-    "chain-links": "diy-chain-links.svg",
-    "letter-beads-if": "diy-letter-beads-if.svg",
-    "charm-bracelet-kit": "diy-charm-bracelet-kit.svg",
-    "phone-strap-kit": "diy-phone-strap-kit.svg",
-    "keychain-ring-tag": "diy-keychain-ring.svg"
-  },
-
-  "featuredSets": {
-    "cute": [
-      "heart-charm",
-      "star-charm",
-      "mushroom-charm",
-      "cherry-pair-charm",
-      "bow-hair-clip",
-      "daisy-pin",
-      "puffy-cloud-sticker",
-      "puffy-strawberry-sticker"
-    ],
-    "bold": [
-      "flame-pin",
-      "star-charm",
-      "skull-charm",
-      "wow-bubble-letters-sticker",
-      "chain-links",
-      "letter-beads-if",
-      "crossed-bones-pin",
-      "keychain-ring-tag"
-    ],
-    "gothic": [
-      "skull-charm",
-      "ghost-charm",
-      "crescent-moon-charm",
-      "evil-eye-bead-charm",
-      "crossed-bones-pin",
-      "puffy-bat-sticker",
-      "flame-pin",
-      "chain-links"
-    ],
-    "funky": [
-      "smiley-charm",
-      "rainbow-pin",
-      "groovy-flower-sticker",
-      "retro-sun-sticker",
-      "phone-strap-kit",
-      "puffy-cat-face-sticker",
-      "mushroom-charm",
-      "bead-strand"
-    ]
-  },
-
-  "heroTiles": {
-    "cute": [
-      "heart-charm",
-      "star-charm",
-      "mushroom-charm",
-      "cherry-pair-charm",
-      "bow-hair-clip",
-      "daisy-pin",
-      "puffy-cloud-sticker",
-      "puffy-strawberry-sticker",
-      "puffy-cat-face-sticker",
-      "charm-bracelet-kit"
-    ],
-    "bold": [
-      "lightning-bolt-charm",
-      "flame-pin",
-      "star-charm",
-      "skull-charm",
-      "wow-bubble-letters-sticker",
-      "chain-links",
-      "letter-beads-if",
-      "crossed-bones-pin",
-      "retro-sun-sticker",
-      "keychain-ring-tag"
-    ],
-    "gothic": [
-      "skull-charm",
-      "ghost-charm",
-      "crescent-moon-charm",
-      "evil-eye-bead-charm",
-      "crossed-bones-pin",
-      "puffy-bat-sticker",
-      "candle-sticker",
-      "flame-pin",
-      "chain-links"
-    ],
-    "funky": [
-      "smiley-charm",
-      "rainbow-pin",
-      "groovy-flower-sticker",
-      "retro-sun-sticker",
-      "phone-strap-kit",
-      "puffy-cat-face-sticker",
-      "mushroom-charm",
-      "bead-strand",
-      "cherry-pair-charm",
-      "daisy-pin"
-    ]
-  },
-
-  "banners": [
-    {
-      "title": "After the Dark charms are here",
-      "body": "Skull, ghost, crescent moon and evil-eye charms, ready to clip on to a bag or keys.",
-      "link": "/vibes/gothic",
-      "tile": { "from": "#2B2140", "to": "#4F3A7A" },
-      "pieces": [
-        { "slug": "skull-charm", "size": 300, "x": 150, "y": 255, "rotate": -8 },
-        { "slug": "ghost-charm", "size": 230, "x": 385, "y": 190, "rotate": 9 },
-        { "slug": "crescent-moon-charm", "size": 210, "x": 360, "y": 385, "rotate": -6 }
-      ]
-    },
-    {
-      "title": "Make your own: DIY kits",
-      "body": "Bead strands, chain links, letter beads and phone strap kits. Pick your colours and string your own.",
-      "link": "/types/diy-accessories",
-      "tile": { "from": "#FFD84D", "to": "#FF9AA2" },
-      "pieces": [
-        { "slug": "phone-strap-kit", "size": 330, "x": 145, "y": 250, "rotate": -7 },
-        { "slug": "chain-links", "size": 215, "x": 340, "y": 178, "rotate": 6 },
-        { "slug": "letter-beads-if", "size": 270, "x": 345, "y": 385, "rotate": -5 }
-      ]
-    },
-    {
-      "title": "Free shipping from ₹499",
-      "body": "Add a few charms and 3D stickers to your bag and shipping is on us. Below ₹499 it is a flat ₹49.",
-      "link": "/shop",
-      "tile": { "from": "#FF8FB1", "to": "#FFC857" },
-      "pieces": [
-        { "slug": "heart-charm", "size": 280, "x": 150, "y": 250, "rotate": -8 },
-        { "slug": "puffy-cat-face-sticker", "size": 240, "x": 385, "y": 180, "rotate": 7 },
-        { "slug": "daisy-pin", "size": 210, "x": 365, "y": 380, "rotate": -5 }
-      ]
+      "slug": "retro-pop-tag",
+      "name": "Retro Pop Tag",
+      "descriptionMd": "A bold red-and-yellow miniature charm with playful raised details and a pastel clip. A colourful statement accent for bags, backpacks and custom keychains.",
+      "vibe": "funky",
+      "sku": "IFO-CH-RETRO-POP-TAG",
+      "price": 40,
+      "stock": 10,
+      "weightG": 10
     }
   ]
 }
