@@ -124,7 +124,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext value={api}>
       {children}
-      {/* Mobile: along the bottom, above the sticky PDP add bar when it is showing (`--toast-bottom`, set by the
+      {/* Mobile: along the bottom, above the fixed PDP add bar when it is showing (`--toast-bottom`, set by the
           PDP). From md up: top right under the header, so it never covers the product or its buy controls. */}
       <section
         ref={region}

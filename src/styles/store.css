@@ -11,6 +11,16 @@ html {
   scroll-padding-top: calc(var(--header-h, 7.5rem) + 1rem);
 }
 
+/*
+ * The PDP's fixed add bar (StockControls) publishes its height as --toast-bottom while it is mounted; the page ends
+ * that far lower so the footer is never covered. The toast region uses the same variable to sit above the bar.
+ */
+@media (max-width: 767.98px) {
+  body {
+    padding-bottom: var(--toast-bottom, 0px);
+  }
+}
+
 /* Hero poster tiles lift on hover/focus; the lift is a no-op under reduced motion (vibe.css). */
 .hero-tile {
   transition-property: transform;

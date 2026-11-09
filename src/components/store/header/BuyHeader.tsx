@@ -12,7 +12,7 @@ import { cn } from "@/lib/cn";
 import { Logo } from "./Logo";
 
 const linkClass =
-  "inline-flex min-h-11 items-center gap-1.5 rounded-input px-2 text-sm font-semibold text-link underline underline-offset-4 hover:no-underline";
+  "inline-flex min-h-11 items-center gap-1.5 rounded-input px-2 text-sm font-semibold whitespace-nowrap text-link underline underline-offset-4 hover:no-underline";
 
 const bar = "mx-auto flex min-h-16 max-w-5xl items-center justify-between gap-3 px-4 py-1 sm:px-6";
 
@@ -23,7 +23,7 @@ const bar = "mx-auto flex min-h-16 max-w-5xl items-center justify-between gap-3 
 function Brand({ cycle }: { cycle: readonly Vibe[] }) {
   return (
     <div className="flex min-w-0 items-center gap-1">
-      <HandButton cycle={cycle} className="header-hand" />
+      <HandButton cycle={cycle} className="header-hand min-[360px]:shrink-0" />
       <Logo tagline className="ml-1" />
     </div>
   );
@@ -32,9 +32,10 @@ function Brand({ cycle }: { cycle: readonly Vibe[] }) {
 /** Checkout only (plan section 10): nothing to distract from paying. Logo, a trust cue, a way back to the bag. */
 function CheckoutBar({ cycle }: { cycle: readonly Vibe[] }) {
   return (
-    <div className={bar}>
+    <div className={cn(bar, "max-sm:flex-wrap")}>
       <Brand cycle={cycle} />
-      <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">
+      {/* A phone has room for the brand and the way back on one line; the trust cue gets its own centred line under them. */}
+      <p className="inline-flex items-center gap-1.5 text-sm font-semibold whitespace-nowrap text-ink max-sm:order-3 max-sm:basis-full max-sm:justify-center max-sm:pb-2">
         <Icon name="lock" className="size-4" />
         Secure checkout
       </p>

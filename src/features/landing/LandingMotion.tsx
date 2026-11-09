@@ -19,11 +19,13 @@ export function LandingMotion() {
   const router = useRouter();
 
   // A fresh visit, and Back from the store, both start at the top with the browser's own restoration off:
-  // the page must never open half scrolled (or past the end, which would hand off again).
+  // the page must never open half scrolled (or past the end, which would hand off again). The exception is a
+  // visitor who started scrolling before hydration finished (a slow phone): Boot.tsx marked that gesture, and
+  // yanking them back to the top would be worse than where they are.
   useLayoutEffect(() => {
     const previous = history.scrollRestoration;
     history.scrollRestoration = "manual";
-    window.scrollTo(0, 0);
+    if (!document.getElementById("landing")?.dataset.gesture) window.scrollTo(0, 0);
     return () => {
       history.scrollRestoration = previous;
     };

@@ -17,7 +17,7 @@ export function FinalisingNotice({ supportEmail }: { supportEmail: StoreValue })
       <p className="text-base text-ink-muted">
         Until it is published, please write to{" "}
         <PlaceholderValue value={supportEmail}>
-          <a href={`mailto:${supportEmail.value}`} className="font-semibold text-link underline underline-offset-4">
+          <a href={`mailto:${supportEmail.value}`} className="relative after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] font-semibold text-link underline underline-offset-4">
             {supportEmail.value}
           </a>
         </PlaceholderValue>{" "}

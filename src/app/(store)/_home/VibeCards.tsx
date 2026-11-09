@@ -43,10 +43,10 @@ export async function VibeCards() {
                 className="group relative flex h-full flex-row overflow-hidden sm:flex-col rounded-card bg-surface text-ink shadow-card transition-[transform,box-shadow] ease-vibe hover:-translate-y-1.5 hover:shadow-button has-[a:focus-visible]:outline-3 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-focus-ring"
               >
                 {/* A phone gets a compact horizontal card (side cover) so the four moods take one screen, not four. */}
-                <div className={cn("grid w-[8.5rem] flex-none place-items-center px-2 py-4 sm:w-auto sm:px-5 sm:py-7", ART[vibe])}>
+                <div className={cn("grid w-28 flex-none place-items-center px-2 py-4 sm:w-auto sm:px-5 sm:py-7", ART[vibe])}>
                   <TileFan tiles={covers} size="card" />
                 </div>
-                <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-4 sm:gap-2.5 sm:p-5">
+                <div className="@container flex min-w-0 flex-1 flex-col gap-1.5 p-4 sm:gap-2.5 sm:p-5">
                   <h3
                     className={cn(
                       "font-display text-2xl leading-tight display-fx sm:text-3xl",

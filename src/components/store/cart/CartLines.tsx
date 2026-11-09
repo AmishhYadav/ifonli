@@ -88,7 +88,10 @@ export function CartLines({ cart, onQuantity, onRemove, layout }: CartLinesProps
                   {formatINR(line.lineSubtotalPaise)}
                 </p>
               </div>
-              <Price pricePaise={line.unitPricePaise} mrpPaise={line.mrpPaise} size="sm" />
+              {/* With one unit the line total beside the name already is the price; show the unit price only when it adds something. */}
+              {line.qty > 1 || (line.mrpPaise > line.unitPricePaise) ? (
+                <Price pricePaise={line.unitPricePaise} mrpPaise={line.mrpPaise} size="sm" />
+              ) : null}
               {line.lowStock ? (
                 <p className="text-sm text-warning">
                   {line.available <= 0 ? "None left" : `Only ${line.available} left`}

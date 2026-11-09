@@ -24,10 +24,10 @@ export function BackButton({ fallbackHref }: { fallbackHref: string }) {
         event.preventDefault();
         router.back();
       }}
-      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold text-ink transition-colors ease-vibe hover:bg-[color-mix(in_srgb,var(--accent)_14%,var(--surface-2))] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
+      className="inline-flex min-h-11 flex-none items-center justify-center gap-2 rounded-full bg-surface-2 text-sm max-sm:min-w-11 sm:px-4 font-semibold text-ink transition-colors ease-vibe hover:bg-[color-mix(in_srgb,var(--accent)_14%,var(--surface-2))] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus-ring"
     >
       <Icon name="arrow-left" className="size-4" />
-      Back
+      <span className="max-sm:sr-only">Back</span>
     </Link>
   );
 }

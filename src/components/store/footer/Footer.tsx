@@ -104,7 +104,7 @@ export async function Footer() {
               <span className="flex items-start gap-2">
                 <Icon name="mail" className="mt-1 size-4 flex-none" />
                 <PlaceholderValue value={info.supportEmail}>
-                  <a href={`mailto:${info.supportEmail.value}`} className="underline underline-offset-4">
+                  <a href={`mailto:${info.supportEmail.value}`} className="relative after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] underline underline-offset-4">
                     {info.supportEmail.value}
                   </a>
                 </PlaceholderValue>

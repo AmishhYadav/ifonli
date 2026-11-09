@@ -2,19 +2,23 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Icon } from "@/components/ui/Icon";
+import { cn } from "@/lib/cn";
 import type { Crumb } from "@/lib/seo";
 
-/** Breadcrumb trail (visible; the matching JSON-LD is emitted by the page). */
-export function Breadcrumbs({ crumbs }: { crumbs: readonly Crumb[] }) {
+/**
+ * Breadcrumb trail (visible; the matching JSON-LD is emitted by the page). `oneLineOnPhone` keeps the trail on a
+ * single line below `sm` (the last crumb truncates) so it can share a row with something else.
+ */
+export function Breadcrumbs({ crumbs, oneLineOnPhone = false }: { crumbs: readonly Crumb[]; oneLineOnPhone?: boolean }) {
   return (
-    <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-1 text-sm text-ink-muted">
+    <nav aria-label="Breadcrumb" className={oneLineOnPhone ? "min-w-0" : undefined}>
+      <ol className={cn("flex flex-wrap items-center gap-1 text-sm text-ink-muted", oneLineOnPhone && "max-sm:flex-nowrap")}>
         {crumbs.map((crumb, i) => {
           const last = i === crumbs.length - 1;
           return (
-            <li key={crumb.path} className="flex items-center gap-1">
+            <li key={crumb.path} className={cn("flex items-center gap-1", last && "min-w-0")}>
               {last ? (
-                <span aria-current="page" className="font-semibold text-ink">
+                <span aria-current="page" className={cn("font-semibold text-ink", oneLineOnPhone && "max-sm:truncate")}>
                   {crumb.name}
                 </span>
               ) : (

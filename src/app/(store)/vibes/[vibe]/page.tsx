@@ -77,7 +77,7 @@ export default async function VibePage({
           aria-label={`${vibe.name} vibe`}
           data-testid="vibe-hero"
           className={cn(
-            "relative isolate mt-4 flex flex-col gap-4 overflow-hidden rounded-card p-6 text-ink shadow-card sm:p-10",
+            "@container relative isolate mt-4 flex flex-col gap-4 overflow-hidden rounded-card p-6 text-ink shadow-card sm:p-10",
             vibe.vibe === "bold" ? "bg-surface-2" : "bg-surface",
           )}
         >
@@ -92,7 +92,8 @@ export default async function VibePage({
             {vibe.name}
           </h1>
           <p className="max-w-2xl text-lg">{blurb}</p>
-          <p className="pt-2 text-base font-semibold">{vibe.productCount} products</p>
+          {/* On a phone the listing toolbar right below already says how many; the count is shown once. */}
+          <p className="hidden pt-2 text-base font-semibold sm:block">{vibe.productCount} products</p>
         </section>
       </div>
       <Suspense fallback={<ListingSkeleton />}>

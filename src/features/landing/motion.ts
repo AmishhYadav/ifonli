@@ -47,7 +47,8 @@ export function startLandingMotion({ root, fontDescriptors, onEnter }: MotionOpt
 
   /* ------------------------------------------------------------ smooth scroll */
   const lenis = new Lenis({ lerp: 0.1, smoothWheel: true, autoRaf: false });
-  lenis.scrollTo(0, { immediate: true, force: true });
+  // No scroll reset here: LandingMotion already resets a fresh visit, and a visitor who has scrolled while this
+  // chunk was loading must stay where they are (Lenis starts from the current scroll position).
   const tick = (time: number) => lenis.raf(time * 1000);
   gsap.ticker.add(tick);
   gsap.ticker.lagSmoothing(0);

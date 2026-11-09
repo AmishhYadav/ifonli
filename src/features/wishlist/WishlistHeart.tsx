@@ -52,7 +52,7 @@ export function WishlistHeart({ productId, productName, appearance = "card", cla
         className={cn(
           "grid place-items-center rounded-full transition-[transform,background-color] ease-vibe group-hover/heart:scale-105",
           appearance === "card"
-            ? "size-9 bg-surface/80 backdrop-blur group-hover/heart:bg-surface"
+            ? "size-9 bg-surface/90 group-hover/heart:bg-surface"
             : "size-11 bg-surface-2 group-hover/heart:bg-surface",
         )}
       >

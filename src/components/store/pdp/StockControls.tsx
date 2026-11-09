@@ -20,9 +20,18 @@ import { clampQty, stockStatus } from "./product-model";
 import { useStickyBarOffset } from "./useStickyBarOffset";
 
 /**
+ * Phone: a fixed bar along the bottom edge (always on screen, so buying never needs a scroll back up), padded for
+ * the home indicator. From `md` up it is an ordinary row in the info column. The same classes are used by the
+ * loading state, so the bar does not change size when the stock arrives. useStickyBarOffset publishes its height.
+ */
+const BAR_CLASS =
+  "flex items-center gap-3 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-30 max-md:border-t max-md:border-hairline " +
+  "max-md:bg-bg max-md:px-4 max-md:pt-3 max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))]";
+
+/**
  * Live stock line, quantity stepper and the Add to bag button for the chosen variant. Rendered from the
- * uncached stock hole, so every number here is current. On mobile the action row sticks to the bottom of
- * the screen while the product details are in view (it is a direct child of the info column).
+ * uncached stock hole, so every number here is current. On a phone the action row is a fixed bar at the bottom of
+ * the screen for the whole page (see BAR_CLASS); the page reserves its height as body padding.
  */
 export function StockControls({ availability }: { availability: LiveVariantAvailability[] }) {
   const { model, variant, setStock } = usePurchase();
@@ -108,10 +117,7 @@ export function StockControls({ availability }: { availability: LiveVariantAvail
       </p>
 
       <div
-        className={
-          "flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-hairline " +
-          "max-md:bg-bg max-md:px-4 max-md:pt-3 max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-        }
+        className={BAR_CLASS}
         data-testid="add-to-cart-bar"
         ref={barRef}
       >
@@ -169,7 +175,7 @@ export function StockFallback() {
       </p>
       <div
         ref={barRef}
-        className="flex items-center gap-3 max-md:sticky max-md:bottom-0 max-md:z-30 max-md:-mx-4 max-md:border-t max-md:border-hairline max-md:bg-bg max-md:px-4 max-md:py-3"
+        className={BAR_CLASS}
       >
         <Button size="lg" className="min-w-0 flex-1" disabled>
           Add to bag

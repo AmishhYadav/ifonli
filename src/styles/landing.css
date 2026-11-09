@@ -3,8 +3,8 @@
  * page re-skins with the visitor's vibe and each mood panel with its own (`data-vibe` scope).
  *
  * Layout model: the DEFAULT is a plain, fully visible stack of chapters (no JS, reduced motion, print).
- * `.landing[data-motion]` (set by LandingMotion) switches on the
- * scroll choreography layout: sticky stages for the moods and the portal. GSAP only ever animates
+ * `.landing[data-motion]` (set by the inline script in Boot.tsx before first paint, and by LandingMotion) switches
+ * on the scroll choreography layout: sticky stages for the moods and the portal. GSAP only ever animates
  * transform, opacity and the portal's clip-path.
  */
 
@@ -646,8 +646,12 @@ html[data-vibe="funky"] .landing {
   .l-mood[data-vibe="cute"] {
     --n: clamp(4rem, 24vw, 7rem);
   }
+  /* Bungee Shade is ~9.8em wide for this word: size it to the panel (10cqi of .l-mood__in) so it never clips. */
+  .l-mood__in {
+    container-type: inline-size;
+  }
   .l-mood[data-vibe="bold"] {
-    --n: clamp(3.25rem, 18vw, 6.5rem);
+    --n: min(6.5rem, 10cqi);
   }
   .l-mood[data-vibe="gothic"] {
     --n: clamp(4rem, 22vw, 7rem);

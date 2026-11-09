@@ -17,7 +17,7 @@ export function Logo({ className, tagline = false }: { className?: string; tagli
       <Link
         href="/home"
         aria-label="IfOnli, home"
-        className="inline-flex min-h-11 items-center self-start rounded-input font-display text-[1.875rem] leading-none text-accent sm:min-h-0"
+        className="inline-flex min-h-11 items-center self-start rounded-input font-display text-[1.875rem] leading-none text-accent in-data-[vibe=bold]:max-[419px]:text-2xl sm:min-h-0"
       >
         IfOnli
       </Link>

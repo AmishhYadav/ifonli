@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { JsonLd } from "@/components/store/JsonLd";
 import { Background } from "@/features/landing/Background";
+import { LandingBoot } from "@/features/landing/Boot";
 import { buildFacts } from "@/features/landing/facts";
 import { LandingMotion } from "@/features/landing/LandingMotion";
 import { Makes, Moods, Opening, Portal, Why } from "@/features/landing/Sections";
@@ -55,6 +56,7 @@ export default async function LandingPage() {
           <Portal />
         </div>
         <LandingMotion />
+        <LandingBoot />
       </div>
     </>
   );

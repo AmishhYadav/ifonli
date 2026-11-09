@@ -43,7 +43,7 @@ export function LegalBlock({ product, store }: { product: ProductDetail; store: 
         <Row label="Consumer care">
           <span className="block">
             <PlaceholderValue value={store.supportEmail}>
-              <a className="underline underline-offset-4 hover:no-underline" href={`mailto:${store.supportEmail.value}`}>
+              <a className="relative after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] underline underline-offset-4 hover:no-underline" href={`mailto:${store.supportEmail.value}`}>
                 {store.supportEmail.value}
               </a>
             </PlaceholderValue>

@@ -40,7 +40,7 @@ export default function AboutPage() {
               <VibeScope
                 vibe={vibe}
                 as="article"
-                className="group relative flex h-full flex-col gap-2 rounded-card bg-surface p-6 text-ink shadow-card"
+                className="@container group relative flex h-full flex-col gap-2 rounded-card bg-surface p-6 text-ink shadow-card"
               >
                 <h3
                   className={cn(

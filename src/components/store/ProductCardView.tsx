@@ -114,7 +114,7 @@ export function ProductCardView({
 
         <div className="pointer-events-none absolute top-3 left-3 flex max-w-[calc(100%-3.75rem)] flex-wrap gap-1.5">
           {vibeName && primaryVibe ? (
-            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-surface/80 px-2 py-1 text-[11px] font-semibold text-ink backdrop-blur sm:px-2.5 sm:text-xs">
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-surface/90 px-2 py-1 text-xs font-semibold text-ink sm:px-2.5">
               <span aria-hidden="true" data-vibe={primaryVibe} className="size-2 flex-none rounded-full bg-accent max-sm:hidden" />
               <span className="truncate">{vibeName}</span>
             </span>
@@ -126,7 +126,7 @@ export function ProductCardView({
             Sold out
           </span>
         ) : lowStock ? (
-          <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-surface/80 px-2.5 py-1 text-xs font-semibold text-ink backdrop-blur">
+          <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-semibold text-ink">
             Low stock
           </span>
         ) : null}

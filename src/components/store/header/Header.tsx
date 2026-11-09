@@ -12,7 +12,10 @@ import { MobileMenuLazy } from "./MobileMenuLazy";
 import { NavPills } from "./NavPills";
 
 /**
- * Storefront header, sticky and soft (translucent, a hairline underline, no hard edge). Row 1: the hand
+ * Storefront header. From `sm` up the whole header is sticky and soft (translucent, a hairline underline, no hard
+ * edge). On a phone only row 1 sticks (the wrapper is `display: contents`, so its sticky box is the page): the
+ * pill row scrolls away with the page, which frees ~44px of every screen, and the bar is near-opaque there because
+ * a backdrop blur costs a phone a repaint of everything under it on every scroll frame. Row 1: the hand
  * button (with its "Turn Me" label) and the wordmark on the left; search, account, wishlist and bag on the right
  * (on a phone: search, bag, menu). Row 2: Home, About Us, DIY and Return Ritual, the current page filled in.
  */
@@ -28,22 +31,28 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline bg-bg/85 backdrop-blur">
+    <div
+      data-store-header=""
+      className="contents sm:sticky sm:top-0 sm:z-40 sm:block sm:border-b sm:border-hairline sm:bg-bg/85 sm:backdrop-blur"
+    >
       <HeaderOffset />
-      <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-4 pt-2 sm:gap-3 sm:px-6">
-        <HandButton cycle={cycle} className="header-hand" />
-        <Logo tagline className="ml-1" />
+      <header className="sticky top-0 z-40 border-b border-hairline bg-bg sm:static sm:border-b-0 sm:bg-transparent">
+        <div className="mx-auto flex max-w-[1440px] items-center gap-2 px-4 pt-2 pb-1.5 sm:gap-3 sm:px-6 sm:pb-0">
+          {/* Not squeezed (its "Turn Me" label would hang past the screen edge) except on a 320px phone, which has no room. */}
+          <HandButton cycle={cycle} className="header-hand min-[360px]:shrink-0" />
+          <Logo tagline className="ml-1" />
 
-        <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
-          <SearchSheet shortcuts={shortcuts} />
-          <IconLink href="/account" icon="user" label="Account" className="hidden md:inline-flex" />
-          <IconLink href="/wishlist" icon="heart" label="Wishlist" flyTarget="wishlist" className="hidden md:inline-flex" />
-          <CartButton className="size-11 min-h-11 min-w-11 rounded-full px-0 [&_svg]:size-7" />
-          <MobileMenuLazy className="md:hidden [&_svg]:size-7" />
+          <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
+            <SearchSheet shortcuts={shortcuts} />
+            <IconLink href="/account" icon="user" label="Account" className="hidden md:inline-flex" />
+            <IconLink href="/wishlist" icon="heart" label="Wishlist" flyTarget="wishlist" className="hidden md:inline-flex" />
+            <CartButton className="size-11 min-h-11 min-w-11 rounded-full px-0 [&_svg]:size-7" />
+            <MobileMenuLazy className="md:hidden [&_svg]:size-7" />
+          </div>
         </div>
-      </div>
+      </header>
 
       <NavPills />
-    </header>
+    </div>
   );
 }
