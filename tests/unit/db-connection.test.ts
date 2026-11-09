@@ -12,6 +12,13 @@ describe("connectionOptions", () => {
     });
   });
 
+  it("keeps remote pools small with a short idle timeout (Supabase session pooler client cap)", () => {
+    expect(connectionOptions("postgresql://u:p@aws-0-ap-south-1.pooler.supabase.com:5432/postgres")).toMatchObject({
+      max: 2,
+      idle_timeout: 5,
+    });
+  });
+
   it("requires TLS for remote hosts only", () => {
     for (const local of ["127.0.0.1", "localhost", "[::1]"]) {
       expect(connectionOptions(`postgresql://u:p@${local}:5432/db`).ssl, local).toBeUndefined();
