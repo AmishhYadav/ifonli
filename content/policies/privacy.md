@@ -97,16 +97,12 @@ If you are not happy with our response, you may also complain to the Data Protec
 **Optional (only if you agree).** We also use Google Analytics 4 to understand how the site is used. Google may process this data on servers outside India. It is switched on only if you accept analytics. If you do not agree, it stays off and the store works the same way. You can change your choice at any time from the cookie settings link in the footer.
 {{/if}}
 
-## 8. Children
-
-Our store is not directed at children under 18. If you are under 18, please ask a parent or guardian to place orders for you and to read this notice. We do not knowingly collect personal data from children without a parent or guardian's consent, and we do not track or target children with ads. If you think a child has given us data without consent, contact us and we will delete it.
-
-## 9. Security and data transfers
+## 8. Security and data transfers
 
 - Our site uses encrypted connections (HTTPS). Staff access is limited to those who need it and protected with extra verification.
 - No system is completely secure. If a breach affects your personal data, we will tell you and the authorities as the law requires.
 - Some of our service providers may store or process data on servers outside India. We use such providers only for the purposes in this notice, and we expect them to protect your data. We transfer data outside India only as permitted by Indian law.
 
-## 10. Changes to this notice
+## 9. Changes to this notice
 
 We may update this notice. The version and date appear on this page. If we make an important change, we will tell you by a notice on the site or by email. We will not use data you gave us for a new purpose without telling you, and asking for your consent where the law requires it.
