@@ -7,7 +7,7 @@
  *   ... --allow-remote      (required for any database that is not on this machine)
  *
  * Products go through createProduct (acting as owner@ifonli.local), stock through the ledger. Images are
- * the files in public/products/ (<slug>-cutout.png and <slug>-1..6.jpg: themed, plain, back, side, top,
+ * the files in public/products/ (<slug>-cutout.png and <slug>-v2-1..6.jpg: themed, plain, back, side, top,
  * on a string; only the views that exist), stored as site paths.
  * Next's "use cache" entries cannot be expired from a script: restart `next dev` to see the change.
  */
@@ -178,11 +178,11 @@ async function main() {
         cutout: true,
       },
       ...views.flatMap((view, i) =>
-        existsSync(path.join(process.cwd(), "public/products", `${p.slug}-${i + 1}.jpg`))
+        existsSync(path.join(process.cwd(), "public/products", `${p.slug}-v2-${i + 1}.jpg`))
           ? [
               {
                 kind: "photo" as const,
-                file: `${p.slug}-${i + 1}.jpg`,
+                file: `${p.slug}-v2-${i + 1}.jpg`,
                 alt: `${p.name} charm, ${view} view`,
                 position: 0,
                 cutout: false,

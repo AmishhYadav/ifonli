@@ -1,5 +1,5 @@
 {
-  "_note": "Real catalogue from CHARMS_PRODUCTS.docx (2026-11-09). Names, descriptions and prices (whole rupees) are from the doc. Sections map to vibes: After the Dark=gothic, Unapologetic=bold, Chaos Cabinet=funky, Mochi=cute. Stock and weight are working values, not from the doc: adjust in admin. Images are in public/products/<slug>-1..6.jpg (1 themed, 2 plain background, 3 back, 4 side, 5 top, 6 on a string; only the views the doc has) plus <slug>-cutout.png. Applied by scripts/store-values/apply-catalogue.ts.",
+  "_note": "Real catalogue from CHARMS_PRODUCTS.docx (2026-11-09). Names, descriptions and prices (whole rupees) are from the doc. Sections map to vibes: After the Dark=gothic, Unapologetic=bold, Chaos Cabinet=funky, Mochi=cute. Stock and weight are working values, not from the doc: adjust in admin. Images are in public/products/<slug>-v2-1..6.jpg (1 themed, 2 plain background, 3 back, 4 side, 5 top, 6 on a string; only the views the doc has) plus <slug>-cutout.png. Applied by scripts/store-values/apply-catalogue.ts.",
   "products": [
     {
       "slug": "moonlit-ghost-duo",
