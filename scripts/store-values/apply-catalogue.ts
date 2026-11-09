@@ -7,10 +7,11 @@
  *   ... --allow-remote      (required for any database that is not on this machine)
  *
  * Products go through createProduct (acting as owner@ifonli.local), stock through the ledger. Images are
- * the files in public/products/ (<slug>-cutout.png, <slug>-1.jpg, <slug>-2.jpg), stored as site paths.
+ * the files in public/products/ (<slug>-cutout.png and <slug>-1..6.jpg: themed, plain, back, side, top,
+ * on a string; only the views that exist), stored as site paths.
  * Next's "use cache" entries cannot be expired from a script: restart `next dev` to see the change.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { config } from "dotenv";
@@ -54,7 +55,7 @@ async function main() {
 
   const { eq, inArray, notInArray, asc } = await import("drizzle-orm");
   const { getDb } = await import("../../src/server/db");
-  const { products, productTypes, productImages, vibes, user, variants, inventoryMovements } =
+  const { products, productTypes, productImages, productVibes, vibes, user, variants, inventoryMovements } =
     await import("../../src/server/db/schema");
   const { createProduct } = await import("../../src/server/services/admin/products");
   const { setFeaturedSlots } = await import("../../src/server/services/admin/featured");
@@ -108,7 +109,21 @@ async function main() {
   const idBySlug = new Map(existing.map((p) => [p.slug, p.id]));
   let created = 0;
   for (const p of entries) {
-    if (idBySlug.has(p.slug)) continue;
+    const existingId = idBySlug.get(p.slug);
+    if (existingId) {
+      // already created: refresh price and section (vibe) from the catalogue
+      await db
+        .update(variants)
+        .set({ pricePaise: p.price * 100, mrpPaise: p.price * 100 })
+        .where(eq(variants.productId, existingId));
+      await db.delete(productVibes).where(eq(productVibes.productId, existingId));
+      await db.insert(productVibes).values({
+        productId: existingId,
+        vibeId: vibeId.get(p.vibe)!,
+        featuredRank: entries.filter((e) => e.vibe === p.vibe).indexOf(p),
+      });
+      continue;
+    }
     const rank = entries.filter((e) => e.vibe === p.vibe).indexOf(p);
     const res = await createProduct(
       db,
@@ -153,26 +168,33 @@ async function main() {
   // ---- 3. images (site paths under /products) ---------------------------------------------------
   for (const p of entries) {
     const id = idBySlug.get(p.slug)!;
+    const views = ["themed", "plain background", "back", "side", "top", "on a string"];
     const files = [
       {
-        kind: "cutout" as const,
+        kind: "photo" as const,
         file: `${p.slug}-cutout.png`,
         alt: `${p.name} charm on a transparent background`,
-        position: 0,
+        position: 99,
+        cutout: true,
       },
-      {
-        kind: "photo" as const,
-        file: `${p.slug}-1.jpg`,
-        alt: `${p.name} charm on a ${BACKDROP[p.vibe]} backdrop`,
-        position: 0,
-      },
-      {
-        kind: "photo" as const,
-        file: `${p.slug}-2.jpg`,
-        alt: `${p.name}, original product photo`,
-        position: 1,
-      },
-    ];
+      ...views.flatMap((view, i) =>
+        existsSync(path.join(process.cwd(), "public/products", `${p.slug}-${i + 1}.jpg`))
+          ? [
+              {
+                kind: "photo" as const,
+                file: `${p.slug}-${i + 1}.jpg`,
+                alt: `${p.name} charm, ${view} view`,
+                position: 0,
+                cutout: false,
+              },
+            ]
+          : [],
+      ),
+    ].map((f, _i, all) => ({
+      ...f,
+      kind: f.cutout ? ("cutout" as const) : f.kind,
+      position: f.cutout ? 99 : all.filter((o) => !o.cutout).indexOf(f),
+    }));
     await db.delete(productImages).where(eq(productImages.productId, id));
     for (const f of files) {
       const meta = await sharp(path.join(process.cwd(), "public/products", f.file)).metadata();

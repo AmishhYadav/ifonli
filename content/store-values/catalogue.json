@@ -1,5 +1,5 @@
 {
-  "_note": "Real catalogue from Charm_Product_Catalogue_Updated.docx (2026-11-09). Names and descriptions are verbatim from the doc. Price and MRP are whole rupees (Rs 40; Midnight Energy Can Rs 50). Stock and weight are working values, not from the doc: adjust in admin. Images are in public/products/<slug>-cutout.png, -1.jpg (styled) and -2.jpg (original photo). The Cola Cap Classic (doc item 19) is left out until a photo without a hand is supplied. Applied by scripts/store-values/apply-catalogue.ts.",
+  "_note": "Real catalogue from CHARMS_PRODUCTS.docx (2026-11-09). Names, descriptions and prices (whole rupees) are from the doc. Sections map to vibes: After the Dark=gothic, Unapologetic=bold, Chaos Cabinet=funky, Mochi=cute. Stock and weight are working values, not from the doc: adjust in admin. Images are in public/products/<slug>-1..6.jpg (1 themed, 2 plain background, 3 back, 4 side, 5 top, 6 on a string; only the views the doc has) plus <slug>-cutout.png. Applied by scripts/store-values/apply-catalogue.ts.",
   "products": [
     {
       "slug": "moonlit-ghost-duo",
@@ -7,7 +7,7 @@
       "descriptionMd": "A playful Halloween pairing featuring a little ghost in a black-and-red hat with a cheerful yellow moon behind it. A fun statement charm for bags, keychains and DIY accessories.",
       "vibe": "gothic",
       "sku": "IFO-CH-MOONLIT-GHOST-DUO",
-      "price": 40,
+      "price": 49,
       "stock": 10,
       "weightG": 10
     },
@@ -17,7 +17,7 @@
       "descriptionMd": "A sweet, minimal ghost charm with a soft ivory finish and tiny black facial details. Its simple, cute look makes it easy to pair with colourful charm stacks.",
       "vibe": "gothic",
       "sku": "IFO-CH-LITTLE-BOO-GHOST",
-      "price": 40,
+      "price": 39,
       "stock": 10,
       "weightG": 10
     },
@@ -27,7 +27,7 @@
       "descriptionMd": "A mischievous black ghost charm outlined in gold, with a playful expression. Perfect for adding a spooky-cute touch to your everyday accessories.",
       "vibe": "gothic",
       "sku": "IFO-CH-MIDNIGHT-BOO",
-      "price": 40,
+      "price": 39,
       "stock": 10,
       "weightG": 10
     },
@@ -37,7 +37,7 @@
       "descriptionMd": "A bright red pumpkin face with bold, mischievous features and a gold-tone outline. Bring a little Halloween attitude to your keychain or bag.",
       "vibe": "gothic",
       "sku": "IFO-CH-GRUMPY-JACK-PUMPKIN",
-      "price": 40,
+      "price": 39,
       "stock": 10,
       "weightG": 10
     },
@@ -47,7 +47,7 @@
       "descriptionMd": "A tiny black spider with fine gold-tone legs and a cheeky smile. A quirky little accent for anyone who loves spooky details.",
       "vibe": "gothic",
       "sku": "IFO-CH-CREEPY-CUTE-SPIDER",
-      "price": 40,
+      "price": 49,
       "stock": 10,
       "weightG": 10
     },
@@ -57,7 +57,7 @@
       "descriptionMd": "A two-tone ghost charm in contrasting cream and dark finishes, with a simple expressive face. A distinctive pick for a playful, alternative charm mix.",
       "vibe": "gothic",
       "sku": "IFO-CH-SPLIT-PERSONALITY-PHANTOM",
-      "price": 40,
+      "price": 39,
       "stock": 10,
       "weightG": 10
     },
@@ -67,7 +67,7 @@
       "descriptionMd": "A glittery red heart with raised detailing and a bold, playful finish. A little sparkle with a rebellious edge for bags, bracelets and DIY creations.",
       "vibe": "bold",
       "sku": "IFO-CH-HEARTBREAKER-GLITTER",
-      "price": 40,
+      "price": 49,
       "stock": 10,
       "weightG": 10
     },
@@ -77,7 +77,7 @@
       "descriptionMd": "A glossy red chilli pepper with a green stem and gold-tone edging. Add a spicy pop of colour and personality to your charm collection.",
       "vibe": "bold",
       "sku": "IFO-CH-HOT-TEMPER-CHILLI",
-      "price": 40,
+      "price": 39,
       "stock": 10,
       "weightG": 10
     },
@@ -85,9 +85,9 @@
       "slug": "little-life-token",
       "name": "Little Life Token",
       "descriptionMd": "A petite round ivory charm with raised lettering and a gold-tone border. A subtle, message-inspired detail for bracelets, keychains and bags.",
-      "vibe": "cute",
+      "vibe": "bold",
       "sku": "IFO-CH-LITTLE-LIFE-TOKEN",
-      "price": 40,
+      "price": 39,
       "stock": 10,
       "weightG": 10
     },
@@ -97,7 +97,7 @@
       "descriptionMd": "A miniature black energy-drink can charm with a vivid claw-mark graphic and metallic-look ends. A bold, fun choice for street-style accessories.",
       "vibe": "gothic",
       "sku": "IFO-CH-MIDNIGHT-ENERGY-CAN",
-      "price": 50,
+      "price": 79,
       "stock": 10,
       "weightG": 10
     },
@@ -107,7 +107,7 @@
       "descriptionMd": "A bold vampire-teeth charm with a mischievous, gothic edge. Made for statement bags, keychains and anyone who likes their accessories a little bit daring.",
       "vibe": "bold",
       "sku": "IFO-CH-VAMPIRE-REBEL-BITE",
-      "price": 40,
+      "price": 49,
       "stock": 10,
       "weightG": 10
     },
@@ -117,7 +117,7 @@
       "descriptionMd": "A miniature red energy-drink can charm with a bold claw-mark graphic and metallic-look ends. Pair it with other quirky pieces for an eye-catching charm stack.",
       "vibe": "bold",
       "sku": "IFO-CH-RED-RUSH-ENERGY-CAN",
-      "price": 50,
+      "price": 79,
       "stock": 10,
       "weightG": 10
     },
@@ -125,9 +125,9 @@
       "slug": "diet-coke-mini",
       "name": "Diet Coke Mini",
       "descriptionMd": "A miniature Diet Coke can charm with a vintage-inspired silver finish and bold red lettering. A nostalgic little statement piece for bags, keychains and everyday charm stacks.",
-      "vibe": "funky",
+      "vibe": "bold",
       "sku": "IFO-CH-DIET-COKE-MINI",
-      "price": 40,
+      "price": 59,
       "stock": 10,
       "weightG": 10
     },
@@ -135,9 +135,9 @@
       "slug": "shadow-pup",
       "name": "Shadow Pup",
       "descriptionMd": "A glossy black puppy charm with sweet expressive eyes and tiny playful details. Add a little dose of mischief and personality to your bag or keychain.",
-      "vibe": "cute",
+      "vibe": "funky",
       "sku": "IFO-CH-SHADOW-PUP",
-      "price": 40,
+      "price": 49,
       "stock": 10,
       "weightG": 10
     },
@@ -147,7 +147,7 @@
       "descriptionMd": "A mini orange-haired ninja character charm with spiky hair and a signature headband. A fun pick for anime fans and collectible keychain displays.",
       "vibe": "funky",
       "sku": "IFO-CH-HIDDEN-LEAF-HERO",
-      "price": 40,
+      "price": 99,
       "stock": 10,
       "weightG": 10
     },
@@ -157,7 +157,7 @@
       "descriptionMd": "A Kuromi-inspired character charm with a black jester hood, pastel floral accents and a sweet little expression. Cute with just the right amount of attitude.",
       "vibe": "cute",
       "sku": "IFO-CH-MIDNIGHT-SWEETHEART",
-      "price": 40,
+      "price": 99,
       "stock": 10,
       "weightG": 10
     },
@@ -167,7 +167,7 @@
       "descriptionMd": "A delicious-looking strawberry doughnut charm with golden pastry tones and glossy icing details. A playful treat for your bag, pouch or DIY accessories.",
       "vibe": "cute",
       "sku": "IFO-CH-STRAWBERRY-GLAZE",
-      "price": 40,
+      "price": 99,
       "stock": 10,
       "weightG": 10
     },
@@ -175,9 +175,19 @@
       "slug": "pixel-pop-camera",
       "name": "Pixel Pop Camera",
       "descriptionMd": "A pastel-blue miniature camera charm featuring playful buttons, a bold circular lens and tiny decorative details. Perfect for adding a nostalgic pop to your accessories.",
-      "vibe": "funky",
+      "vibe": "cute",
       "sku": "IFO-CH-PIXEL-POP-CAMERA",
-      "price": 40,
+      "price": 99,
+      "stock": 10,
+      "weightG": 10
+    },
+    {
+      "slug": "cola-cap-classic",
+      "name": "Cola Cap Classic",
+      "descriptionMd": "A bright red bottle-cap charm with raised Coca-Cola lettering and a glossy finish. A tiny throwback detail for collectors and soda-pop lovers.",
+      "vibe": "funky",
+      "sku": "IFO-CH-COLA-CAP-CLASSIC",
+      "price": 110,
       "stock": 10,
       "weightG": 10
     },
@@ -187,7 +197,7 @@
       "descriptionMd": "A cute coffee-cup charm with a rich brown cup, creamy foam and a little smile. The perfect pick for coffee lovers and cosy everyday styling.",
       "vibe": "funky",
       "sku": "IFO-CH-BREW-MOOD",
-      "price": 40,
+      "price": 59,
       "stock": 10,
       "weightG": 10
     },
@@ -195,9 +205,9 @@
       "slug": "pain-pop",
       "name": "Pain Pop",
       "descriptionMd": "A miniature novelty charm with a yellow-and-orange design and a blue clip attachment. A quirky collectible for adding colour and character to your keychain.",
-      "vibe": "funky",
+      "vibe": "cute",
       "sku": "IFO-CH-PAIN-POP",
-      "price": 40,
+      "price": 99,
       "stock": 10,
       "weightG": 10
     },
@@ -205,9 +215,9 @@
       "slug": "retro-pop-tag",
       "name": "Retro Pop Tag",
       "descriptionMd": "A bold red-and-yellow miniature charm with playful raised details and a pastel clip. A colourful statement accent for bags, backpacks and custom keychains.",
-      "vibe": "funky",
+      "vibe": "cute",
       "sku": "IFO-CH-RETRO-POP-TAG",
-      "price": 40,
+      "price": 99,
       "stock": 10,
       "weightG": 10
     }
