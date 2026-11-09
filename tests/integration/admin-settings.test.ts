@@ -194,20 +194,10 @@ describe("admin settings: saving each kind of value", () => {
 
   it("nested objects report the failing field path", async () => {
     await setup();
-    const issues = await issuesOf("grievance_officer", {
-      name: "Asha",
-      designation: "",
-      email: "bad",
-      phone: "98",
-    });
-    expect(issues.map((i) => i.path).sort()).toEqual(["designation", "email"]);
-    await save("grievance_officer", {
-      name: "Asha Rao",
-      designation: "Grievance Officer",
-      email: "grievance@ifonli.in",
-      phone: "+91 98765 43210",
-    });
-    expect(await getSetting("grievance_officer")).toMatchObject({ name: "Asha Rao" });
+    const issues = await issuesOf("default_manufacturer", { name: "Maker", address: "" });
+    expect(issues.map((i) => i.path)).toEqual(["address"]);
+    await save("default_manufacturer", { name: "Maker Co", address: "12 Example Road, Pune" });
+    expect(await getSetting("default_manufacturer")).toMatchObject({ name: "Maker Co" });
     await issuesOf("default_manufacturer", { name: "Maker" });
     await save("notification_channels", {
       ...(await getSetting("notification_channels")),
@@ -283,11 +273,9 @@ describe("admin settings: guard rails", () => {
     expect((await issuesOf("support_email", "placeholder@example.invalid"))[0]?.message).toMatch(
       /placeholder/i,
     );
-    const issues = await issuesOf("grievance_officer", {
-      name: "PLACEHOLDER — Officer name",
-      designation: "GO",
-      email: "go@ifonli.in",
-      phone: "98",
+    const issues = await issuesOf("default_manufacturer", {
+      name: "PLACEHOLDER — Manufacturer name",
+      address: "12 Example Road, Pune",
     });
     expect(issues.map((i) => i.path)).toEqual(["name"]);
     expect((await getSettingEntry("legal_name")).isPlaceholder).toBe(true);

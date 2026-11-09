@@ -57,12 +57,6 @@ async function fillAllSettings() {
     support_phone: "+91 98765 43210",
     support_hours: "Mon-Sat 10:00-18:00 IST",
     response_time: "within 24 hours",
-    grievance_officer: {
-      name: "Asha Rao",
-      designation: "Grievance Officer",
-      email: "go@ifonli.in",
-      phone: "+91 98765 43210",
-    },
     default_manufacturer: { name: "IfOnli Crafts", address: "12 Example Road, Pune" },
     default_country_of_origin: "India",
     default_gst_rate_bp: 300,

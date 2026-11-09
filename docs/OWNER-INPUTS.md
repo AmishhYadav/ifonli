@@ -9,8 +9,7 @@ Everything below is supplied by the owner (or their advisers). Until an item is 
 - [ ] Hand-icon direction
 - [ ] Legal entity name and registered address
 - [ ] Support email, phone, support hours and response time
-- [ ] Grievance officer: name, designation, email, phone
-- [ ] Policy drafts (shipping, cancellation, returns and refunds, privacy, terms, grievance), or approval of templates for legal review
+- [ ] Policy drafts (shipping, cancellation, returns and refunds, privacy, terms), or approval of templates for legal review
 - [ ] Razorpay KYC documents (PAN, bank account, business proof)
 
 ## Needed by Phase 3 (catalogue)
@@ -52,7 +51,7 @@ Everything below is supplied by the owner (or their advisers). Until an item is 
 
 Each setting has a placeholder and a launch gate. The owner supplies the real values by the phase shown.
 
-- [ ] Store and legal details: legal_name, brand_name, registered_address, state, gstin (optional), support contact, grievance officer, default manufacturer, default country of origin (Phase 2)
+- [ ] Store and legal details: legal_name, brand_name, registered_address, state, gstin (optional), support contact, default manufacturer, default country of origin (Phase 2)
 - [ ] Pricing and tax: default_gst_rate_bp, shipping_tax_rule (Phase 4)
 - [ ] Shipping: serviceability_mode, flat_fee, free_threshold, zone_overrides, processing_days, delivery_estimates_by_zone, delay_message (Phase 4)
 - [ ] COD: cod_enabled, cod_fee, cod_max_order_value, cod_excluded_pincodes (Phase 4)

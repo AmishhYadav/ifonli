@@ -22,9 +22,10 @@ Set in Vercel (Project, Settings, Environment Variables). Use separate **Product
 | `BETTER_AUTH_URL` | yes | no | Same origin as the site |
 | `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` | yes | no | Storage API base. Also drives `next/image` `remotePatterns` and the CSP `img-src`/`media-src` (read at **build** time) |
 | `SUPABASE_SERVICE_ROLE_KEY` | yes | **yes** | Server-only Storage access (uploads, signed URLs). Never expose to the browser |
-| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | yes | secret: yes | Orders API and capture verification. Keys empty in production means checkout fails loudly (by design) |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | only to take orders | secret: yes | Orders API and capture verification. **Optional to boot**: with all three Razorpay variables unset the site runs and the launch gate keeps orders closed (checkout shows the closed-store message). All-or-nothing: if any one of the three is set, all three must be |
 | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | yes | no | Checkout.js key id (same as `RAZORPAY_KEY_ID`) |
-| `RAZORPAY_WEBHOOK_SECRET` | yes | yes | HMAC of `/api/webhooks/razorpay`. A **different** secret from the key secret |
+| `RAZORPAY_WEBHOOK_SECRET` | only to take orders | yes | HMAC of `/api/webhooks/razorpay`. A **different** secret from the key secret. Unset together with the other two Razorpay variables is fine (the webhook answers 503) |
+| `PAYMENTS_TEST_MODE` | no | no | Server-only. Exactly `1` lets the launch gate open on `rzp_test_` keys, for a public demo before live KYC is approved: the launch checklist shows a warning ("Razorpay is in test mode") instead of a blocker, and checkout shows "Test mode: no real money is charged". Without it, test keys in production still block orders. Has no effect with `rzp_live_` keys (the checklist warns to remove it). Remove it when switching to live keys |
 | `RESEND_API_KEY` / `EMAIL_FROM` | yes | key: yes | Transactional e-mail. `EMAIL_FROM` like `IfOnli <orders@your-domain>` on a Resend-verified domain |
 | `CRON_SECRET` | yes | yes | Vercel Cron sends it as `Authorization: Bearer ...`; with no secret every cron call is rejected. At least 32 characters |
 | `SENTRY_DSN` | recommended | semi | Enables error reporting. Empty = reporter is a no-op |
@@ -36,7 +37,7 @@ Set in Vercel (Project, Settings, Environment Variables). Use separate **Product
 | `ADMIN_PASSWORD` | scripts only | **yes** | Password for `scripts/create-admin.ts` when `--password` is not given (keeps it out of shell history). Never set it in Vercel |
 | `NEXT_PUBLIC_ENABLE_DEV_PAGES` | **never in prod** | no | Test/review builds only: exposes `/styleguide`, `/dev/*`, the e-mail preview and unpublished policies, and switches the order gate off. The launch checklist flags it. Build time |
 
-**Boot check.** A production server (`NODE_ENV=production`, not `next build`) checks its environment in `instrumentation-node.ts` and exits at startup, with a message listing every problem by variable name (never the values), when any of these is missing or weak: `NEXT_PUBLIC_SITE_URL` (https), `BETTER_AUTH_SECRET` and `CRON_SECRET` (32+ characters), `DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_FROM`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. A deploy with a bad environment therefore fails its first request instead of sending e-mails with `localhost` links. Check the function logs of a failed deployment for the line `Invalid production environment`.
+**Boot check.** A production server (`NODE_ENV=production`, not `next build`) checks its environment in `instrumentation-node.ts` and exits at startup, with a message listing every problem by variable name (never the values), when any of these is missing or weak: `NEXT_PUBLIC_SITE_URL` (https), `BETTER_AUTH_SECRET` and `CRON_SECRET` (32+ characters), `DATABASE_URL`, `RESEND_API_KEY`, `EMAIL_FROM`; or when Razorpay is half configured (one or two of `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` set, not all three). With none of the three set the server boots and the launch gate keeps orders closed until live KYC is approved. A deploy with a bad environment therefore fails its first request instead of sending e-mails with `localhost` links. Check the function logs of a failed deployment for the line `Invalid production environment`.
 
 **Function region.** `vercel.json` pins functions to `bom1` (Mumbai), next to the Supabase database (ap-south-1). Without it Vercel defaults to `iad1` and every query crosses the world. Keep the project's Function Region setting at Mumbai (bom1) too if it is set in the dashboard.
 
@@ -156,9 +157,11 @@ curl -fsS -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/reconc
 
 ---
 
-## 7. Cron jobs (`vercel.json`)
+## 7. Cron jobs
 
 All endpoints require `Authorization: Bearer $CRON_SECRET`. Times are UTC (IST = UTC+5:30).
+
+The site runs on the Vercel **Hobby** plan, which only allows daily crons. So `vercel.json` holds only the two daily jobs (`cleanup`, `low-stock-digest`); the four frequent ones (`reconcile-payments`, `release-reservations`, `notify-retry`, `analytics-rollup`) are called by an external scheduler (cron-job.org) with a `GET` and the same `Authorization: Bearer $CRON_SECRET` header, on the schedules below. Those calls also keep the free Supabase project from pausing for inactivity. On Vercel Pro, move them back into `vercel.json` and delete the external jobs.
 
 | Path | Schedule | What it does |
 |---|---|---|
@@ -169,7 +172,7 @@ All endpoints require `Authorization: Bearer $CRON_SECRET`. Times are UTC (IST =
 | `/api/cron/low-stock-digest` | daily 03:30 (09:00 IST) | E-mails the admin a low-stock summary; queues at most one digest per India day, so re-running it the same day is harmless |
 | `/api/cron/analytics-rollup` | hourly at :15 | Rebuilds `product_engagement_daily` for the last 3 India days from raw events (idempotent), then deletes raw events past the retention setting. `?days=N` (1-90) backfills further |
 
-Failures are logged and reported to Sentry with `source: cron`. These schedules need the Vercel **Pro** plan (Hobby only allows daily crons), and the functions must run in **bom1** (see section 1, "Function region").
+Failures are logged and reported to Sentry with `source: cron`. The functions must run in **bom1** (see section 1, "Function region").
 
 ---
 

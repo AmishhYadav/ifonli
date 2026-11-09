@@ -7,7 +7,9 @@ import { CheckoutSkeleton } from "@/components/checkout/CheckoutSkeleton";
 import { EmptyCheckout } from "@/components/checkout/EmptyCheckout";
 import { getCurrentCartView } from "@/features/cart/queries";
 import { getSessionUser } from "@/features/cart/request";
+import { getServerEnv } from "@/lib/env";
 import { getDb } from "@/server/db";
+import { isRazorpayTestMode } from "@/server/payments/test-mode";
 import { loadCheckoutPrefill } from "@/server/services/account";
 import { getOrderGate, STORE_CLOSED_MESSAGE } from "@/server/services/commerce/launch-gate";
 import { readSettings } from "@/server/services/queries/shared";
@@ -54,6 +56,7 @@ async function CheckoutContent() {
       returnSummary={summary}
       savedAddresses={prefill?.addresses ?? []}
       initialPhone={prefill?.phone ?? null}
+      testMode={isRazorpayTestMode(getServerEnv())}
     />
   );
 }

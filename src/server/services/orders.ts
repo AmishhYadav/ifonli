@@ -179,12 +179,12 @@ function displayName(s: { productName: string; variantTitle: string }): string {
 /* Helpers                                                                                    */
 /* ------------------------------------------------------------------------------------------ */
 
-/** "privacy:2,returns-refunds:1": the published versions the customer ticked the box for. */
+/** "privacy:2,returns-refunds:1,terms:3": the published versions the customer ticked the box for. */
 async function currentPolicyVersions(db: DbClient): Promise<string> {
   const rows = await db
     .select({ slug: policies.slug, version: policies.version })
     .from(policies)
-    .where(and(eq(policies.published, true), inArray(policies.slug, ["returns-refunds", "privacy"])))
+    .where(and(eq(policies.published, true), inArray(policies.slug, ["returns-refunds", "privacy", "terms"])))
     .orderBy(asc(policies.slug));
   return rows.length > 0 ? rows.map((r) => `${r.slug}:${r.version}`).join(",") : "unversioned";
 }

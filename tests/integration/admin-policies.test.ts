@@ -41,7 +41,7 @@ describe("admin policies", () => {
   it("lists every known policy, creating rows on the first draft", async () => {
     await actors();
     const before = await listPoliciesAdmin(getDb());
-    expect(before).toHaveLength(7);
+    expect(before).toHaveLength(6);
     expect(before.every((p) => !p.exists && !p.published)).toBe(true);
 
     await savePolicyDraft(getDb(), "shipping", draft("# Shipping\n\nWe ship."), admin);

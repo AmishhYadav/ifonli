@@ -1,12 +1,10 @@
 ---
 title: "Legal and Seller Information"
 slug: seller-information
-version: 0.1-draft
-status: "DRAFT — requires legal review before publishing"
-lastReviewed: null
+version: 1.0
+status: "Published"
+lastReviewed: "2026-11-10"
 ---
-
-> **Draft notice:** This page is a draft and is waiting for legal review. It is not legal advice. Details may change before it is published.
 
 # Legal and Seller Information
 

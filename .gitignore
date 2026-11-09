@@ -56,3 +56,7 @@ supabase/.branches
 
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# any other env file (.env.production, .env.vercel, ...); the template stays committed
+.env*
+!.env.example

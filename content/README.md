@@ -1,6 +1,6 @@
 # IfOnli content (policies and FAQ)
 
-Draft legal and help content for the storefront. Everything here is **DRAFT, requires legal review before publishing**. It is not legal advice.
+Legal and help content for the storefront. It is not legal advice: have a lawyer review it.
 
 No business values are written into these files. Every fee, threshold, timeline, name, address and phone number is a **template token** that the site fills in from admin settings (`settings` table, plan section 14) when the page is rendered.
 
@@ -12,10 +12,11 @@ No business values are written into these files. Every fee, threshold, timeline,
 | `policies/cancellation.md` | `/policies/cancellation` | |
 | `policies/returns-refunds.md` | `/policies/returns-refunds` | Both `return_policy_type` branches in one file |
 | `policies/privacy.md` | `/policies/privacy` | DPDP Act 2023 aligned notice |
+| `policies/terms.md` | `/policies/terms` | Terms and Conditions. Linked from the footer, the policies index and the checkout acknowledgement |
 | `policies/seller-information.md` | `/policies/seller-information` | NEW route: not in plan section 10 yet. Link it from the footer |
 | `faq.json` | `/help` (FAQ accordion) and admin FAQ seed | Seeds the `faqs` table. Answers use the same template renderer |
 
-Each policy file begins with YAML front matter: `title`, `slug`, `version`, `status`, `lastReviewed`. The `slug` is the last part of the route. Seed these into `policies` / `policy_versions` (`body_md` = the body after the front matter). `lastReviewed: null` and `status: DRAFT ...` must be cleared by the owner only after a lawyer has reviewed the page. The renderer should refuse to publish a policy while its status still starts with `DRAFT`.
+Each policy file begins with YAML front matter: `title`, `slug`, `version`, `status`, `lastReviewed`. The `slug` is the last part of the route. Seed these into `policies` / `policy_versions` (`body_md` = the body after the front matter). A policy whose `status` starts with `DRAFT` is seeded unpublished and the renderer refuses to publish it; the policies here use `status: "Published"` with a `lastReviewed` date.
 
 ### `faq.json` schema
 
@@ -38,6 +39,7 @@ pnpm exec tsx --conditions=react-server scripts/seed-content.ts [--force]
 
 - Policies go into `policies` and `policy_versions`. `published` stays `false` while `status` starts with `DRAFT`. The integer `version` column holds the major number of the front-matter `version` (`0.1-draft` becomes `1`; the label itself is not stored). `lastReviewed` becomes `effective_at`.
 - Re-running refreshes policies that are still unpublished from the files, and never touches a published policy or an existing FAQ (owner edits in the admin survive). `--force` overwrites both.
+- To publish policies on an already-configured database without touching settings or anything else: `pnpm exec tsx --conditions=react-server scripts/store-values/apply-settings-content.ts --policy=terms [--allow-remote]` (comma list or repeated flag for several). Only the named policies are created (from their file, if missing), saved and published, and checked.
 - Run `pnpm db:seed` first (or after pulling) so the new `policy.*` settings rows exist.
 - The renderer is `src/server/content/render-template.ts`, Markdown conversion is `src/server/content/markdown.ts`, and the publishing rule is `src/server/content/publish.ts`.
 - In production a policy is shown only when it is published AND every token resolved to a real value; otherwise `/policies/<slug>` shows a neutral "being finalised" notice (noindex). A FAQ answer with an unresolved or placeholder token is left out of `/help`. In development (or a build with `NEXT_PUBLIC_ENABLE_DEV_PAGES=1`) the same pages render with a DRAFT banner and highlighted markers.

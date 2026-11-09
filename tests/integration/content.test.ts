@@ -30,22 +30,22 @@ describe("seed-content", () => {
   it("loads every policy file and the FAQ file, idempotently", async () => {
     const content = await loadContentFiles(CONTENT_DIR);
     expect(content.policies.map((p) => p.slug).sort()).toEqual([...POLICY_SLUGS].sort());
-    expect(content.policies.every((p) => p.draft)).toBe(true);
+    expect(content.policies.some((p) => p.draft)).toBe(false);
 
     const first = await seedPolicies(db(), content.policies);
     const firstFaq = await seedFaqs(db(), content.faqs);
-    expect(first).toEqual({ inserted: 7, updated: 0, unchanged: 0 });
+    expect(first).toEqual({ inserted: 6, updated: 0, unchanged: 0 });
     expect(firstFaq.inserted).toBe(content.faqs.length);
 
     const second = await seedPolicies(db(), content.policies);
     const secondFaq = await seedFaqs(db(), content.faqs);
-    expect(second).toEqual({ inserted: 0, updated: 0, unchanged: 7 });
+    expect(second).toEqual({ inserted: 0, updated: 0, unchanged: 6 });
     expect(secondFaq).toEqual({ inserted: 0, updated: 0, unchanged: content.faqs.length });
 
     const rows = await db().select().from(policies);
-    expect(rows).toHaveLength(7);
-    expect(rows.every((r) => r.published === false && r.version === 1 && r.effectiveAt === null)).toBe(true);
-    expect(await db().select().from(policyVersions)).toHaveLength(7);
+    expect(rows).toHaveLength(6);
+    expect(rows.every((r) => r.published === true && r.version === 1 && r.effectiveAt !== null)).toBe(true);
+    expect(await db().select().from(policyVersions)).toHaveLength(6);
     expect(await db().select().from(faqs)).toHaveLength(content.faqs.length);
   });
 
@@ -204,11 +204,11 @@ describe("FAQs", () => {
     ]);
   });
 
-  it("seeds the real faq.json: every category present, positions ascending", async () => {
+  it("seeds the real faq.json: every category in the file present, positions ascending", async () => {
     const content = await loadContentFiles(CONTENT_DIR);
     await seedFaqs(db(), content.faqs);
     const groups = await loadHelpFaqs(db(), { review: true });
-    expect(groups.map((g) => g.category)).toEqual(["delivery", "payment", "product", "orders"]);
+    expect(groups.map((g) => g.category)).toEqual(["delivery", "payment", "orders"]);
     const expected = content.faqs.filter((f) => f.category === "delivery").sort((a, b) => a.position - b.position);
     expect(groups[0]?.items.map((i) => i.question)).toEqual(expected.map((f) => f.question));
   });

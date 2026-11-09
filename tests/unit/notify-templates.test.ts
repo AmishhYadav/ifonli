@@ -29,7 +29,6 @@ describe("template registry", () => {
     expect(r.subject).not.toMatch(/[\r\n]/);
     expect(r.html).toContain("<html");
     expect(r.html).toContain("Example Retail Pvt Ltd"); // legal footer from settings
-    expect(r.html).toContain("grievance@example.test");
     expect(r.text.length).toBeGreaterThan(40);
     expect(r.text).toContain("Example Retail Pvt Ltd");
     for (const body of [r.html, r.text, r.subject]) {

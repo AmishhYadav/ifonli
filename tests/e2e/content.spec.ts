@@ -2,8 +2,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * Policies and help e2e. Run against a production build made with the dev pages on (policies are DRAFT,
- * so they only render, with the draft banner, in review mode):
+ * Policies and help e2e. Run against a production build made with the dev pages on (so a policy that still
+ * has an unfilled setting renders with highlighted markers instead of being withheld):
  *   NEXT_PUBLIC_ENABLE_DEV_PAGES=1 NEXT_DIST_DIR=.next-shop pnpm exec next build
  *   NEXT_DIST_DIR=.next-shop pnpm exec next start -p 3103
  *   E2E_BASE_URL=http://localhost:3103 pnpm exec playwright test content
@@ -16,7 +16,6 @@ const POLICIES = [
   "returns-refunds",
   "privacy",
   "terms",
-  "grievance",
   "seller-information",
 ] as const;
 
@@ -31,7 +30,7 @@ const seriousViolations = async (page: Page) => {
 
 test.describe("policies", () => {
   for (const slug of POLICIES) {
-    test(`/policies/${slug} renders as a draft with its title, version and contents`, async ({ page }) => {
+    test(`/policies/${slug} renders with its title, version and contents`, async ({ page }) => {
       // admin-content.spec publishes and edits the shipping policy, possibly while this runs in another worker.
       test.skip(
         slug === "shipping" && !!process.env.E2E_ADMIN_FLOW,
@@ -40,13 +39,8 @@ test.describe("policies", () => {
       const response = await page.goto(`/policies/${slug}`);
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-      await expect(page.getByTestId("draft-banner")).toContainText("DRAFT — requires legal review");
       await expect(page.getByTestId("policy-meta")).toContainText("Version 1");
       await expect(page.locator("article h2").first()).toBeVisible();
-      // Draft is not indexable.
-      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
-      // Unfilled settings are visibly marked, not silently blank.
-      await expect(page.locator("mark.policy-marker").first()).toBeVisible();
       // Exactly one H1 (the body's own title heading is dropped).
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     });
@@ -104,19 +98,14 @@ test.describe("footer, cart, checkout and PDP links", () => {
 });
 
 test.describe("help page", () => {
-  test("shows support details, FAQ groups, FAQPage JSON-LD or draft note, and links", async ({ page }) => {
+  test("shows support details, FAQ groups and links", async ({ page }) => {
     await page.goto("/help");
     await expect(page.getByRole("heading", { level: 1, name: "Help and contact" })).toBeVisible();
-    for (const category of ["delivery", "payment", "product", "orders"]) {
+    for (const category of ["delivery", "payment", "orders"]) {
       await expect(page.getByTestId(`faq-${category}`)).toBeVisible();
     }
-    await expect(page.getByTestId("faq-draft-note")).toBeVisible();
     await expect(page.getByRole("link", { name: /Track your order/ }).first()).toHaveAttribute("href", "/track");
     await expect(page.getByRole("link", { name: "All policies" })).toHaveAttribute("href", "/policies");
-    await expect(page.getByRole("link", { name: "grievance redressal policy" })).toHaveAttribute(
-      "href",
-      "/policies/grievance",
-    );
   });
 
   test("the FAQ accordion works from the keyboard", async ({ page, isMobile }) => {

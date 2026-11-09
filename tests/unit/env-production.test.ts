@@ -30,14 +30,35 @@ describe("productionEnvProblems", () => {
       "DATABASE_URL",
       "RESEND_API_KEY",
       "EMAIL_FROM",
-      "RAZORPAY_KEY_ID",
-      "RAZORPAY_KEY_SECRET",
-      "RAZORPAY_WEBHOOK_SECRET",
     ]) {
       expect(text, name).toContain(name);
     }
+    expect(text).not.toContain("RAZORPAY");
     expect(text).not.toContain("short-secret-value");
     expect(() => assertProductionEnv({})).toThrow(/Invalid production environment/);
+  });
+
+  it("boots with no Razorpay variables at all", () => {
+    const rest: Record<string, string | undefined> = { ...good };
+    delete rest.RAZORPAY_KEY_ID;
+    delete rest.RAZORPAY_KEY_SECRET;
+    delete rest.RAZORPAY_WEBHOOK_SECRET;
+    expect(productionEnvProblems(rest)).toEqual([]);
+    expect(productionEnvProblems({ ...rest, RAZORPAY_KEY_ID: "", RAZORPAY_KEY_SECRET: "  " })).toEqual([]);
+  });
+
+  it("treats Razorpay as all-or-nothing and names the missing variables", () => {
+    const only = productionEnvProblems({ ...good, RAZORPAY_KEY_SECRET: "", RAZORPAY_WEBHOOK_SECRET: undefined });
+    expect(only).toHaveLength(2);
+    expect(only.join("\n")).toContain("RAZORPAY_KEY_SECRET");
+    expect(only.join("\n")).toContain("RAZORPAY_WEBHOOK_SECRET");
+    expect(only.join("\n")).not.toContain("RAZORPAY_KEY_ID is not set");
+    const webhookOnly = productionEnvProblems({
+      ...good,
+      RAZORPAY_KEY_ID: undefined,
+      RAZORPAY_KEY_SECRET: undefined,
+    });
+    expect(webhookOnly).toHaveLength(2);
   });
 
   it("treats blank values as missing", () => {

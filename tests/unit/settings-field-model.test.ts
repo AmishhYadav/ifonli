@@ -48,7 +48,7 @@ describe("settings form model", () => {
     expect(kind("cancellable_statuses")).toBe("choices");
     expect(kind("admin_alert_emails")).toBe("lines");
     expect(kind("cod_excluded_pincodes")).toBe("lines");
-    expect(kind("grievance_officer")).toBe("object");
+    expect(kind("default_manufacturer")).toBe("object");
     expect(kind("notification_channels")).toBe("object");
     expect(kind("zone_overrides")).toBe("record");
     expect(kind("delivery_estimates_by_zone")).toBe("record");
@@ -106,20 +106,13 @@ describe("settings form model", () => {
   });
 
   it("nested objects keep their field order and labels", () => {
-    const node = nodeForSetting("grievance_officer") as Extract<Node, { kind: "object" }>;
+    const node = nodeForSetting("default_manufacturer") as Extract<Node, { kind: "object" }>;
     expect(node.fields.map((f) => [f.key, f.label])).toEqual([
       ["name", "Name"],
-      ["designation", "Designation"],
-      ["email", "Email"],
-      ["phone", "Phone"],
+      ["address", "Address"],
     ]);
-    const draft = toDraft(node, { name: "A", designation: "B", email: "c@d.in", phone: "1" });
-    expect(fromDraft(node, draft).value).toEqual({
-      name: "A",
-      designation: "B",
-      email: "c@d.in",
-      phone: "1",
-    });
+    const draft = toDraft(node, { name: "A", address: "B" });
+    expect(fromDraft(node, draft).value).toEqual({ name: "A", address: "B" });
   });
 
   it("records leave blank rows out and report nested number errors by path", () => {

@@ -46,6 +46,8 @@ export interface CheckoutFormProps {
   savedAddresses?: readonly SavedAddress[];
   /** Phone from the customer's profile, used when the prefilled address has none. */
   initialPhone?: string | null;
+  /** Razorpay is on test keys (decided on the server): show that no real money is charged. */
+  testMode?: boolean;
 }
 
 /** The schema wants `true`; the box must start unticked, so the default is deliberately not `true`. */
@@ -53,6 +55,7 @@ const UNTICKED = false as unknown as true;
 
 const POLICY_LINKS = [
   { href: "/policies/returns-refunds", label: "Returns and refunds policy" },
+  { href: "/policies/terms", label: "Terms and Conditions" },
   { href: "/policies/privacy", label: "Privacy policy" },
 ] as const;
 
@@ -193,6 +196,7 @@ export function CheckoutForm({
   returnSummary,
   savedAddresses = [],
   initialPhone = null,
+  testMode = false,
 }: CheckoutFormProps) {
   const router = useRouter();
   const prefill = savedAddresses.find((a) => a.isDefault) ?? savedAddresses[0] ?? null;
@@ -647,6 +651,18 @@ export function CheckoutForm({
           <h2 id="checkout-payment" className="buy-display text-2xl leading-tight">
             Payment
           </h2>
+          {testMode && paymentMethod === "razorpay" ? (
+            <p
+              className="flex items-start gap-2 rounded-card bg-surface-2 p-3 text-sm"
+              data-testid="payment-test-mode"
+            >
+              <Icon name="info" className="mt-0.5 size-4 flex-none" />
+              <span>
+                <span className="font-semibold">Test mode:</span> no real money is charged. Use
+                Razorpay test cards or UPI.
+              </span>
+            </p>
+          ) : null}
           <RadioGroup
             legend="Payment method"
             hideLegend

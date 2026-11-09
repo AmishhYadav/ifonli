@@ -226,7 +226,7 @@ For each vibe, the products whose cutout pictures fly across the animated hero. 
 
 ### 11.2 Policies: draft, version, publish
 
-Policies are the pages linked from every footer: Shipping, Cancellation, Returns and refunds, Privacy, Terms, Grievance redressal, Seller information.
+Policies are the pages linked from every footer: Shipping, Cancellation, Returns and refunds, Privacy, Terms and Conditions, Seller information.
 
 1. **Policies > open one**. Edit the **Title** and the **Policy text (Markdown)**. Values in double braces, like `{{settings.support_email}}`, are filled in from Settings automatically; if a value is still a placeholder the editor lists it and you cannot publish.
 2. Press **Save draft**.
@@ -238,7 +238,7 @@ Have a lawyer read the first published version of every policy (see KNOWN-ISSUES
 
 ## 12. Settings
 
-Owner only. **Settings** holds the business rules, grouped: **Store** (legal name, address, GSTIN, support email/phone/hours, grievance officer), **Pricing** (default GST rate...), **Shipping** (flat fee, free-shipping threshold, zone overrides, processing days, delivery estimates; which pincodes are served is managed on its own **Pincodes** screen, see below), **COD** (on/off, fee, maximum order value, excluded pincodes), **Inventory** (low-stock level, reservation time, maximum per line), **Returns** (change-of-mind returns on/off and window, damaged-claim window), **Accounts**, **Vibes** (default vibe and cycle order), **Notifications**, **Analytics**, and **Policies** (refund timings and other values the policies quote).
+Owner only. **Settings** holds the business rules, grouped: **Store** (legal name, address, GSTIN, support email/phone/hours), **Pricing** (default GST rate...), **Shipping** (flat fee, free-shipping threshold, zone overrides, processing days, delivery estimates; which pincodes are served is managed on its own **Pincodes** screen, see below), **COD** (on/off, fee, maximum order value, excluded pincodes), **Inventory** (low-stock level, reservation time, maximum per line), **Returns** (change-of-mind returns on/off and window, damaged-claim window), **Accounts**, **Vibes** (default vibe and cycle order), **Notifications**, **Analytics**, and **Policies** (refund timings and other values the policies quote).
 
 - Every setting shows its description. A value marked **PLACEHOLDER** is a made-up starting value; the shop will not take real orders until the required ones are replaced.
 - Edit, **Save**. The change is live for new carts within a minute and is written to the audit log.

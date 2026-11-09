@@ -3,11 +3,18 @@
  * database through the app's own admin services, so every write is validated, audited and clears
  * `is_placeholder`. Idempotent: re-running changes nothing once the values are in place.
  *
- *   pnpm exec tsx --conditions=react-server scripts/store-values/apply-settings-content.ts [--check] [--skip-policies] [--allow-remote]
+ *   pnpm exec tsx --conditions=react-server scripts/store-values/apply-settings-content.ts [--check] [--skip-policies] [--policy=<slug>[,<slug>]] [--allow-remote]
  *
  *   (no flag)  apply everything, then run the check
  *   --check    only run the check: launch checklist, policy rendering, FAQ visibility
  *   --skip-policies  leave published policies (versions, effective dates) untouched
+ *   --policy=<slug>  apply and publish ONLY the named policies (repeat the flag or use a comma list,
+ *              for example --policy=terms). Settings, vibe / type copy, the announcement bar and
+ *              every other policy are left alone (their versions do not change), and the check
+ *              covers only the named policies. For a named policy the content file
+ *              content/policies/<slug>.md is the source of truth: a missing row is created from it, and
+ *              a row whose title or text differs gets a new published version from the file. With
+ *              --check it only checks them.
  *
  * Inputs: content/store-values/settings.json (registry key -> value, money in paise) and
  * content/store-values/collections.json. The actor is the owner staff account owner@ifonli.local.
@@ -41,8 +48,29 @@ async function readJson(file: string): Promise<Record<string, Json>> {
 
 const log = (section: string, msg: string) => console.log(`[${section}] ${msg}`);
 
+/** Slugs from `--policy=a,b` / repeated `--policy=a --policy=b`; null when the flag is absent. */
+function policyFilter(argv: readonly string[]): string[] | null {
+  const slugs = argv
+    .filter((a) => a.startsWith("--policy="))
+    .flatMap((a) => a.slice("--policy=".length).split(","))
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const present = argv.some((a) => a.startsWith("--policy="));
+  if (!present) return null;
+  if (slugs.length === 0) throw new Error("--policy needs at least one policy slug, e.g. --policy=terms");
+  return [...new Set(slugs)];
+}
+
 async function main() {
   const checkOnly = process.argv.includes("--check");
+  const only = policyFilter(process.argv);
+  if (only) {
+    const { POLICY_SLUGS } = await import("../../src/server/content/policies");
+    const unknown = only.filter((slug) => !(POLICY_SLUGS as readonly string[]).includes(slug));
+    if (unknown.length > 0) {
+      throw new Error(`Unknown policy slug(s): ${unknown.join(", ")}. Known: ${POLICY_SLUGS.join(", ")}`);
+    }
+  }
   if (!checkOnly) {
     requireLocalOrAllowRemote(
       "apply-settings-content",
@@ -66,14 +94,19 @@ async function main() {
     if (!owner) throw new Error(`Staff account ${OWNER_EMAIL} not found. Run pnpm db:seed first.`);
     const actor = { id: owner.id, role: owner.role, ip: null };
 
-    failures += await applySettings(db, schema, actor);
-    failures += await applyCollections(db, schema, actor);
-    if (process.argv.includes("--skip-policies")) log("policies", "skipped (--skip-policies)");
-    else failures += await applyPolicies(db, schema, actor);
-    failures += await applyAnnouncement(db, schema, actor);
+    if (only) {
+      log("policies", `only: ${only.join(", ")} (settings, copy and announcement skipped)`);
+      failures += await applyPolicies(db, schema, actor, only);
+    } else {
+      failures += await applySettings(db, schema, actor);
+      failures += await applyCollections(db, schema, actor);
+      if (process.argv.includes("--skip-policies")) log("policies", "skipped (--skip-policies)");
+      else failures += await applyPolicies(db, schema, actor);
+      failures += await applyAnnouncement(db, schema, actor);
+    }
   }
 
-  failures += await runCheck(db, schema);
+  failures += await runCheck(db, schema, only);
 
   if (failures > 0) {
     console.error(`\n${failures} problem(s) found.`);
@@ -251,7 +284,12 @@ async function applyCollections(db: Db, schema: Schema, actor: Actor): Promise<n
 // ---------------------------------------------------------------------------------------------
 // 4. Policies
 // ---------------------------------------------------------------------------------------------
-async function applyPolicies(db: Db, schema: Schema, actor: Actor): Promise<number> {
+async function applyPolicies(
+  db: Db,
+  schema: Schema,
+  actor: Actor,
+  only: readonly string[] | null = null,
+): Promise<number> {
   const { eq } = await import("drizzle-orm");
   const { savePolicyDraft, publishPolicy, istDateToInstant } =
     await import("../../src/server/services/admin/policies");
@@ -259,25 +297,58 @@ async function applyPolicies(db: Db, schema: Schema, actor: Actor): Promise<numb
   const effective = istDateToInstant(POLICY_EFFECTIVE_DATE).getTime();
   let failures = 0;
 
-  for (const slug of POLICY_SLUGS) {
+  const fileFor = new Map<string, import("../../src/server/content/seed").PolicyFile>();
+  if (only) {
+    const { loadContentFiles } = await import("../../src/server/content/seed");
+    const content = await loadContentFiles(path.resolve(process.cwd(), "content"));
+    for (const f of content.policies) fileFor.set(f.slug, f);
+    for (const slug of only) {
+      if (!fileFor.has(slug)) throw new Error(`No content/policies/${slug}.md to publish`);
+    }
+  }
+
+  for (const slug of only ?? POLICY_SLUGS) {
     try {
-      const [row] = await db
+      let [row] = await db
         .select()
         .from(schema.policies)
         .where(eq(schema.policies.slug, slug))
         .limit(1);
+      if (!row && only) {
+        // A policy added after the database was first seeded: create it (as a draft) from its file.
+        const { seedPolicies } = await import("../../src/server/content/seed");
+        const file = fileFor.get(slug);
+        if (file) {
+          await seedPolicies(db, [{ ...file, draft: true }]);
+          log("policies", `${slug}: created from content/policies/${slug}.md`);
+          [row] = await db
+            .select()
+            .from(schema.policies)
+            .where(eq(schema.policies.slug, slug))
+            .limit(1);
+        }
+      }
       if (!row) {
         failures++;
         log("policies", `${slug}: no policy row. Run scripts/seed-content.ts first.`);
         continue;
       }
       // The seeded text starts with a "Draft notice" quote about legal review; drop it for the launch text.
-      const bodyMd = row.bodyMd.replace(DRAFT_NOTICE, "");
-      if (row.published && row.bodyMd === bodyMd && row.effectiveAt?.getTime() === effective) {
+      // Named with --policy: the content file is the source of truth (a row left over from an earlier
+      // version of the file is replaced by a new published version). Otherwise keep the database text.
+      const source = only ? fileFor.get(slug) : undefined;
+      const title = source?.title ?? row.title;
+      const bodyMd = (source?.bodyMd ?? row.bodyMd).replace(DRAFT_NOTICE, "");
+      if (
+        row.published &&
+        row.bodyMd === bodyMd &&
+        row.title === title &&
+        row.effectiveAt?.getTime() === effective
+      ) {
         log("policies", `${slug}: v${row.version} already published`);
         continue;
       }
-      await savePolicyDraft(db, slug, { title: row.title, bodyMd }, actor);
+      await savePolicyDraft(db, slug, { title, bodyMd }, actor);
       const { version } = await publishPolicy(
         db,
         slug,
@@ -366,10 +437,28 @@ async function applyAnnouncement(db: Db, schema: Schema, actor: Actor): Promise<
 // ---------------------------------------------------------------------------------------------
 // 6. Check
 // ---------------------------------------------------------------------------------------------
-async function runCheck(db: Db, schema: Schema): Promise<number> {
+async function checkPolicies(db: Db, slugs: readonly string[]): Promise<number> {
+  const { loadPolicyPage } = await import("../../src/server/content/policies");
+  let failures = 0;
+  console.log("\n=== Policies (storefront renderer, production mode) ===");
+  for (const slug of slugs) {
+    const page = await loadPolicyPage(db, slug, { review: false });
+    const bad =
+      !page || page.withheld || page.draft || page.html.includes("{{") || page.problems.length > 0;
+    console.log(
+      `${bad ? "FAIL" : "OK  "} ${slug}: v${page?.version} effective ${page?.effectiveAt ? new Date(page.effectiveAt).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }) : "-"} ${page ? `${page.html.length} chars html` : "missing"}`,
+    );
+    if (bad) failures++;
+  }
+  return failures;
+}
+
+async function runCheck(db: Db, schema: Schema, only: readonly string[] | null = null): Promise<number> {
+  const { POLICY_SLUGS } = await import("../../src/server/content/policies");
+  // --policy=<slug>: only the named policies are checked (nothing else was touched).
+  if (only) return checkPolicies(db, only);
   const { getLaunchReadiness, LAUNCH_CATEGORY_LABELS } =
     await import("../../src/server/services/admin/launch");
-  const { loadPolicyPage, POLICY_SLUGS } = await import("../../src/server/content/policies");
   const { listBanners } = await import("../../src/server/services/admin/banners");
   const { SETTINGS, SETTING_KEYS } = await import("../../src/server/services/settings-registry");
   let failures = 0;
@@ -414,16 +503,7 @@ async function runCheck(db: Db, schema: Schema): Promise<number> {
   );
   if (leftover.length) failures++;
 
-  console.log("\n=== Policies (storefront renderer, production mode) ===");
-  for (const slug of POLICY_SLUGS) {
-    const page = await loadPolicyPage(db, slug, { review: false });
-    const bad =
-      !page || page.withheld || page.draft || page.html.includes("{{") || page.problems.length > 0;
-    console.log(
-      `${bad ? "FAIL" : "OK  "} ${slug}: v${page?.version} effective ${page?.effectiveAt ? new Date(page.effectiveAt).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }) : "-"} ${page ? `${page.html.length} chars html` : "missing"}`,
-    );
-    if (bad) failures++;
-  }
+  failures += await checkPolicies(db, POLICY_SLUGS);
 
   console.log("\n=== Announcement bar ===");
   const live = (await listBanners(db, { placement: "announcement" })).filter(

@@ -90,12 +90,27 @@ export function checkEnvironment(env: Env): LaunchItem[] {
       "Razorpay live keys are missing",
       "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to the live keys (after KYC approval).",
     );
+  } else if (keyId.startsWith("rzp_test_") && env.PAYMENTS_TEST_MODE === "1") {
+    add(
+      "razorpay",
+      "warning",
+      "Razorpay is in test mode",
+      "PAYMENTS_TEST_MODE=1 lets the store take orders on rzp_test_ keys. No real money is collected. When live KYC is approved, switch RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to rzp_live_ keys and remove PAYMENTS_TEST_MODE.",
+    );
   } else if (!keyId.startsWith("rzp_live_")) {
     add(
       "razorpay",
       "blocker",
       "Razorpay is using test keys",
       "RAZORPAY_KEY_ID must start with rzp_live_ before real customers pay.",
+    );
+  }
+  if (env.PAYMENTS_TEST_MODE === "1" && keyId?.startsWith("rzp_live_")) {
+    add(
+      "payments-test-mode",
+      "warning",
+      "PAYMENTS_TEST_MODE is set with live keys",
+      "PAYMENTS_TEST_MODE has no effect with rzp_live_ keys. Remove it from the production environment.",
     );
   }
   if (!present(env.RAZORPAY_WEBHOOK_SECRET)) {

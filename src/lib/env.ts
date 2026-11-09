@@ -40,6 +40,8 @@ const serverEnvSchema = z.object({
   RAZORPAY_KEY_SECRET: optionalString,
   RAZORPAY_WEBHOOK_SECRET: optionalString,
   NEXT_PUBLIC_RAZORPAY_KEY_ID: optionalString,
+  /** Server-only. Exactly "1" lets the launch gate open on `rzp_test_` keys (a public demo before live KYC). */
+  PAYMENTS_TEST_MODE: optionalString,
 
   // Email
   RESEND_API_KEY: optionalString,
@@ -91,10 +93,12 @@ const REQUIRED_IN_PRODUCTION = [
   "DATABASE_URL",
   "RESEND_API_KEY",
   "EMAIL_FROM",
-  "RAZORPAY_KEY_ID",
-  "RAZORPAY_KEY_SECRET",
-  "RAZORPAY_WEBHOOK_SECRET",
 ] as const;
+/**
+ * Not required to boot: until live KYC is approved the site runs with no Razorpay keys and the launch
+ * gate keeps orders closed. All-or-nothing though: setting any of them means all three must be set.
+ */
+const RAZORPAY_VARS = ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_WEBHOOK_SECRET"] as const;
 const STRONG_SECRETS = ["BETTER_AUTH_SECRET", "CRON_SECRET"] as const;
 
 /**
@@ -126,6 +130,11 @@ export function productionEnvProblems(source: Record<string, string | undefined>
   }
   for (const name of REQUIRED_IN_PRODUCTION) {
     if (!get(name)) problems.push(`${name} is not set`);
+  }
+  if (RAZORPAY_VARS.some((name) => get(name))) {
+    for (const name of RAZORPAY_VARS) {
+      if (!get(name)) problems.push(`${name} is not set (Razorpay is half configured: set all of ${RAZORPAY_VARS.join(", ")}, or none of them)`);
+    }
   }
   return problems;
 }

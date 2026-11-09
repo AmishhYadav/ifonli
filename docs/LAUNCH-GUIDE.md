@@ -15,7 +15,6 @@ Write these down; you will type them into Admin > Settings later and Razorpay as
 - Legal entity name and registered address (as on PAN/GST documents)
 - Business state (place of supply)
 - Customer-care email, phone, support hours, response-time promise
-- Grievance officer: name, designation, email, phone (required by the Consumer Protection (E-Commerce) Rules)
 - Default manufacturer / packer / importer and country of origin
 - One-line definition of "Hippers" (shown on the Hippers page)
 
@@ -29,7 +28,7 @@ Ask your CA, in writing:
 6. Ask them to check one sample invoice PDF (from a test order in Part E).
 
 ### A3. Lawyer **(slow)**
-The seven policies are drafts in `content/policies/` (shipping, cancellation, returns and refunds, privacy, terms, grievance, seller information). They are templates, not legal advice. Send them for review, especially privacy (DPDP Act 2023), returns, grievance and seller information. Also ask about: data retention periods (two settings: order records, other data), the wording "A real person reads every report" in the Report-a-problem dialog, and first-party analytics running without a consent banner when GA4 is off.
+The six policies are in `content/policies/` (shipping, cancellation, returns and refunds, privacy, terms and conditions, seller information). They are templates, not legal advice. Send them for review, especially privacy (DPDP Act 2023), returns, terms and seller information. Also ask about: data retention periods (two settings: order records, other data), the wording "A real person reads every report" in the Report-a-problem dialog, and first-party analytics running without a consent banner when GA4 is off.
 
 ### A4. Razorpay account and KYC **(slow, can take 1–3 weeks)**
 1. Sign up at razorpay.com with the business PAN and bank account.
@@ -99,11 +98,14 @@ Set these for **Preview** (staging, test keys). Generate each secret with `opens
 | `SUPABASE_SERVICE_ROLE_KEY` | staging service_role key |
 | `RAZORPAY_KEY_ID`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | **test** keys |
 | `RAZORPAY_WEBHOOK_SECRET` | the test webhook secret from B4 |
+| `PAYMENTS_TEST_MODE` | `1` only if this deployment is a public demo on test keys (see the note below). Leave it out on staging that only you use |
 | `RESEND_API_KEY`, `EMAIL_FROM` | from B3 |
 | `SENTRY_DSN` | optional |
 | `CSP_MODE` | leave unset (report-only) on staging for now |
 
 Never set `NEXT_PUBLIC_ENABLE_DEV_PAGES` or `ADMIN_PASSWORD` in Vercel.
+
+**Razorpay keys and a public demo.** The Razorpay variables are only needed to take orders: a production site starts without any of them (set all three or none), and the launch gate keeps orders closed. In production, `rzp_test_` keys also keep orders closed. To run a public demo on test keys before live KYC is approved, set `PAYMENTS_TEST_MODE=1` (exactly `1`) next to the test keys. Orders then open, the launch checklist shows the warning "Razorpay is in test mode", and checkout tells shoppers no real money is charged. When KYC is approved, switch to the `rzp_live_` keys and remove `PAYMENTS_TEST_MODE`.
 
 ### C2. Prepare the staging database (from your laptop)
 Export the staging values in the terminal (`export DATABASE_URL='...'` and so on for `DIRECT_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `BETTER_AUTH_SECRET`). Exported values win over your local `.env.local`. Then:
@@ -132,7 +134,7 @@ Work until **Admin > Settings > Launch checklist** shows zero blockers. It links
 
 ### D1. Settings (Admin > Settings)
 Fill every setting marked required. Main groups:
-- **Store and legal:** legal name, registered address, business state, customer-care email/phone/hours, response time, grievance officer, default manufacturer, default country of origin, jurisdiction city, service providers, what Hippers are, materials note, working days.
+- **Store and legal:** legal name, registered address, business state, customer-care email/phone/hours, response time, default manufacturer, default country of origin, jurisdiction city, service providers, what Hippers are, materials note, working days.
 - **Tax:** default GST rate (in basis points: 18% = 1800), shipping/COD tax rule (from A2).
 - **Shipping:** serviceability mode, flat fee and free-shipping threshold (in **paise**: Rs 49 = 4900), processing days, delivery estimates by zone, courier partner(s), delivery attempts, after return-to-origin.
 - **COD:** on/off, COD fee, maximum COD order value (the cap includes the COD fee), excluded pincodes.

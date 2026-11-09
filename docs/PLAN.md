@@ -123,7 +123,7 @@ ifonli/
       search/page.tsx           (noindex)
       wishlist/page.tsx
       help/page.tsx             contact form + FAQ
-      policies/[slug]/page.tsx  shipping, cancellation, returns-refunds, privacy, terms, grievance
+      policies/[slug]/page.tsx  shipping, cancellation, returns-refunds, privacy, terms, seller-information
       account/(login|orders|orders/[ref]|addresses|profile)/…
     (buy)/              layout = data-vibe-scope="buy" (colours only)
       cart/page.tsx
@@ -388,7 +388,7 @@ Textures are SVG under 30 KB each. Custom cursor (optional, Could) is a pure-CSS
 | Confirmation | `/orders/[ref]` | Ref, items, amounts, payment and order status, next steps, invoice download, "Report a problem", "Create account" (prefilled email, guests only) |
 | Tracking | `/track` | §7.11 |
 | Help | `/help` | Contact form (→ inbox), support email/phone, response time, FAQ accordion by category (admin-managed) |
-| Policies | `/policies/[slug]` | Shipping, cancellation, returns & refunds, privacy, terms, grievance redressal. Version and effective date shown. **Linked from the footer, cart, checkout and PDP** (FR-15) |
+| Policies | `/policies/[slug]` | Shipping, cancellation, returns & refunds, privacy, terms and conditions, seller information. Version and effective date shown. **Linked from the footer, cart, checkout and PDP** (FR-15) |
 | Account | `/account/*` | Email-OTP login, profile, addresses CRUD, order history and detail, wishlist, delete account, export data |
 | Wishlist | `/wishlist` | Guest (device) or synced |
 | Errors | `not-found.tsx`, `error.tsx` | Themed copy, search box, vibe links |

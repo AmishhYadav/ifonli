@@ -23,7 +23,7 @@ async function load(opts: { reduced: boolean; viewTransitions: boolean; vibe?: s
   if (opts.viewTransitions) {
     doc.startViewTransition = (cb: () => void) => {
       cb();
-      return { finished: Promise.resolve() };
+      return { ready: Promise.resolve(), finished: Promise.resolve() };
     };
   }
   vi.stubGlobal("document", doc);

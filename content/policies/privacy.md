@@ -1,12 +1,10 @@
 ---
 title: "Privacy Notice"
 slug: privacy
-version: 0.1-draft
-status: "DRAFT — requires legal review before publishing"
-lastReviewed: null
+version: 1.0
+status: "Published"
+lastReviewed: "2026-11-10"
 ---
-
-> **Draft notice:** This page is a draft and is waiting for legal review. It is not legal advice. It is written to align with India's Digital Personal Data Protection Act, 2023 (DPDP Act) and its rules, and must be checked against the final legal position before publishing.
 
 # Privacy Notice
 

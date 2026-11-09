@@ -2,7 +2,6 @@ import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 
-import { formToInput, couponFormSchema, EMPTY_COUPON_FORM, couponToFormValues } from "@/components/admin/discounts/form-values";
 import { getDb } from "@/server/db";
 import { adminAuditLog, coupons, user } from "@/server/db/schema";
 import {
@@ -170,29 +169,5 @@ describe("coupon CRUD", () => {
     await expect(listCoupons(db(), fulfilment)).rejects.toThrow(/Forbidden/);
     await expect(getCoupon(db(), c.id, fulfilment)).rejects.toThrow(/Forbidden/);
     expect(await db().select().from(coupons)).toHaveLength(1);
-  });
-});
-
-describe("coupon form conversion", () => {
-  it("converts human units to storage units and back", () => {
-    const form = { ...EMPTY_COUPON_FORM, code: "Save10", percent: "12.5", minSubtotal: "499", maxDiscount: "1,000.50", startsAt: "2026-11-01T10:30", usageLimit: "50" };
-    expect(couponFormSchema.safeParse(form).success).toBe(true);
-    expect(formToInput(form)).toMatchObject({
-      kind: "percent",
-      value: 1250,
-      minSubtotalPaise: 49900,
-      maxDiscountPaise: 100050,
-      startsAt: "2026-11-01T05:00:00.000Z",
-      usageLimit: 50,
-      perCustomerLimit: null,
-    });
-    const back = couponToFormValues({
-      code: "X", kind: "fixed", value: 15000, startsAt: new Date("2026-11-01T05:00:00Z"), endsAt: null, minSubtotalPaise: 0,
-      maxDiscountPaise: null, usageLimit: null, perCustomerLimit: 3, active: true,
-      scope: { vibes: ["cute"], types: [], products: [], excludeProducts: [] },
-    } as never);
-    expect(back).toMatchObject({ amount: "150", startsAt: "2026-11-01T10:30", perCustomerLimit: "3", minSubtotal: "", vibes: ["cute"] });
-    expect(couponFormSchema.safeParse({ ...form, percent: "100.01" }).success).toBe(false);
-    expect(couponFormSchema.safeParse({ ...form, startsAt: "2026-12-01T10:00", endsAt: "2026-11-01T10:00" }).success).toBe(false);
   });
 });

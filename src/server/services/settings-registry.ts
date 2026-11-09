@@ -538,7 +538,7 @@ export const SETTINGS = {
   "policy.jurisdiction_city": define("policy.jurisdiction_city", {
     group: "policies",
     label: "Jurisdiction city",
-    description: "City whose courts have jurisdiction over disputes (Terms of use).",
+    description: "City whose courts have jurisdiction over disputes (Terms and Conditions).",
     schema: nonEmpty,
     placeholder: `${PH} — Jurisdiction city`,
     requiredForLaunch: true,
@@ -565,7 +565,7 @@ export const SETTINGS = {
   "policy.handmade_note": define("policy.handmade_note", {
     group: "policies",
     label: "Handmade / variation notice",
-    description: "Optional. Terms of use: shown only when filled in. Empty = hidden.",
+    description: "Optional. Terms and Conditions: shown only when filled in. Empty = hidden.",
     schema: z.string().trim(),
     placeholder: "",
     requiredForLaunch: false,

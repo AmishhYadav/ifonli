@@ -14,7 +14,7 @@ export const instant = false;
 
 export const metadata: Metadata = {
   title: "Policies",
-  description: "Shipping, cancellation, returns and refunds, privacy and seller information.",
+  description: "Shipping, cancellation, returns and refunds, privacy, terms and conditions and seller information.",
   alternates: { canonical: "/policies" },
 };
 
@@ -23,6 +23,7 @@ const BLURBS: Record<PolicySlug, string> = {
   cancellation: "When you can cancel an order and how refunds work.",
   "returns-refunds": "Returns, replacements and refunds for damaged or wrong items.",
   privacy: "What personal data we collect, why, and your rights.",
+  terms: "The rules for using the site and buying from us.",
   "seller-information": "Who we are, where we are registered and how to reach us.",
 };
 

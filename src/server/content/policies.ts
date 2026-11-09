@@ -18,6 +18,7 @@ export const POLICY_SLUGS = [
   "cancellation",
   "returns-refunds",
   "privacy",
+  "terms",
   "seller-information",
 ] as const;
 export type PolicySlug = (typeof POLICY_SLUGS)[number];
