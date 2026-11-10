@@ -12,7 +12,9 @@ export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  // One retry in CI: enough to ride out a slow first compile under `next dev`, without a broken test costing
+  // three full timeouts.
+  retries: process.env.CI ? 1 : 0,
   // Loaded machines (and first compiles under `pnpm dev`) can exceed the 5 s default, e.g. the order page after payment.
   expect: { timeout: 10_000 },
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
