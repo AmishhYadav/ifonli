@@ -177,6 +177,7 @@ html[data-vibe-switching] ::after {
   -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent-3) 78%, transparent);
   paint-order: stroke fill;
   text-shadow:
+    0 0 1px var(--accent-3),
     0 0 3px color-mix(in srgb, var(--accent-3) 38%, transparent),
     0 0 12px color-mix(in srgb, var(--accent-3) 20%, transparent);
   animation: title-shimmer 5.5s ease-in-out infinite alternate;
@@ -190,11 +191,13 @@ html[data-vibe-switching] ::after {
 @keyframes title-shimmer {
   from {
     text-shadow:
+      0 0 1px var(--accent-3),
       0 0 3px color-mix(in srgb, var(--accent-3) 30%, transparent),
       0 0 10px color-mix(in srgb, var(--accent-3) 14%, transparent);
   }
   to {
     text-shadow:
+      0 0 1px var(--accent-3),
       0 0 4px color-mix(in srgb, var(--accent-3) 52%, transparent),
       0 0 16px color-mix(in srgb, var(--accent-3) 28%, transparent);
   }

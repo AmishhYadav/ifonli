@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { accountLoginUrl } from "@/features/account/redirect";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { Card, CardBody, CardTitle } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
@@ -59,7 +58,7 @@ export interface OrderDetailViewProps {
   order: CustomerOrderView;
   extras: OrderPageExtras;
   access: OrderViewAccess;
-  /** A customer is signed in (so "Create an account" is not offered). */
+  /** A customer is signed in. Kept for callers; the guest "Create an account" offer was retired with the email sign-in. */
   signedIn: boolean;
 }
 
@@ -67,7 +66,7 @@ export interface OrderDetailViewProps {
  * The order page body, shared by the guest page (`/orders/[ref]?t=`) and the signed-in page
  * (`/account/orders/[ref]`): status, items, history, amounts, delivery and the order actions.
  */
-export function OrderDetailView({ order, extras, access, signedIn }: OrderDetailViewProps) {
+export function OrderDetailView({ order, extras, access }: OrderDetailViewProps) {
   const token = access.kind === "token" ? access.token : undefined;
   const waiting = order.status === "pending_payment" && order.paymentMethod === "razorpay";
   const holdUntil = order.expiresAt
@@ -85,7 +84,6 @@ export function OrderDetailView({ order, extras, access, signedIn }: OrderDetail
   const invoiceHref = extras.invoiceAvailable
     ? `/api/orders/${refPath}/invoice${token ? `?t=${encodeURIComponent(token)}` : ""}`
     : null;
-  const createAccountHref = signedIn ? null : accountLoginUrl({ email: order.email });
 
   return (
     <div className="flex flex-col gap-6">
@@ -244,7 +242,6 @@ export function OrderDetailView({ order, extras, access, signedIn }: OrderDetail
                 invoiceHref={invoiceHref}
                 cancel={extras.cancel}
                 report={extras.report}
-                createAccountHref={createAccountHref}
               />
             </CardBody>
           </Card>

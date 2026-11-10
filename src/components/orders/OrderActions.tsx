@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { Button } from "@/components/ui/Button";
 import type { SupportType } from "@/features/orders/support-schema";
 import { formatINR } from "@/lib/money";
@@ -25,12 +23,10 @@ export interface OrderActionsProps {
     windowEnded: boolean;
     photosAvailable: boolean;
   };
-  /** Guests only: where "Create an account" goes (prefilled e-mail). Null when signed in. */
-  createAccountHref: string | null;
 }
 
 /**
- * The buttons under "Need help?": invoice, cancel, report a problem, create an account. The same
+ * The buttons under "Need help?": invoice, cancel and report a problem. The same
  * component serves the guest `?t=` page and the account order page.
  */
 export function OrderActions({
@@ -42,7 +38,6 @@ export function OrderActions({
   invoiceHref,
   cancel,
   report,
-  createAccountHref,
 }: OrderActionsProps) {
   return (
     <div className="mt-2 flex flex-col gap-2" data-testid="order-actions">
@@ -78,18 +73,6 @@ export function OrderActions({
         email={email}
       />
 
-      {createAccountHref ? (
-        <div className="mt-1 flex flex-col gap-1">
-          <Button asChild variant="secondary" iconStart="user">
-            <Link href={createAccountHref} data-testid="create-account">
-              Create an account
-            </Link>
-          </Button>
-          <p className="text-sm text-ink-muted">
-            Optional. We&apos;ll email you a code to sign in, then show this order and any others from {email}.
-          </p>
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -143,7 +143,7 @@ export default async function HelpPage() {
               <PlaceholderValue value={info.supportEmail}>
                 <a
                   href={`mailto:${info.supportEmail.value}`}
-                  className="relative after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] font-semibold text-link underline underline-offset-4"
+                  className="relative inline-flex min-h-6 items-center break-all after:absolute after:inset-x-0 after:-inset-y-2.5 after:content-[''] font-semibold text-link underline underline-offset-4"
                 >
                   {info.supportEmail.value}
                 </a>

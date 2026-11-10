@@ -217,12 +217,15 @@ export function ReportProblemDialog({
                   Back
                 </Button>
               ) : null}
+              {/* Distinct keys: if React reused one <button> for both, the click on Next would flip it to
+                  type="submit" before the browser's default action runs, and the report would send without review. */}
               {step < LAST_STEP ? (
-                <Button onClick={next} data-testid="report-next">
+                <Button key="next" type="button" onClick={next} data-testid="report-next">
                   Next
                 </Button>
               ) : (
                 <Button
+                  key="submit"
                   type="submit"
                   form="report-problem-form"
                   loading={busy}
