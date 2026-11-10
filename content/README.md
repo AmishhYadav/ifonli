@@ -1,6 +1,6 @@
 # IfOnli content (policies and FAQ)
 
-Legal and help content for the storefront. It is not legal advice: have a lawyer review it.
+Legal and help content for the storefront. It is not legal advice and has had no lawyer review (college project).
 
 No business values are written into these files. Every fee, threshold, timeline, name, address and phone number is a **template token** that the site fills in from admin settings (`settings` table, plan section 14) when the page is rendered.
 

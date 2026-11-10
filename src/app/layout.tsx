@@ -17,9 +17,32 @@ import "./globals.css";
 const ZOD_JITLESS_SCRIPT =
   "globalThis.__zod_globalConfig=Object.assign(globalThis.__zod_globalConfig||{},{jitless:true});";
 
+const SHARE_DESCRIPTION =
+  "Charms, 3D stickers and DIY kits in four moods: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Made in India.";
+
+/**
+ * Site-wide share defaults. The share image comes from the root `opengraph-image.png` file convention, so a page
+ * that sets no image of its own (it may still set its own title and description) shows the brand card.
+ */
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: { default: "IfOnli", template: "%s | IfOnli" },
+  description: SHARE_DESCRIPTION,
+  applicationName: "IfOnli",
+  openGraph: {
+    type: "website",
+    siteName: "IfOnli",
+    locale: "en_IN",
+    title: "IfOnli: charms, 3D stickers and DIY kits",
+    description: SHARE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "IfOnli: charms, 3D stickers and DIY kits",
+    description: SHARE_DESCRIPTION,
+  },
+  appleWebApp: { capable: true, title: "IfOnli", statusBarStyle: "default" },
 };
 
 /** The cached settings read must never take the whole site down: fall back to the built-in defaults. */

@@ -22,6 +22,7 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --conditions=react-server scripts/seed.ts",
     "contrast": "tsx scripts/contrast-check.ts",
+    "brand:render": "tsx scripts/brand/render-brand.ts",
     "test:integration": "vitest run --project integration",
     "db:import-reference": "tsx --conditions=react-server scripts/import-reference.ts",
     "db:seed-products": "tsx --conditions=react-server scripts/seed-products.ts",

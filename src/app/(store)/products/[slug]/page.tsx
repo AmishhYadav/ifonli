@@ -23,7 +23,7 @@ import { VibeChip } from "@/components/ui/Chip";
 import { PdpTracker } from "@/features/analytics";
 import { isVibe } from "@/features/vibe/config";
 import { WishlistHeart } from "@/features/wishlist/WishlistHeart";
-import { breadcrumbJsonLd, textOr, type Crumb } from "@/lib/seo";
+import { breadcrumbJsonLd, DEFAULT_SHARE_IMAGE, textOr, type Crumb } from "@/lib/seo";
 import {
   getAllProductSlugsForSitemap,
   getProductBySlug,
@@ -84,10 +84,18 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
+      siteName: "IfOnli",
+      locale: "en_IN",
       url: `/products/${product.slug}`,
-      ...(ogImage ? { images: [{ url: ogImage, alt: cover?.alt || product.name }] } : {}),
+      // No usable product photo: the brand share card, not a bare link.
+      images: ogImage ? [{ url: ogImage, alt: cover?.alt || product.name }] : [DEFAULT_SHARE_IMAGE],
     },
-    twitter: { card: ogImage ? "summary_large_image" : "summary", title, description },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ogImage ? [{ url: ogImage, alt: cover?.alt || product.name }] : [DEFAULT_SHARE_IMAGE],
+    },
   };
 }
 

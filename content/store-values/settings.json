@@ -62,7 +62,7 @@
     "support_case_update": { "email": true, "whatsapp": false },
     "contact_ack": { "email": true, "whatsapp": false }
   },
-  "admin_alert_emails": ["orders@ifonli.in"],
+  "admin_alert_emails": ["shop.ifonli@gmail.com"],
 
   "ga4_measurement_id": null,
   "consent_required": true,

@@ -131,7 +131,7 @@ export default async function HelpPage() {
         </section>
       ) : null}
 
-      <section aria-labelledby="contact-heading" className="mt-14">
+      <section id="contact" aria-labelledby="contact-heading" className="mt-14 scroll-mt-20">
         <h2 id="contact-heading" className="mb-5 font-display text-3xl leading-tight">
           Still need help?
         </h2>

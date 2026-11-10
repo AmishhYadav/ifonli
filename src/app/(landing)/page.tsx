@@ -6,15 +6,21 @@ import { LandingBoot } from "@/features/landing/Boot";
 import { buildFacts } from "@/features/landing/facts";
 import { LandingMotion } from "@/features/landing/LandingMotion";
 import { Makes, Moods, Opening, Portal, Why } from "@/features/landing/Sections";
-import { organizationJsonLd } from "@/lib/seo";
+import { DEFAULT_SHARE_IMAGE, organizationJsonLd } from "@/lib/seo";
 import { FALLBACK_LANDING_FACTS, getLandingFacts, type LandingFacts } from "@/server/cache/landing";
 import { getStoreInfo } from "@/server/cache/settings";
 
+const TITLE = "IfOnli: charms, 3D stickers and DIY kits";
+const DESCRIPTION =
+  "Charms, 3D stickers and DIY kits in four moods: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Made in India.";
+
 export const metadata: Metadata = {
-  title: { absolute: "IfOnli: charms, 3D stickers and DIY kits" },
-  description:
-    "Charms, 3D stickers and DIY kits in four moods: Mochi, Chaos Cabinet, Unapologetic and After the Dark. Made in India.",
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
   alternates: { canonical: "/" },
+  // A page-level openGraph replaces the layout one, so the brand share card is passed explicitly.
+  openGraph: { type: "website", siteName: "IfOnli", locale: "en_IN", title: TITLE, description: DESCRIPTION, url: "/", images: [DEFAULT_SHARE_IMAGE] },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [DEFAULT_SHARE_IMAGE] },
 };
 
 async function OrganizationLd() {

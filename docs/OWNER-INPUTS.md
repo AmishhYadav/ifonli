@@ -1,70 +1,37 @@
 # Owner inputs
 
-Everything below is supplied by the owner (or their advisers). Until an item is supplied, the build uses a marked placeholder and the production launch gate stays closed. Source: plan sections 14 and 17 ([PLAN.md](./PLAN.md)).
+What is still needed from the owner, as of 2026-11-10. IfOnli is a college project: there is no lawyer review and no CA or tax work, so those inputs are not needed. The real catalogue (26 products, `IFO-` SKUs, real photos) and the real store values (`content/store-values/`: legal name, support details, shipping, COD, returns, notification channels, vibe settings) are already applied. Source: plan sections 14 and 17 ([PLAN.md](./PLAN.md)); open problems are in [KNOWN-ISSUES.md](./KNOWN-ISSUES.md).
 
-## Needed by Phase 2 (design approval and staging)
+## Still needed
 
-- [ ] Logo files
-- [ ] Brand colours and fonts, or approval of the proposals in plan section 8.2
-- [ ] Hand-icon direction
-- [ ] Legal entity name and registered address
-- [ ] Support email, phone, support hours and response time
-- [ ] Policy drafts (shipping, cancellation, returns and refunds, privacy, terms), or approval of templates for legal review
-- [ ] Razorpay KYC documents (PAN, bank account, business proof)
+- [ ] **Razorpay live approval and keys** (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`). Until all three are set the launch gate keeps the store closed. Confirm auto-capture is ON in the dashboard. (K-3)
+- [ ] **A Razorpay test-mode run** with the test card and `success@razorpay` / `failure@razorpay` UPI ids, then a live Rs 1 smoke test (UPI and card, refunded; a COD order placed and cancelled). (K-3)
+- [ ] **Switch `CSP_MODE=enforce`** (build-time setting; now report-only) once a payment has run with no CSP reports, then redeploy. (K-3)
+- [ ] **A domain** and DNS access. It replaces `ifonli.vercel.app` as the public URL (`NEXT_PUBLIC_SITE_URL`, `BETTER_AUTH_URL`). (K-4)
+- [ ] **Resend domain authentication** (SPF, DKIM) on that domain, and `EMAIL_FROM` on it. Until then the free sender `onboarding@resend.dev` only delivers to the Resend account owner, so customers get no emails. (K-4)
+- [ ] **Real-device and screen-reader pass** (iPhone Safari, Android Chrome, VoiceOver, TalkBack). (V-1, V-2)
+- [ ] **Visual baselines**: run `pnpm visual:update` on CI's browser, review and commit. (V-5)
+- [ ] **Fresh pincode directory**: a current data.gov.in extract, then `pnpm db:import-reference`. The directory is a May 2019 snapshot plus 40 newer pincodes, and the delivery zones in `data/reference/zones.json` are a placeholder grouping. (K-6)
+- [ ] **Launch date and sign-off.**
 
-## Needed by Phase 3 (catalogue)
+## Optional
 
-- [ ] Real product list: names, SKUs, prices, MRP, stock, vibes, types, variants, descriptions
-- [ ] Net quantity, country of origin, manufacturer/packer/importer per product
-- [ ] HSN codes and GST rates per product (from the owner's CA)
-- [ ] Definition of "Hippers"
-- [ ] Product photography (consistent ratio) and transparent cutouts (same angle and lighting, at least 1200 px). Needed across Phases 3-7
+- [ ] GA4 measurement ID (`ga4_measurement_id` is empty).
+- [ ] WhatsApp provider (every notification channel is email only).
+- [ ] Error tracking: Sentry is not installed and `SENTRY_DSN` is unset; Vercel runtime logs are the only error trail. (V-4)
+- [ ] Logo files and hand-icon art beyond the current inline hand, if the brand gets its own. The share card and home-screen icons are drawn by `pnpm brand:render`.
 
-## Needed by Phase 4 (cart, checkout, payments)
+## Done
 
-- [ ] Shipping fee and free-shipping threshold
-- [ ] Serviceable regions (all India, allowlist or denylist)
-- [ ] COD on or off; COD fee; COD maximum order value; excluded pincodes
-- [ ] Stock reservation time (minutes)
-- [ ] Coupon list
-- [ ] Confirm auto-capture is ON in the Razorpay dashboard
-- [ ] Prepaid or COD tax rule for shipping and COD fee (CA to confirm)
-- [ ] GSTIN, if registered (decides "Tax invoice" or "Bill of supply")
+- [x] Real product list, prices, stock, vibes, types, descriptions and photography (26 products, `IFO-` SKUs).
+- [x] Legal name, registered address, support email, phone, hours and response time.
+- [x] Shipping fee and free-shipping threshold, COD on with fee and maximum, stock reservation time, cancellation and returns settings, admin alert email (`shop.ifonli@gmail.com`).
+- [x] Brand: four moods (Mochi, Chaos Cabinet, Unapologetic, After the Dark), body font Nunito, display fonts Fredoka, Rubik Glitch, Bungee Shade and Creepster (all SIL OFL).
+- [x] Storage buckets created, cron-job.org calling the four frequent crons, free-tier hosting live (Vercel Hobby, Supabase free, Resend free).
+- [x] Policy pages written (`content/policies/`, filled from the store values). Not legally reviewed.
 
-## Needed by Phase 5 (orders, notifications, accounts)
+## Not applicable (college project)
 
-- [ ] Cancellation window (which fulfilment statuses allow customer cancel)
-- [ ] Return and damage policy; damaged-claim window; refund timelines
-- [ ] Notification events and channels per event; admin alert emails
-- [ ] WhatsApp provider (optional)
-
-## Needed by Phase 8 (launch)
-
-- [ ] Domain and DNS access
-- [ ] Final legal review of all policies
-- [ ] GA4 yes or no (and measurement ID)
-- [ ] Performance budgets agreed (plan section 13)
-- [ ] Launch date
-- [ ] Sign-off
-
-## Business-rule settings (plan section 14)
-
-Each setting has a placeholder and a launch gate. The owner supplies the real values by the phase shown.
-
-- [ ] Store and legal details: legal_name, brand_name, registered_address, state, gstin (optional), support contact, default manufacturer, default country of origin (Phase 2)
-- [ ] Pricing and tax: default_gst_rate_bp, shipping_tax_rule (Phase 4)
-- [ ] Shipping: serviceability_mode, flat_fee, free_threshold, zone_overrides, processing_days, delivery_estimates_by_zone, delay_message (Phase 4)
-- [ ] COD: cod_enabled, cod_fee, cod_max_order_value, cod_excluded_pincodes (Phase 4)
-- [ ] Inventory: reservation_ttl_minutes, default_low_stock_threshold, max_qty_per_line (Phase 4)
-- [ ] Cancellation and returns: cancellable_statuses, return_policy_type, returns_window_days, damaged_claim_window_hours (Phase 5)
-- [ ] Vibes: vibe_cycle, default_vibe, hero_enabled, custom_cursor_enabled (Phase 2)
-- [ ] Notifications: channels per event, admin_alert_emails (Phase 5)
-- [ ] Analytics: ga4_measurement_id, consent_required, event_retention_months (Phase 6)
-- [ ] Data retention periods to confirm with the lawyer (placeholders in `src/server/services/retention.ts`, see D-RET-1): closed contact messages 365 days; text and photos of resolved or rejected support cases 365 days; delivered e-mails 90 days; processed webhook events 90 days; orders and invoices kept about 8 years (GST and Companies Act, not purged)
-
-## Reference data follow-ups (found during Phase 0 data prep)
-
-- [ ] Pincode directory is the data.gov.in May-2019 snapshot (+40 newer pincodes). Download a fresh official extract (needs a data.gov.in login) and re-run `pnpm db:import-reference` before launch if coverage of post-2019 pincodes matters. (Phase 8)
-- [ ] GST state code for the merged UT "Dadra and Nagar Haveli and Daman and Diu" is set to `26`; the GST portal still lists 25 and 26 separately. Confirm with CA before invoices go live. (Phase 5)
-- [ ] Delivery zones in `data/reference/zones.json` are a placeholder grouping; confirm per courier/actual delivery times. (Phase 4)
-- [ ] Display fonts are proposals (Fredoka, Rubik Glitch, Bebas Neue, Creepster; body Nunito, all SIL OFL). Replace with brand typography if IfOnli has its own. (Phase 2)
+- Lawyer review of policies, privacy and terms, and data-retention periods (`src/server/services/retention.ts`, D-RET-1).
+- Tax work for a CA: HSN codes and per-product GST rates, GSTIN ("Tax invoice" or "Bill of supply"), the shipping and COD tax rule, the GST state code for Dadra and Nagar Haveli and Daman and Diu.
+- Coupons, Hippers (the product line) and customer email-OTP sign-in: all retired.

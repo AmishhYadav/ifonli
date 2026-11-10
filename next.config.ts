@@ -59,6 +59,12 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
   },
   partialPrefetching: true,
+  async redirects() {
+    return [
+      // People guess /contact; the form lives on the Help page (section id="contact").
+      { source: "/contact", destination: "/help#contact", permanent: true },
+    ];
+  },
   // `next dev` logs every Server Function call with its arguments, which would print passwords and sign-in codes.
   logging: { serverFunctions: false },
   async headers() {
@@ -80,6 +86,11 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/(icons|vibe|placeholders)/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+      // Share card and home-screen icon: the page markup links them with a content-hash query, so a day is safe.
+      {
+        source: "/(opengraph-image|apple-icon).png",
         headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
       },
       // Order pages carry guest order tokens (?t=) and personal data: send no Referer at all.

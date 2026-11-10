@@ -24,6 +24,18 @@ export function absoluteUrl(path: string): string {
   return `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+/**
+ * The brand share card (`src/app/opengraph-image.png`, rendered by `pnpm brand:render`). The file convention attaches it
+ * to pages that set no `openGraph` of their own; a page that does set `openGraph` replaces the layout's whole object,
+ * image included, so it passes this image explicitly (relative URL, resolved against `metadataBase`).
+ */
+export const DEFAULT_SHARE_IMAGE = {
+  url: "/opengraph-image.png",
+  width: 1200,
+  height: 630,
+  alt: "IfOnli: charms, 3D stickers and DIY kits, with a hand logo and four mood names on a mint gradient",
+} as const;
+
 export interface Crumb {
   name: string;
   /** Site-relative path. */

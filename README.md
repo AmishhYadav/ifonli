@@ -1,19 +1,19 @@
 # IfOnli
 
-India-only (INR) D2C store for charms, Hippers, 3D stickers and DIY accessories, organised by mood ("vibe"). One Next.js app serves the storefront, checkout and admin, with a signature hand button that re-skins the whole site across four vibes (Mochi, Chaos Cabinet, Unapologetic, After the Dark).
+India-only (INR) D2C store for charms, 3D stickers and DIY accessories, organised by mood ("vibe"). A college project, live at https://ifonli.vercel.app on free tiers (Vercel Hobby, Supabase free, Resend free). One Next.js app serves the storefront, checkout and admin, with a signature hand button that re-skins the whole site across four vibes (Mochi, Chaos Cabinet, Unapologetic, After the Dark).
 
 ## Status
 
 Every phase of the [implementation plan](docs/PLAN.md) is built: theme engine and hand button, catalogue and search, cart and checkout (Razorpay and cash on delivery), orders, refunds, invoices and notifications, customer accounts and privacy tools, the full admin (products, inventory, collections, orders, discounts, support, customers, content, FAQ, policies, settings and launch checklist, users, audit log, reports and insights), analytics and consent, the animated hero, and the Phase 8 QA pass (visual regression, accessibility, keyboard, mobile, copy review).
 
-What remains is owner and launch work, not code. In short: real products, photos and cutouts; the legal entity, GSTIN, support details; lawyer-reviewed policies; live Razorpay and Resend keys; domain and DNS; the live-mode smoke test; and sign-off. In production the shop refuses real orders (prepaid and cash on delivery) until the **launch checklist** (Admin > Settings) has no blockers; the gate is off in development, in tests and in review builds made with `NEXT_PUBLIC_ENABLE_DEV_PAGES=1`. Step-by-step: [docs/LAUNCH-GUIDE.md](docs/LAUNCH-GUIDE.md). See [docs/OWNER-INPUTS.md](docs/OWNER-INPUTS.md) for the full list and [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md) for what is honestly not finished.
+The real catalogue (26 products, `IFO-` SKUs, real photos) and the real store values (`content/store-values/`) are applied. There has been no lawyer review and no CA or tax work, and neither is planned. What remains is launch work: Razorpay live approval and a payment test run, then `CSP_MODE=enforce`; a real domain with Resend domain authentication (until then customer emails are not delivered, because the free sender only reaches the Resend account owner); a real-device and screen-reader pass; and visual baselines. In production the shop refuses real orders (prepaid and cash on delivery) until the **launch checklist** (Admin > Settings) has no blockers, which includes the Razorpay keys; the gate is off in development, in tests and in review builds made with `NEXT_PUBLIC_ENABLE_DEV_PAGES=1`. Step-by-step: [docs/LAUNCH-GUIDE.md](docs/LAUNCH-GUIDE.md). See [docs/OWNER-INPUTS.md](docs/OWNER-INPUTS.md) for what is still needed and [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md) for what is honestly not finished.
 
 ## Stack
 
 - Next.js 16 (App Router, Turbopack, Cache Components), React 19, TypeScript (strict)
 - Tailwind CSS v4
 - Drizzle ORM, drizzle-kit and postgres.js on Supabase Postgres
-- Better Auth (customers: email OTP; staff: password + authenticator app), Zod
+- Better Auth (staff: password + authenticator app; customers check out as guests and use a simple My Profile form), Zod
 - Vitest (unit and integration), Playwright and axe-core (e2e, accessibility, visual)
 - Package manager: pnpm
 
@@ -32,7 +32,7 @@ cp .env.example .env.local      # then fill in the secrets (see below)
 pnpm db:migrate                 # schema
 pnpm db:seed                    # vibes, product types, settings with placeholder values
 pnpm db:import-reference        # states and the pincode directory (needed for checkout)
-pnpm db:seed-products           # 32 placeholder products (SKUs start with PH-)
+pnpm db:seed-products           # dev-only placeholder products (SKUs start with PH-)
 pnpm db:seed-content            # draft policies and the FAQ
 pnpm storage:setup              # public/private buckets (needs the Supabase service key)
 pnpm admin:create --email you@example.com --role owner   # prints a password once
@@ -42,9 +42,9 @@ pnpm dev                        # http://localhost:3000
 Notes:
 
 - `.env.example` already holds the local Supabase `DATABASE_URL`. Generate each secret (`BETTER_AUTH_SECRET`, `CRON_SECRET`) with `openssl rand -hex 32`.
-- Seeded names, prices, stock and copy are **placeholders**. Policies stay drafts until the owner publishes them; in development they render with a "DRAFT" banner.
-- Without Razorpay keys the checkout uses an in-memory **dev mock** of the payment dialog (development only; production refuses to start without real keys). Without a Resend key, emails (including sign-in codes) are written to `.dev-mail/` as `.html` and `.txt`.
-- Sign in to `/admin` with the account from `admin:create`; you are asked to enrol an authenticator app on first sign-in. Customers sign in with an emailed code.
+- The base seed and `db:seed-products` are **placeholders** for local work; `pnpm db:store-values` replaces them with the real catalogue and store values. Policies stay drafts until published; in development they render with a "DRAFT" banner.
+- Without Razorpay keys the checkout uses an in-memory **dev mock** of the payment dialog (development only; in production the store stays closed until all three Razorpay keys are set). Without a Resend key, emails are written to `.dev-mail/` as `.html` and `.txt`.
+- Sign in to `/admin` with the account from `admin:create`; you are asked to enrol an authenticator app on first sign-in.
 
 ## Scripts
 
@@ -63,6 +63,7 @@ Notes:
 | `pnpm visual` | Visual regression against the baselines (needs `E2E_VISUAL=1`; baselines are generated on the CI browser, see [tests/visual/README.md](tests/visual/README.md)) |
 | `pnpm visual:update` | Regenerate the visual baselines |
 | `pnpm contrast` | Check vibe token contrast pairs |
+| `pnpm brand:render` | Re-render the share card (`opengraph-image.png`), home-screen icons and favicon from the vibe tokens |
 | `pnpm db:generate` | Generate a Drizzle migration from the schema |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:studio` | Open Drizzle Studio |
