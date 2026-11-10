@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
  * Storefront e2e (home, collections, search, header). Run against a production build:
  *   NEXT_DIST_DIR=.next-shop pnpm exec next build && NEXT_DIST_DIR=.next-shop pnpm exec next start -p 3103
  *   E2E_BASE_URL=http://localhost:3103 pnpm exec playwright test storefront
- * Needs the dev database with the placeholder product seed (32 products).
+ * Needs the dev database with the placeholder product seed (26 active products: Hippers was retired in migration 0007).
  */
 
 const ORDER = ["cute", "funky", "bold", "gothic"] as const;
@@ -33,26 +33,22 @@ test.describe("home", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByTestId("hero-shop")).toBeVisible();
     await expect(page.getByTestId("hero-shop")).toHaveAttribute("href", "/shop");
-    // Poster: tiles of the active vibe only; every vibe's set is in the DOM.
-    await expect(page.locator('[data-testid^="hero-tiles-cute-"]:visible')).toHaveCount(2);
-    expect(await page.locator('[data-testid^="hero-tiles-"]').count()).toBe(8);
-    // Featured: every vibe's own list is in the DOM (4 to 8 cards: its own products first, padded only when it
-    // has fewer than 4); only the active vibe's list shows.
-    const featured = page.locator('section[aria-label="Featured products"]');
-    for (const v of ORDER) {
-      const count = await featured.locator(`div[data-v="${v}"] [data-testid="product-card"]`).count();
-      expect(count, `featured cards for ${v}`).toBeGreaterThanOrEqual(4);
-      expect(count, `featured cards for ${v}`).toBeLessThanOrEqual(8);
+    // Poster: one tile list on each side of the headline card, dealt from all four vibes (desktop shows 4 each).
+    for (const side of ["left", "right"]) {
+      await expect(page.locator(`[data-testid="hero-tiles-${side}"] li:visible`)).toHaveCount(4);
     }
-    const cuteCount = await featured.locator('div[data-v="cute"] [data-testid="product-card"]').count();
-    await expect(featured.locator('[data-testid="product-card"]:visible')).toHaveCount(cuteCount);
+    // Featured: one mixed grid of 8 cards from every vibe, whichever vibe is worn.
+    const featured = page.locator('section[aria-label="Featured products"]');
+    await expect(featured.locator('[data-testid="product-card"]:visible')).toHaveCount(8);
     // Four vibe cards, each in its own scope.
     for (const v of ORDER) {
       await expect(page.locator(`#vibes article[data-vibe="${v}"]`)).toBeVisible();
     }
   });
 
-  test("the hand button swaps hero copy and featured products with no content requests", async ({ page }) => {
+  test("the hand button changes the theme without changing the home page's mix, with no content requests", async ({
+    page,
+  }) => {
     await page.goto("/home?vibe=cute");
     const featured = 'section[aria-label="Featured products"]';
     await expect(page.locator(`${featured} [data-testid="product-card"]:visible`)).toHaveCount(8);
@@ -78,10 +74,9 @@ test.describe("home", () => {
     await expect.poll(() => htmlVibe(page)).toBe("gothic");
     await page.waitForTimeout(500);
 
-    const after = await visibleNames(page, featured);
-    expect(after).toHaveLength(8);
-    expect(after).not.toEqual(before);
-    expect(await page.getByRole("heading", { level: 1 }).innerText()).not.toBe(headlineBefore);
+    // The home page is every mood at once (html[data-mix]): the switch is the theme only, not the content.
+    expect(await visibleNames(page, featured)).toEqual(before);
+    expect(await page.getByRole("heading", { level: 1 }).innerText()).toBe(headlineBefore);
     expect(contentRequests).toEqual([]);
   });
 });
@@ -89,7 +84,7 @@ test.describe("home", () => {
 test.describe("collections", () => {
   test("/shop lists every product with facet counts, filters and sorts via the URL", async ({ page }) => {
     await page.goto("/shop");
-    await expect(page.getByTestId("result-count")).toHaveText("32 products");
+    await expect(page.getByTestId("result-count")).toHaveText("26 products");
     // First page is 24 products, with a Load more link to the next page.
     await expect(page.getByTestId("product-grid").getByTestId("product-card")).toHaveCount(24);
     await expect(page.getByRole("link", { name: "Load more" })).toHaveAttribute("href", /page=2/);
@@ -114,7 +109,7 @@ test.describe("collections", () => {
 
     // Unknown filter values are ignored, not an error.
     await page.goto("/shop?types=nope&vibes=nope&sort=nope");
-    await expect(page.getByTestId("result-count")).toHaveText("32 products");
+    await expect(page.getByTestId("result-count")).toHaveText("26 products");
   });
 
   test("the filter form updates the URL", async ({ page, isMobile }) => {
@@ -122,27 +117,27 @@ test.describe("collections", () => {
     if (isMobile) {
       await page.getByRole("button", { name: /^Filters/ }).click();
       const drawer = page.getByRole("dialog", { name: "Filters" });
-      await drawer.getByRole("checkbox", { name: /Hippers/ }).check();
-      await expect(page).toHaveURL(/types=hippers/);
+      await drawer.getByRole("checkbox", { name: /DIY Accessories/ }).check();
+      await expect(page).toHaveURL(/types=diy-accessories/);
       await drawer.getByRole("button", { name: /Show \d+ products/ }).click();
     } else {
-      await page.getByRole("complementary", { name: "Filters" }).getByRole("checkbox", { name: /Hippers/ }).check();
-      await expect(page).toHaveURL(/types=hippers/);
+      await page.getByRole("complementary", { name: "Filters" }).getByRole("checkbox", { name: /DIY Accessories/ }).check();
+      await expect(page).toHaveURL(/types=diy-accessories/);
     }
     await expect(page.getByTestId("result-count")).toHaveText("6 products");
     // The chip removes the filter again.
-    await page.getByRole("link", { name: "Remove filter: Hippers" }).click();
-    await expect(page.getByTestId("result-count")).toHaveText("32 products");
+    await page.getByRole("link", { name: "Remove filter: DIY Accessories" }).click();
+    await expect(page.getByTestId("result-count")).toHaveText("26 products");
     if (!isMobile) {
       // The sidebar follows the URL: the box is no longer ticked, and the next tick filters again.
-      const hippers = page.getByRole("complementary", { name: "Filters" }).getByRole("checkbox", { name: /Hippers/ });
-      await expect(hippers).not.toBeChecked();
-      await hippers.check();
-      await expect(page).toHaveURL(/types=hippers/);
+      const diy = page.getByRole("complementary", { name: "Filters" }).getByRole("checkbox", { name: /DIY Accessories/ });
+      await expect(diy).not.toBeChecked();
+      await diy.check();
+      await expect(page).toHaveURL(/types=diy-accessories/);
       await expect(page.getByTestId("result-count")).toHaveText("6 products");
       await page.getByRole("link", { name: "Clear all" }).click();
-      await expect(page.getByTestId("result-count")).toHaveText("32 products");
-      await expect(hippers).not.toBeChecked();
+      await expect(page.getByTestId("result-count")).toHaveText("26 products");
+      await expect(diy).not.toBeChecked();
     }
   });
 
@@ -160,10 +155,10 @@ test.describe("collections", () => {
     await expect(page.getByRole("heading", { level: 1, name: "After the Dark" })).toBeVisible();
     await expect.poll(() => htmlVibe(page)).toBe("gothic");
     // Vibe pages list only that vibe's products.
-    await expect(page.getByTestId("result-count")).toHaveText("10 products");
+    await expect(page.getByTestId("result-count")).toHaveText("8 products");
     // Leaving the page does not put the old vibe back.
-    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Shop all" }).click();
-    await expect(page).toHaveURL(/\/shop/);
+    await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Home" }).click();
+    await expect(page).toHaveURL(/\/home/);
     expect(await htmlVibe(page)).toBe("gothic");
   });
 
@@ -189,7 +184,7 @@ test.describe("collections", () => {
       );
     }
     expect(counts[0]).toBe(counts[1]);
-    expect(counts[0]).toBe("32 products/24");
+    expect(counts[0]).toBe("26 products/24");
   });
 });
 
@@ -241,71 +236,29 @@ test.describe("header", () => {
     await expect(page.locator('[data-testid="cart-button"]:visible')).toBeFocused();
     const primary = page.getByRole("navigation", { name: "Primary" });
     await page.keyboard.press("Tab");
-    await expect(primary.getByRole("button", { name: "Mochi" })).toBeFocused();
+    await expect(primary.getByRole("link", { name: "Home" })).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(primary.getByRole("button", { name: "Chaos Cabinet" })).toBeFocused();
+    await expect(primary.getByRole("link", { name: "About Us" })).toBeFocused();
   });
 
-  test("the four theme pills are buttons, the types and Shop all are links; the current page is tinted", async ({ page }) => {
-    await page.goto("/vibes/gothic");
-    const primary = page.getByRole("navigation", { name: "Primary" });
-    await expect(primary.getByRole("button")).toHaveCount(4); // the four themes
-    await expect(primary.getByRole("link")).toHaveCount(5); // 4 types + Shop all
-    await expect(primary.getByRole("link", { name: "Shop all" })).toHaveAttribute("href", "/shop");
-    const gothic = primary.getByRole("button", { name: "After the Dark" });
-    await expect(gothic).toHaveAttribute("aria-current", "page");
-    await expect(gothic).toHaveAttribute("aria-pressed", "true");
-    await expect(primary.getByRole("button", { name: "Mochi" })).toHaveAttribute("aria-pressed", "false");
-    await expect(primary.locator('[aria-current="page"]')).toHaveCount(1);
-    await page.goto("/types/charms");
-    await expect(primary.getByRole("link", { name: "Charms" })).toHaveAttribute("aria-current", "page");
-    await page.goto("/shop");
-    await expect(primary.getByRole("link", { name: "Shop all" })).toHaveAttribute("aria-current", "page");
+  test("the primary nav is four links and marks the current page", async ({ page }) => {
     await page.goto("/home");
+    const primary = page.getByRole("navigation", { name: "Primary" });
+    await expect(primary.getByRole("link")).toHaveCount(4);
+    await expect(primary.getByRole("button")).toHaveCount(0); // the theme is changed by the hand, not by pills
+    await expect(primary.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    await expect(primary.locator('[aria-current="page"]')).toHaveCount(1);
+    await page.goto("/about");
+    await expect(primary.getByRole("link", { name: "About Us" })).toHaveAttribute("aria-current", "page");
+    await page.goto("/shop");
     await expect(primary.locator('[aria-current="page"]')).toHaveCount(0);
   });
 
-  test("the pill of the current theme is the strong one on every page and follows the hand", async ({ page }) => {
-    const primary = page.getByRole("navigation", { name: "Primary" });
-    /** The accent fill is drawn only on the current theme's pill; page-active pills are a soft tint. */
-    const strong = async () =>
-      primary.locator(".nav-pill").evaluateAll((links) => {
-        const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
-        const probe = document.createElement("i");
-        probe.style.color = accent;
-        document.body.append(probe);
-        const rgb = getComputedStyle(probe).color;
-        probe.remove();
-        return links
-          .filter((a) => getComputedStyle(a.firstElementChild!).backgroundColor === rgb)
-          .map((a) => a.textContent);
-      });
-    await page.goto("/shop?vibe=bold");
-    await expect.poll(strong).toEqual(["Unapologetic"]);
-    await page.goto("/home?vibe=cute");
-    await expect.poll(strong).toEqual(["Mochi"]);
-    await page.locator("button[data-vibe-hand]").first().click();
-    await expect.poll(() => htmlVibe(page)).toBe("gothic");
-    await expect.poll(strong).toEqual(["After the Dark"]);
-  });
-
-  test("a theme pill switches the theme and stays on the page; on a collection page the page follows", async ({ page }) => {
-    const primary = page.getByRole("navigation", { name: "Primary" });
-    await page.goto("/types/charms?vibe=cute");
-    await page.waitForLoadState("networkidle");
-    const funky = primary.getByRole("button", { name: "Chaos Cabinet" });
-    await funky.click();
-    await expect.poll(() => htmlVibe(page)).toBe("funky");
-    await expect(funky).toHaveAttribute("aria-pressed", "true");
-    await expect(page).toHaveURL(/\/types\/charms/);
-    // On a theme's own page the pill (and the hand) move to the new theme's page.
-    await page.goto("/vibes/funky");
-    await page.waitForLoadState("networkidle");
-    await primary.getByRole("button", { name: "After the Dark" }).click();
-    await expect(page).toHaveURL(/\/vibes\/gothic/);
-    await expect.poll(() => htmlVibe(page)).toBe("gothic");
-    await expect(primary.getByRole("button", { name: "After the Dark" })).toHaveAttribute("aria-current", "page");
+  test("the hand on a collection page moves the theme and the page; elsewhere only the theme", async ({ page }) => {
     // Hand on a collection page: the theme and the page both move to the next vibe (gothic > funky).
+    await page.goto("/vibes/gothic");
+    await page.waitForLoadState("networkidle");
+    await expect.poll(() => htmlVibe(page)).toBe("gothic");
     await page.locator("button[data-vibe-hand]").first().click();
     await expect(page).toHaveURL(/\/vibes\/funky/);
     await expect.poll(() => htmlVibe(page)).toBe("funky");

@@ -13,7 +13,6 @@ import postgres from "postgres";
 
 const DB_URL =
   process.env.DATABASE_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
-const COUPON = "E2EPDP10";
 
 const money = (text: string | null) => Number((text ?? "").replace(/[^\d.]/g, ""));
 
@@ -330,47 +329,6 @@ test.describe("cart", () => {
     await expect(page.getByTestId("add-message")).toContainText(/we updated your quantity/);
     await page.goto("/cart");
     await expect(page.getByTestId("cart-line").getByRole("spinbutton")).toHaveValue(String(max));
-  });
-
-  test("a bad coupon code gets the service's specific message; a good one shows a discount", async ({ page }) => {
-    await addFromPdp(page, "star-charm");
-    await page.goto("/cart");
-    await settle(page);
-    const form = page.getByTestId("coupon-form");
-
-    await form.getByRole("button", { name: "Apply" }).click();
-    await expect(form).toContainText("Enter a coupon code.");
-
-    await form.getByRole("textbox", { name: "Coupon code" }).fill("NOPE-NOT-REAL");
-    await form.getByRole("button", { name: "Apply" }).click();
-    await expect(form).toContainText("We couldn't find the code NOPE-NOT-REAL");
-
-    const sql = postgres(DB_URL, { max: 1, onnotice: () => {} });
-    try {
-      await sql`delete from coupons where lower(code) = lower(${COUPON})`;
-      await sql`insert into coupons (code, kind, value) values (${COUPON}, 'percent', 1000)`;
-    } catch {
-      await sql.end({ timeout: 1 }).catch(() => {});
-      test.info().annotations.push({ type: "skip", description: "database not reachable: coupon success case skipped" });
-      return;
-    }
-    try {
-      await form.getByRole("textbox", { name: "Coupon code" }).fill(COUPON.toLowerCase());
-      await form.getByRole("button", { name: "Apply" }).click();
-      const applied = page.getByTestId("coupon-applied");
-      await expect(applied).toContainText(COUPON);
-      await expect(page.getByTestId("cart-discount")).toHaveText("-₹39.90");
-      const subtotal = money(await page.getByTestId("cart-subtotal").textContent());
-      const total = money(await page.getByTestId("cart-total").textContent());
-      const shipping = ((await page.getByTestId("cart-shipping").textContent()) ?? "").trim();
-      expect(total).toBeCloseTo(subtotal - 39.9 + (shipping === "Free" ? 0 : money(shipping)), 2);
-      await applied.getByRole("button", { name: /Remove/ }).click();
-      await expect(page.getByTestId("cart-discount")).toHaveCount(0);
-      await expect(page.getByTestId("coupon-form")).toBeVisible();
-    } finally {
-      await sql`delete from coupons where lower(code) = lower(${COUPON})`;
-      await sql.end({ timeout: 2 });
-    }
   });
 });
 

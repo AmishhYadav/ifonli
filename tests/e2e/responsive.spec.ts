@@ -244,11 +244,13 @@ test.describe("product page sticky bar", () => {
   test("the bar stays on screen, is compact, and never covers the end of the page", async ({
     page,
   }) => {
+    // The bar is fixed to the bottom only on phones (on desktop it sits in the buy column), so check it at 390px.
+    await page.setViewportSize({ width: 390, height: 844 });
     await gotoVibe(page, `/products/${productSlug}`, "bold");
     await settle(page);
     const button = page.getByTestId("add-to-cart");
     await expect(button).toBeVisible();
-    const bar = button.locator("xpath=ancestor::div[contains(@class,'sticky')][1]");
+    const bar = page.getByTestId("add-to-cart-bar");
     const viewport = page.viewportSize()!;
 
     // Scrolled into the details the bar is pinned to the bottom edge and takes at most a quarter of the screen.
@@ -259,13 +261,21 @@ test.describe("product page sticky bar", () => {
     expect(pinned.height).toBeLessThanOrEqual(viewport.height * 0.25);
 
     // At the very end of the page nothing sits underneath it.
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await page.waitForTimeout(300);
+    // Below-fold sections use content-visibility: auto, so the page grows as they render on the way down. Keep
+    // scrolling to the end until the height stops changing, or links still passing under the bar would count.
+    let lastHeight = -1;
+    for (let i = 0; i < 20; i++) {
+      const height = await page.evaluate(() => {
+        window.scrollTo(0, document.documentElement.scrollHeight);
+        return document.documentElement.scrollHeight;
+      });
+      await page.waitForTimeout(250);
+      if (height === lastHeight) break;
+      lastHeight = height;
+    }
     const covered = await page.evaluate(() => {
-      const btn = document.querySelector<HTMLElement>('[data-testid="add-to-cart"]');
-      let barEl = btn?.parentElement ?? null;
-      while (barEl && !barEl.className.toString().includes("sticky")) barEl = barEl.parentElement;
-      if (!barEl) return [];
+      const barEl = document.querySelector<HTMLElement>('[data-testid="add-to-cart-bar"]');
+      if (!barEl) return ["(no add-to-cart bar)"];
       const b = barEl.getBoundingClientRect();
       const hits: string[] = [];
       const candidates = document.querySelectorAll<HTMLElement>(
@@ -282,7 +292,7 @@ test.describe("product page sticky bar", () => {
       }
       return hits;
     });
-    expect(covered, "content hidden under the sticky bar at the end of the page").toEqual([]);
+    expect(covered, "content hidden under the buy bar at the end of the page").toEqual([]);
   });
 });
 

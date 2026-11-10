@@ -1,20 +1,18 @@
 import { randomBytes } from "node:crypto";
-import { readdir, readFile } from "node:fs/promises";
-import path from "node:path";
 
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { config } from "dotenv";
 import postgres from "postgres";
+import { signInCustomer } from "../support/commerce";
 import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
 /**
- * Customer accounts e2e: passwordless e-mail OTP login (the code is read from the dev mail channel's
- * `.dev-mail/` folder, exactly what a person reads in their inbox), profile, saved addresses, checkout
- * prefill, order history, cancel from the account, "Create an account" from a guest order, wishlist
- * sync, data export and account deletion.
+ * Customer accounts e2e: the signed-out My Profile fallback, then (with a real customer session; the e-mail code
+ * sign-in was retired) profile, saved addresses, checkout prefill, order history, cancel from the account, guest
+ * order reports, wishlist sync, data export and account deletion.
  *
- * Needs the dev server (same machine, so `.dev-mail/` is shared) and the seeded dev database:
+ * Needs the dev server and the seeded dev database:
  *
  *   NEXT_DIST_DIR=.next-a pnpm exec next dev -p 3101
  *   E2E_BASE_URL=http://localhost:3101 pnpm e2e tests/e2e/account.spec.ts --project=chromium-desktop
@@ -51,7 +49,7 @@ const TEST_SETTINGS: Record<string, unknown> = {
 const PINCODE = "400001";
 const SKU = "PH-CHARM-HEART-LILAC";
 const EMAIL_PREFIX = "e2e-account-";
-const MAIL_DIR = path.join(process.cwd(), ".dev-mail");
+const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 
 interface Snapshot {
   settings: { key: string; value: unknown; is_placeholder: boolean }[];
@@ -125,41 +123,21 @@ test.beforeEach(({}, testInfo) => {
 });
 test.setTimeout(120_000);
 
-/** The newest sign-in code mailed to `email` (the dev channel writes `.txt` twins with the subject). */
-async function readOtp(email: string): Promise<string> {
-  for (let attempt = 0; attempt < 40; attempt++) {
-    let names: string[] = [];
-    try {
-      names = (await readdir(MAIL_DIR)).filter((n) => n.endsWith(".txt")).sort().reverse();
-    } catch {
-      /* folder not created yet */
-    }
-    for (const name of names.slice(0, 40)) {
-      const body = await readFile(path.join(MAIL_DIR, name), "utf8");
-      if (!body.startsWith(`To: ${email}\n`)) continue;
-      const code = body.match(/Subject: (\d{6}) is your sign-in code/)?.[1];
-      if (code) return code;
-    }
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  throw new Error(`No sign-in code mailed to ${email}`);
-}
-
 /** Waits for hydration so typed text is not thrown away by React attaching late. */
 async function settle(page: Page) {
   await page.waitForLoadState("networkidle");
 }
 
-/** Full OTP sign-in through the UI. Returns once the post-login page is showing. */
-async function signIn(page: Page, email: string, from = "/account/login") {
-  await page.goto(from);
-  await settle(page);
-  await page.getByLabel("Email").fill(email);
-  await page.getByRole("button", { name: "Email me a code" }).click();
-  await expect(page.getByTestId("login-info")).toContainText(email);
-  const code = await readOtp(email);
-  await page.getByLabel("6-digit code").fill(code);
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+/**
+ * Signs `email` in with a real customer session (the email-code form was retired; existing sessions still reach
+ * the account area) and opens the account area, where the section nav and Sign out show.
+ */
+async function signIn(page: Page, email: string) {
+  await signInCustomer(page.context(), BASE_URL, email);
+  // The real sign-in also set this hint, which tells the browser to start the account wishlist sync.
+  await page.context().addCookies([{ name: "ifonli_acct", value: "1", url: BASE_URL, sameSite: "Lax" }]);
+  await page.goto("/account/orders");
+  await expect(page.getByTestId("sign-out")).toBeVisible();
 }
 
 async function seedCart(context: BrowserContext, baseURL: string, qty = 1) {
@@ -177,69 +155,22 @@ async function openCheckout(page: Page) {
 const tid = (page: Page, id: string) => page.locator(`[data-testid="${id}"]:visible`);
 
 test.describe("login", () => {
-  test("signed-out visitors are sent to the login and come back to where they were going", async ({ page }) => {
+  test("signed-out visitors to the account area land on My Profile (the email sign-in was retired)", async ({ page }) => {
     await page.goto("/account/orders");
-    await expect(page).toHaveURL(/\/account\/login\?next=%2Faccount%2Forders/);
-    await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();
-    await expect(page.locator("meta[name=robots]")).toHaveAttribute("content", /noindex/);
-
-    const email = newEmail();
-    await settle(page);
-    await page.getByLabel("Email").fill(email);
-    await page.getByRole("button", { name: "Email me a code" }).click();
-    await expect(page.getByTestId("login-info")).toContainText(email);
-
-    // A wrong code is refused with a plain message and no sign-in.
-    await page.getByLabel("6-digit code").fill("000000");
-    await page.getByRole("button", { name: "Sign in", exact: true }).click();
-    await expect(page.getByText("That code isn't right, or it has expired")).toBeVisible();
-    await expect(page).toHaveURL(/\/account\/login/);
-
-    const code = await readOtp(email);
-    await page.getByLabel("6-digit code").fill(code);
-    await page.getByRole("button", { name: "Sign in", exact: true }).click();
-    await expect(page).toHaveURL(/\/account\/orders(\?vibe=[a-z]+)?$/);
-    await expect(page.getByRole("heading", { name: "Your orders", level: 1 })).toBeVisible();
-    await expect(page.getByText("No orders yet")).toBeVisible();
-
-    // The account was created as a customer, with its profile.
-    const [row] = await sql<{ role: string; email_verified: boolean }[]>`select role, email_verified from "user" where email = ${email}`;
-    expect(row).toEqual({ role: "customer", email_verified: true });
-
-    // Sign out ends the session: the account area asks for a login again.
-    await page.getByTestId("sign-out").click();
-    await expect(page).toHaveURL(/\/home(\?vibe=[a-z]+)?$/);
-    await page.goto("/account");
-    await expect(page).toHaveURL(/\/account\/login/);
-  });
-
-  test("a bad email is refused; an off-site next is ignored", async ({ page }) => {
-    await page.goto("/account/login?next=//evil.example/steal");
-    await settle(page);
-    await page.getByLabel("Email").fill("not-an-email");
-    await page.getByRole("button", { name: "Email me a code" }).click();
-    await expect(page.getByText("Enter a valid email address")).toBeVisible();
-    await expect(page.getByLabel("Email")).toHaveAttribute("aria-invalid", "true");
-
-    const email = newEmail();
-    await page.getByLabel("Email").fill(email);
-    await page.getByRole("button", { name: "Email me a code" }).click();
-    await expect(page.getByTestId("login-info")).toBeVisible();
-    await page.getByLabel("6-digit code").fill(await readOtp(email));
-    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page).toHaveURL(/\/account(\?vibe=[a-z]+)?$/);
-    await expect(page.getByTestId("account-heading")).toBeVisible();
+    await page.goto("/account/login");
+    await expect(page).toHaveURL(/\/account(\?vibe=[a-z]+)?$/);
+    await expect(page.locator("meta[name=robots]")).toHaveAttribute("content", /noindex/);
   });
 
-  test("the login and account pages have no serious accessibility violations", async ({ page }) => {
-    await page.goto("/account/login");
+  test("My Profile and the account pages have no serious accessibility violations", async ({ page }) => {
+    await page.goto("/account");
     await settle(page);
-    const login = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
-    expect(login.violations.filter((v) => v.impact === "serious" || v.impact === "critical")).toEqual([]);
+    const profile = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
+    expect(profile.violations.filter((v) => v.impact === "serious" || v.impact === "critical")).toEqual([]);
 
     await signIn(page, newEmail());
-    await expect(page.getByTestId("account-heading")).toBeVisible();
-    for (const route of ["/account", "/account/addresses", "/account/profile", "/account/orders"]) {
+    for (const route of ["/account/addresses", "/account/profile", "/account/orders"]) {
       await page.goto(route);
       await settle(page);
       const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag22aa"]).analyze();
@@ -259,7 +190,6 @@ test.describe("profile, addresses and checkout", () => {
   }) => {
     const email = newEmail();
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/account(\?vibe=[a-z]+)?$/);
 
     // Profile
     await page.getByRole("link", { name: "Profile and privacy" }).first().click();
@@ -351,8 +281,8 @@ test.describe("profile, addresses and checkout", () => {
   });
 });
 
-test.describe("guest order to account", () => {
-  test("a guest order page offers 'Create an account'; the new account sees that order and can report a problem", async ({
+test.describe("guest order", () => {
+  test("a guest can report a problem from the order page; nobody else's order is shown", async ({
     page,
     context,
     baseURL,
@@ -400,21 +330,12 @@ test.describe("guest order to account", () => {
     const alerts = await sql`select 1 from notification_outbox where template = 'support_case_update' and "to" = ${email}`;
     expect(alerts.length).toBe(1);
 
-    // Create an account from the order page: the email is prefilled, and after the code the order is there.
-    await page.getByRole("link", { name: "Create an account" }).click();
-    await expect(page).toHaveURL(/\/account\/login\?email=/);
-    await settle(page);
-    await expect(page.getByTestId("login-email")).toHaveValue(email);
-    await page.getByTestId("login-send").click();
-    await expect(page.getByTestId("login-info")).toContainText(email);
-    await page.getByTestId("login-otp").fill(await readOtp(email));
-    await page.getByTestId("login-verify").click();
-    await expect(page).toHaveURL(/\/account(\?vibe=[a-z]+)?$/);
-    await expect(page.getByTestId("account-orders")).toContainText(ref);
+    // The retired email sign-in is not offered on the order page.
+    await expect(page.getByTestId("create-account")).toHaveCount(0);
 
-    // Somebody else's order is not found, signed in or not.
+    // The account order pages need a session: signed out, an order link falls back to My Profile and shows no order.
     await page.goto("/account/orders/IFO-0000-NOPE");
-    await expect(page.getByText("404", { exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/account(\?vibe=[a-z]+)?$/);
     await expect(page.getByTestId("order-ref")).toHaveCount(0);
   });
 });
@@ -429,7 +350,6 @@ test.describe("wishlist sync", () => {
     await expect(hearts.first()).toHaveAttribute("aria-pressed", "true");
 
     await signIn(page, email);
-    await expect(page.getByTestId("account-heading")).toBeVisible();
     await expect
       .poll(
         async () => {
@@ -462,7 +382,6 @@ test.describe("privacy", () => {
     const email = newEmail();
     await seedCart(context, baseURL!);
     await signIn(page, email);
-    await expect(page.getByTestId("account-heading")).toBeVisible();
 
     // Put an order on the account so there is something to keep.
     await openCheckout(page);
@@ -507,9 +426,9 @@ test.describe("privacy", () => {
     const audit = await sql`select 1 from admin_audit_log where action = 'customer.delete'`;
     expect(audit.length).toBeGreaterThan(0);
 
-    // The session is gone: the account area asks for a login.
-    await page.goto("/account");
-    await expect(page).toHaveURL(/\/account\/login/);
+    // The session is gone: the account area falls back to My Profile.
+    await page.goto("/account/orders");
+    await expect(page).toHaveURL(/\/account(\?vibe=[a-z]+)?$/);
     // No export without a session.
     expect((await page.request.get("/api/account/export")).status()).toBe(401);
   });

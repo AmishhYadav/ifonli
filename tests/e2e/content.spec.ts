@@ -172,7 +172,12 @@ test.describe("accessibility", () => {
         await page.goto(`${path}?vibe=${vibe}`);
         await expect(page.locator("html")).toHaveAttribute("data-vibe", vibe);
         await page.waitForLoadState("networkidle");
-        if (path === "/help") await page.getByTestId("faq-delivery").getByRole("button").first().click();
+        if (path === "/help") {
+          await page.getByTestId("faq-delivery").getByRole("button").first().click();
+          // Opening the answer scrolls the page; mid-scroll the sticky header always overlaps whatever is under it,
+          // which axe reports as an obscured target. Check the page from the top, with the answer still open.
+          await page.evaluate(() => window.scrollTo(0, 0));
+        }
         expect(await seriousViolations(page)).toEqual([]);
       });
     }

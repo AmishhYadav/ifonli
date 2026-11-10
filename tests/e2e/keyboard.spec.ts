@@ -369,10 +369,9 @@ test.describe("dialogs and account forms", () => {
     "/account/orders",
     "/account/addresses",
     "/account/profile",
-    "/account/login",
   ]) {
     test(`${path}: every stop shows a focus indicator`, async ({ page, context, baseURL }) => {
-      if (path !== "/account/login") await signInCustomer(context, baseURL!, SHOPPER);
+      await signInCustomer(context, baseURL!, SHOPPER);
       await gotoVibe(page, path, "funky");
       await page.waitForLoadState("networkidle");
       await expectVisibleFocus(page, path, 70);

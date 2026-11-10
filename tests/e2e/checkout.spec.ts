@@ -384,10 +384,8 @@ test.describe("payment and order page", () => {
     );
     await expect(actions.getByRole("button", { name: "Cancel order" })).toBeVisible();
     await expect(actions.getByRole("button", { name: "Report a problem" })).toBeVisible();
-    await expect(actions.getByRole("link", { name: "Create an account" })).toHaveAttribute(
-      "href",
-      /\/account\/login\?email=/,
-    );
+    // The email sign-in was retired, so guests are no longer offered an account here.
+    await expect(actions.getByRole("link", { name: "Create an account" })).toHaveCount(0);
     expect(email).toContain(EMAIL_PREFIX);
   });
 

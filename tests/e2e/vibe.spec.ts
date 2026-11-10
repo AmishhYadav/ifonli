@@ -151,7 +151,7 @@ test("(b) vibe persists across reload and navigation", async ({ page, context })
   expect(await htmlVibe(page)).toBe("funky");
 });
 
-test("(c) /?vibe=gothic renders gothic before first paint, then persists", async ({ browser }) => {
+test("(c) ?vibe=gothic renders gothic before first paint, then persists", async ({ browser }) => {
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.addInitScript(() => {
@@ -176,7 +176,8 @@ test("(c) /?vibe=gothic renders gothic before first paint, then persists", async
     }).observe({ type: "paint", buffered: true });
   });
 
-  await page.goto("/home?vibe=gothic", { waitUntil: "load" });
+  // /shop wears the vibe; /home is every mood on a neutral ground (html[data-mix]), so its --bg is not gothic.
+  await page.goto("/shop?vibe=gothic", { waitUntil: "load" });
   await page.waitForTimeout(500); // let hydration finish and any bad reset show up
   const log = await page.evaluate(
     () =>

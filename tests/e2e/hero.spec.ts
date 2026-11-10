@@ -517,7 +517,8 @@ test.describe("vibe switch", () => {
     await expect.poll(async () => (await state(page)).profile, { timeout: 1500 }).toBe(target);
     const s = await state(page);
     expect(s.t).toBeLessThan(1.2); // scene 1: the new profile's intro, not mid-loop
-    expect(await tileNames(page)).not.toEqual(tilesBefore);
+    // The home hero shows every mood whichever vibe is worn, so the switch replays the same mixed tiles.
+    expect(await tileNames(page)).toEqual(tilesBefore);
     await expect.poll(async () => (await state(page)).switching, { timeout: 2000 }).toBeNull();
     const a = (await state(page)).t;
     await page.waitForTimeout(500);
