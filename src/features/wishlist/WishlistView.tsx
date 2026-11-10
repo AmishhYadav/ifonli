@@ -115,6 +115,7 @@ export function WishlistView({ emptyTitle, emptyBody }: WishlistViewProps) {
           </Button>
         </div>
       ) : null}
+      <h2 className="sr-only">Saved products</h2>
       <ProductGrid data-testid="wishlist-grid">
         {items.map(({ product, image, isCutout }, i) => (
           <ProductGridItem key={product.id}>

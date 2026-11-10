@@ -9,6 +9,7 @@ import { getCurrentCartView } from "@/features/cart/queries";
 
 export const metadata: Metadata = {
   title: "Your bag",
+  description: "The items in your bag and what they cost, before you check out.",
   robots: { index: false, follow: false },
   alternates: { canonical: "/cart" },
 };

@@ -23,6 +23,16 @@ export const POLICY_SLUGS = [
 ] as const;
 export type PolicySlug = (typeof POLICY_SLUGS)[number];
 
+/** One plain sentence per policy: the index cards and each policy page's meta description. */
+export const POLICY_BLURBS: Record<PolicySlug, string> = {
+  shipping: "Where we deliver, how long it takes and what it costs.",
+  cancellation: "When you can cancel an order and how refunds work.",
+  "returns-refunds": "Returns, replacements and refunds for damaged or wrong items.",
+  privacy: "What personal data we collect, why, and your rights.",
+  terms: "The rules for using the site and buying from us.",
+  "seller-information": "Who we are, where we are registered and how to reach us.",
+};
+
 export function isPolicySlug(slug: string): slug is PolicySlug {
   return (POLICY_SLUGS as readonly string[]).includes(slug);
 }

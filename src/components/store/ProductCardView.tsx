@@ -33,6 +33,8 @@ export interface ProductCardViewProps {
   sizes?: string;
   /** Load eagerly (first row above the fold) instead of lazily. */
   eager?: boolean;
+  /** Ask the browser to fetch this image first (`fetchPriority="high"`): only for the card(s) that can be the LCP element. */
+  priority?: boolean;
   /** Slot in the top-right corner for the wishlist heart (a button, 44px target). */
   wishlist?: ReactNode;
   className?: string;
@@ -64,6 +66,7 @@ export function ProductCardView({
   isCutout,
   sizes = DEFAULT_CARD_SIZES,
   eager = false,
+  priority = false,
   wishlist,
   className,
 }: ProductCardViewProps) {
@@ -100,6 +103,7 @@ export function ProductCardView({
             fill
             sizes={sizes}
             loading={eager ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
             className={cn(
               "transition-transform ease-vibe group-hover:scale-[1.04]",
               isCutout ? "object-contain p-[12%]" : "object-cover",

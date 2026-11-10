@@ -10,6 +10,8 @@ export interface ProductCardProps {
   product: ProductCardData;
   sizes?: string;
   eager?: boolean;
+  /** `fetchPriority="high"` for the image: the first card(s) of a listing, which can be the LCP element. */
+  priority?: boolean;
   /** Wishlist heart (a client component) rendered top-right; the wishlist feature plugs in here later. */
   wishlist?: ReactNode;
   className?: string;

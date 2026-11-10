@@ -256,12 +256,16 @@ export async function ListingSection({
 
           {items.length > 0 ? (
             <>
+              {/* Product names are h3: this keeps the outline h1 > h2 > h3 without a visible heading. */}
+              <h2 className="sr-only">Products</h2>
               <ProductGrid data-testid="product-grid">
                 {items.map((product, i) => (
                   <ProductGridItem key={product.id}>
                     <ProductCard
                       product={product}
                       eager={i < 4}
+                      // Two columns on a phone: the first row is the LCP candidate.
+                      priority={i < 2}
                       sizes={GRID_SIZES}
                       wishlist={<WishlistHeart productId={product.id} productName={product.name} />}
                     />

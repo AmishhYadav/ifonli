@@ -11,7 +11,7 @@ import { Breadcrumbs } from "@/components/store/listing/CollectionHeader";
 import type { Crumb } from "@/lib/seo";
 import { getStoreInfo } from "@/server/cache/settings";
 import { getPolicyPage } from "@/server/content/cached";
-import { POLICY_SLUGS, isPolicySlug } from "@/server/content/policies";
+import { POLICY_BLURBS, POLICY_SLUGS, isPolicySlug } from "@/server/content/policies";
 
 /**
  * Known policy slugs are prerendered. `params` is read first so an unknown slug renders the themed
@@ -36,8 +36,10 @@ export async function generateMetadata({
   if (!isPolicySlug(slug)) return {};
   const policy = await getPolicyPage(slug);
   const hidden = !policy || policy.withheld !== null || policy.draft;
+  const title = policy?.title ?? fallbackTitle(slug);
   return {
-    title: policy?.title ?? fallbackTitle(slug),
+    title,
+    description: `${title}. ${POLICY_BLURBS[slug]}`,
     alternates: { canonical: `/policies/${slug}` },
     robots: hidden ? { index: false, follow: true } : undefined,
   };

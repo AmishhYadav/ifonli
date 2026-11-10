@@ -1,5 +1,5 @@
 {
-  "_note": "Store values for the IfOnli college-project build (2026-11-01). Not legally reviewed. Contact details marked SWAP must be replaced with real ones before the site is shared publicly. Money is in paise.",
+  "_note": "Store values for the IfOnli college-project build (2026-11-01). Not legally reviewed. Money is in paise.",
 
   "legal_name": "IfOnli Studio",
   "brand_name": "IfOnli",
@@ -68,8 +68,8 @@
   "consent_required": true,
   "event_retention_months": 13,
 
-  "policy.jurisdiction_city": "Mumbai",
-  "policy.processors": "**Razorpay** (online payments and refunds), our **courier partners** (delivery), **Resend** (order e-mails and sign-in codes), **Supabase** (database and image storage, Mumbai region) and **Vercel** (website hosting).",
+  "policy.jurisdiction_city": "Bengaluru",
+  "policy.processors": "**Razorpay** (online payments and refunds), our **courier partners** (delivery), **Resend** (order and support e-mails), **Supabase** (database and image storage, Mumbai region) and **Vercel** (website hosting).",
   "policy.materials_note": "charms are made from zinc alloy or stainless steel with enamel, resin or acrylic details. 3D stickers are layered vinyl with a clear domed resin top. DIY kits use glass, acrylic and polymer-clay beads with stainless-steel rings and findings. Keep pieces away from water, perfume and harsh cleaners so the finish lasts.",
   "policy.handmade_note": "Many pieces are finished by hand, so small differences in colour, shape and finish from the photos are normal and are not defects.",
   "policy.working_days": "Monday to Saturday",
@@ -84,6 +84,6 @@
   "policy.non_returnable_items": "- Opened DIY kits and loose beads\n- 3D stickers that have been peeled off their backing\n- Items marked final sale",
   "policy.return_shipping_rule": "for a change-of-mind return you send the parcel back to us with a tracked courier and pay the return shipping. For a damaged, defective or wrong item we arrange the pickup at no cost to you.",
   "policy.shipping_fee_refund_rule": "refunded in full when the whole order is cancelled before dispatch, or when an item arrives damaged, defective or wrong. They are not refunded on other partial refunds.",
-  "policy.retention_order_records": "8 years from the end of the financial year in which the order was placed, because tax law requires it",
+  "policy.retention_order_records": "8 years from the end of the financial year in which the order was placed, so we can answer questions about an order and handle any dispute",
   "policy.retention_period": "for as long as your account is open, and deleted within 30 days after you delete your account (support messages and photos are deleted 1 year after the case is closed)"
 }

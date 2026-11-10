@@ -8,7 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import type { Crumb } from "@/lib/seo";
 import { getStoreInfo } from "@/server/cache/settings";
 import { getPolicyIndex } from "@/server/content/cached";
-import type { PolicySlug } from "@/server/content/policies";
+import { POLICY_BLURBS, type PolicySlug } from "@/server/content/policies";
 
 export const instant = false;
 
@@ -16,15 +16,6 @@ export const metadata: Metadata = {
   title: "Policies",
   description: "Shipping, cancellation, returns and refunds, privacy, terms and conditions and seller information.",
   alternates: { canonical: "/policies" },
-};
-
-const BLURBS: Record<PolicySlug, string> = {
-  shipping: "Where we deliver, how long it takes and what it costs.",
-  cancellation: "When you can cancel an order and how refunds work.",
-  "returns-refunds": "Returns, replacements and refunds for damaged or wrong items.",
-  privacy: "What personal data we collect, why, and your rights.",
-  terms: "The rules for using the site and buying from us.",
-  "seller-information": "Who we are, where we are registered and how to reach us.",
 };
 
 const crumbs: Crumb[] = [
@@ -60,7 +51,7 @@ export default async function PoliciesPage() {
                   <Icon name="arrow-right" className="mt-1 size-5 flex-none" />
                 </span>
                 <span className="text-base text-ink-muted">
-                  {BLURBS[policy.slug as PolicySlug]}
+                  {POLICY_BLURBS[policy.slug as PolicySlug]}
                 </span>
                 {!policy.published ? <Badge tone="warning" className="self-start">Draft</Badge> : null}
               </Link>

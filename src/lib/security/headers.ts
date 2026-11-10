@@ -25,7 +25,7 @@ export interface SecurityHeaderOptions {
   production: boolean;
   /** `report-only` or `enforce`. Anything else falls back to `report-only`. */
   mode?: string | undefined;
-  /** Public site origin, e.g. https://ifonli.in. `https:` turns on upgrade-insecure-requests. */
+  /** Public site origin, e.g. https://ifonli.in. `https:` turns on upgrade-insecure-requests (enforce mode only). */
   siteUrl?: string | undefined;
   /** Supabase project URL (SUPABASE_URL / NEXT_PUBLIC_SUPABASE_URL): storage images and media. */
   supabaseUrl?: string | undefined;
@@ -95,8 +95,15 @@ export function buildBaselinePolicy(): string {
   return ["frame-ancestors 'none'", "object-src 'none'", "base-uri 'self'"].join("; ");
 }
 
-/** The full policy. */
-export function buildContentSecurityPolicy(options: SecurityHeaderOptions): string {
+/**
+ * The full policy. `reportOnly` builds the copy for the Report-Only header, which must not carry
+ * `upgrade-insecure-requests` (browsers ignore it there and log a console error that costs a Lighthouse
+ * best-practices point on every page); it is only meaningful in the enforced policy.
+ */
+export function buildContentSecurityPolicy(
+  options: SecurityHeaderOptions,
+  { reportOnly = false }: { reportOnly?: boolean } = {},
+): string {
   const { production } = options;
   const supabase = originOf(options.supabaseUrl);
   const report = options.reportPath ?? CSP_REPORT_PATH;
@@ -145,7 +152,7 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions): stri
     `report-uri ${report}`,
     "report-to csp",
   ];
-  if (production && httpsSite) directives.push("upgrade-insecure-requests");
+  if (production && httpsSite && !reportOnly) directives.push("upgrade-insecure-requests");
   return directives.join("; ");
 }
 
@@ -166,14 +173,16 @@ export function buildPermissionsPolicy(): string {
 export function buildSecurityHeaders(options: SecurityHeaderOptions): HeaderEntry[] {
   const mode = resolveCspMode(options.mode);
   const report = options.reportPath ?? CSP_REPORT_PATH;
-  const full = buildContentSecurityPolicy(options);
 
   const headers: HeaderEntry[] =
     mode === "enforce"
-      ? [{ key: "Content-Security-Policy", value: full }]
+      ? [{ key: "Content-Security-Policy", value: buildContentSecurityPolicy(options) }]
       : [
           { key: "Content-Security-Policy", value: buildBaselinePolicy() },
-          { key: "Content-Security-Policy-Report-Only", value: full },
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value: buildContentSecurityPolicy(options, { reportOnly: true }),
+          },
         ];
 
   headers.push(

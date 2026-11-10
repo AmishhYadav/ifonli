@@ -115,9 +115,18 @@ describe("buildSecurityHeaders", () => {
     expect(header(headers, "Reporting-Endpoints")).toBe('csp="/api/csp-report"');
   });
 
+  it("keeps upgrade-insecure-requests out of the report-only header (browsers ignore it there and log an error)", () => {
+    const headers = buildSecurityHeaders({ ...base, mode: undefined });
+    expect(header(headers, "Content-Security-Policy-Report-Only")).not.toContain(
+      "upgrade-insecure-requests",
+    );
+    expect(header(headers, "Content-Security-Policy")).not.toContain("upgrade-insecure-requests");
+  });
+
   it("enforce mode enforces the full policy and drops the report-only header", () => {
     const headers = buildSecurityHeaders({ ...base, mode: "enforce" });
     expect(header(headers, "Content-Security-Policy")).toContain("script-src");
+    expect(header(headers, "Content-Security-Policy")).toContain("upgrade-insecure-requests");
     expect(header(headers, "Content-Security-Policy-Report-Only")).toBeUndefined();
   });
 
