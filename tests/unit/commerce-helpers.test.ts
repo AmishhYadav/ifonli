@@ -8,6 +8,7 @@ const settings = (over: Partial<CommerceSettings["cod"]> = {}): CommerceSettings
   shipping: {
     flatFeePaise: 5000,
     freeThresholdPaise: 50000,
+    freePincodes: [],
     zoneFeeOverridesPaise: {},
     serviceabilityMode: "all_india",
     processingDays: 1,

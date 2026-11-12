@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { applyOptimistic, shippingNote, shippingValue } from "@/components/store/cart/cart-math";
+import {
+  applyOptimistic,
+  isFreeShippingPincode,
+  shippingNote,
+  shippingValue,
+  withPincodeShipping,
+} from "@/components/store/cart/cart-math";
 import { EMPTY_CART_VIEW } from "@/components/store/cart/empty-cart";
 import type { CartView, CartViewLine } from "@/features/cart/types";
 
@@ -93,5 +99,42 @@ describe("shipping wording", () => {
     expect(shippingNote({ ...base, freeThresholdPaise: 49900, freeShippingRemainingPaise: 0 })).toBe(
       "You've unlocked free shipping.",
     );
+  });
+});
+
+describe("free-shipping pincode estimate", () => {
+  const base = {
+    ...EMPTY_CART_VIEW.pricing,
+    freeShippingPincodes: ["560064"],
+    freeThresholdPaise: 19900,
+    freeShippingRemainingPaise: 10000,
+    shippingPaise: 4900,
+    totalPaise: 14900,
+    messages: ["Add ₹100 more for free shipping"],
+  };
+
+  it("recognises only exact listed pincodes", () => {
+    expect(isFreeShippingPincode(base, "560064")).toBe(true);
+    expect(isFreeShippingPincode(base, "560065")).toBe(false);
+    expect(isFreeShippingPincode(base, null)).toBe(false);
+    expect(isFreeShippingPincode(base, "")).toBe(false);
+  });
+
+  it("shows shipping as free and drops the nag once the pincode is known", () => {
+    expect(shippingValue(base, true, "560064")).toBe("Free");
+    expect(shippingValue(base, true, "560001")).toBe("₹49");
+    expect(shippingValue(base, true)).toBe("₹49");
+    expect(shippingNote(base, "560064")).toBe("Free shipping to your pincode.");
+    expect(shippingNote(base, "560001")).toBe("Free shipping above ₹199. Add ₹100 more.");
+  });
+
+  it("withPincodeShipping zeroes the fee, takes it off the total and clears the progress text", () => {
+    expect(withPincodeShipping(base, "560064")).toMatchObject({
+      shippingPaise: 0,
+      totalPaise: 10000,
+      freeShippingRemainingPaise: 0,
+      messages: [],
+    });
+    expect(withPincodeShipping(base, "560001")).toBe(base);
   });
 });

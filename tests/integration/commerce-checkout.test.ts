@@ -29,6 +29,46 @@ async function quote(
   return getCheckoutQuote(db(), cart.id, { now: NOW, ...req });
 }
 
+describe("getCheckoutQuote: free-shipping pincodes", () => {
+  beforeEach(async () => {
+    const { pincodes } = await import("@/server/db/schema");
+    await db()
+      .insert(pincodes)
+      .values({ pincode: "560064", district: "Bengaluru", stateCode: "29", zone: "rest_of_india" });
+  });
+
+  it("ships free to a listed pincode below the threshold, with no free-shipping nag", async () => {
+    const q = await quote([{ variantId: f.variants.ghost!, qty: 1 }], { pincode: "560064" }); // 129
+    expect(q.pricing).toMatchObject({
+      subtotalPaise: 12900,
+      shippingPaise: 0,
+      totalPaise: 12900,
+      freeShippingRemainingPaise: 0,
+      messages: ["Free shipping to your pincode."],
+    });
+    expect(q.cart.pricing.freeShippingPincodes).toEqual(["560064"]);
+    expect(q.canPlaceOrder).toBe(true);
+  });
+
+  it("still charges shipping to any other pincode and before a pincode is entered", async () => {
+    const other = await quote([{ variantId: f.variants.ghost!, qty: 1 }], { pincode: "560001" });
+    expect(other.pricing).toMatchObject({ shippingPaise: 5000, totalPaise: 17900 });
+    const none = await quote([{ variantId: f.variants.ghost!, qty: 1 }]);
+    expect(none.pricing.shippingPaise).toBe(5000);
+  });
+
+  it("is driven by the setting: removing the pincode restores the fee; COD fee stays", async () => {
+    await configureCommerce({ free_shipping_pincodes: ["560001"] });
+    const old = await quote([{ variantId: f.variants.ghost!, qty: 1 }], { pincode: "560064" });
+    expect(old.pricing.shippingPaise).toBe(5000);
+    const nowFree = await quote([{ variantId: f.variants.ghost!, qty: 1 }], {
+      pincode: "560001",
+      paymentMethod: "cod",
+    });
+    expect(nowFree.pricing).toMatchObject({ shippingPaise: 0, codFeePaise: 4000, totalPaise: 12900 + 4000 });
+  });
+});
+
 describe("getCheckoutQuote: totals", () => {
   it("prices prepaid with flat shipping below the threshold and a GST breakup that adds up", async () => {
     const q = await quote([{ variantId: f.variants.ghost!, qty: 2 }], { pincode: "400001" }); // 258

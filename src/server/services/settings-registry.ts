@@ -263,6 +263,15 @@ export const SETTINGS = {
     placeholder: 0,
     requiredForLaunch: true,
   }),
+  free_shipping_pincodes: define("free_shipping_pincodes", {
+    group: "shipping",
+    label: "Free-shipping pincodes",
+    description:
+      "Delivery pincodes (6 digits, one per line) that always get free shipping, whatever the order value.",
+    schema: z.array(z.string().regex(/^\d{6}$/)),
+    placeholder: ["560064"],
+    requiredForLaunch: false,
+  }),
   zone_overrides: define("zone_overrides", {
     group: "shipping",
     label: "Per-zone shipping fee overrides (paise)",

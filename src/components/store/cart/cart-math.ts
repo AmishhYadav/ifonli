@@ -68,17 +68,40 @@ export function applyOptimistic(cart: CartView, action: CartOptimisticAction): C
   };
 }
 
+/** True when `pincode` (6 digits) is on the store's always-free-shipping list. */
+export function isFreeShippingPincode(pricing: CartViewPricing, pincode: string | null | undefined): boolean {
+  return !!pincode && pricing.freeShippingPincodes.includes(pincode);
+}
+
+/**
+ * Client-side estimate once the delivery pincode is known: a free-shipping pincode zeroes the shipping fee
+ * and the total drops with it (GST contained in the fee is not tracked here; the server quote replaces
+ * this as soon as it arrives). Anything else is returned unchanged.
+ */
+export function withPincodeShipping(pricing: CartViewPricing, pincode: string | null | undefined): CartViewPricing {
+  if (!isFreeShippingPincode(pricing, pincode)) return pricing;
+  return {
+    ...pricing,
+    shippingPaise: 0,
+    totalPaise: pricing.totalPaise - pricing.shippingPaise,
+    freeShippingRemainingPaise: 0,
+    messages: pricing.messages.filter((m) => !/more for free shipping/i.test(m)),
+  };
+}
+
 /** Right-hand value of the shipping row. */
-export function shippingValue(pricing: CartViewPricing, hasLines: boolean): string {
+export function shippingValue(pricing: CartViewPricing, hasLines: boolean, pincode?: string | null): string {
   if (!hasLines) return "-";
-  return pricing.shippingPaise === 0 ? "Free" : formatINR(pricing.shippingPaise);
+  const p = withPincodeShipping(pricing, pincode);
+  return p.shippingPaise === 0 ? "Free" : formatINR(p.shippingPaise);
 }
 
 /**
  * Plain-language shipping note under the row (drip-pricing rule: the estimate is visible before
  * checkout). Never urgency: just the threshold and the gap.
  */
-export function shippingNote(pricing: CartViewPricing): string | null {
+export function shippingNote(pricing: CartViewPricing, pincode?: string | null): string | null {
+  if (isFreeShippingPincode(pricing, pincode)) return "Free shipping to your pincode.";
   const { freeThresholdPaise, freeShippingRemainingPaise } = pricing;
   if (freeThresholdPaise === null) return null;
   if (freeShippingRemainingPaise === 0) return "You've unlocked free shipping.";

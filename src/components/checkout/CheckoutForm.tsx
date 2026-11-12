@@ -28,6 +28,7 @@ import {
 } from "@/features/checkout/schema";
 import type { CheckoutQuote, PincodeLookup, ShortageItem } from "@/features/checkout/types";
 import type { CartView } from "@/features/cart/types";
+import { isFreeShippingPincode } from "@/components/store/cart/cart-math";
 import { formatINR } from "@/lib/money";
 
 import { ClosedCheckout } from "./ClosedCheckout";
@@ -145,6 +146,21 @@ interface Totals {
 
 /** Totals to show: the live quote, adjusted at once for a payment-method switch the quote has not caught up with. */
 function totalsFor(
+  quote: CheckoutQuote | null,
+  cart: CartView,
+  method: CheckoutPaymentMethod,
+  pincode: string | null,
+): Totals {
+  const t = quotedTotals(quote, cart, method);
+  // A free-shipping pincode zeroes shipping at once, before the server quote for that pincode arrives
+  // (the quote is authoritative and agrees: same list, same rule).
+  if (t.shippingPaise > 0 && isFreeShippingPincode(cart.pricing, pincode)) {
+    return { ...t, shippingPaise: 0, totalPaise: t.totalPaise - t.shippingPaise };
+  }
+  return t;
+}
+
+function quotedTotals(
   quote: CheckoutQuote | null,
   cart: CartView,
   method: CheckoutPaymentMethod,
@@ -349,7 +365,7 @@ export function CheckoutForm({
   const quote = answered?.quote ?? null;
   const quoteFresh = answered?.key === quoteKey;
   const cart = quote?.cart ?? initialCart;
-  const totals = totalsFor(quote, cart, paymentMethod);
+  const totals = totalsFor(quote, cart, paymentMethod, pincode);
 
   const quoteForPincode = quote && pincode && quote.pincode?.pincode === pincode ? quote : null;
   const codAvailable = quoteForPincode?.payment.cod.available ?? false;

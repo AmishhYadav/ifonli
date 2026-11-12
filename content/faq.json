@@ -14,7 +14,7 @@
   {
     "category": "delivery",
     "question": "How much is shipping?",
-    "answerMd": "Shipping is {{settings.flat_fee}} per order. It is free on orders of {{settings.free_threshold}} or more, after discounts. You see the shipping fee in your bag before you check out, and prices already include GST. There are no extra charges added after you place your order.",
+    "answerMd": "Shipping is {{settings.flat_fee}} per order. It is free on orders of {{settings.free_threshold}} or more, after discounts, and always free for delivery to the MAHE Bengaluru campus. You see the shipping fee in your bag before you check out. There are no extra charges added after you place your order.",
     "position": 3
   },
   {
@@ -55,8 +55,8 @@
   },
   {
     "category": "payment",
-    "question": "Do the prices include GST?",
-    "answerMd": "Yes. All prices on the site are in rupees and include all taxes, including GST. Your bag and checkout show how much GST is included. We never add tax on top.",
+    "question": "Do the prices include taxes?",
+    "answerMd": "Yes. All prices on the site are in rupees and include all taxes. We never add tax on top, so the total you see in your bag and at checkout is the total you pay.",
     "position": 3
   },
   {

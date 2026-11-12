@@ -140,7 +140,7 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
   const sellerLines = [
     model.seller.address,
     `State: ${model.seller.state}`,
-    model.seller.gstin ? `GSTIN: ${model.seller.gstin}` : "Not registered under GST",
+    model.seller.gstin ? `GSTIN: ${model.seller.gstin}` : "",
   ];
   return (
     <Document title={`${model.heading} ${model.number}`} author={model.seller.legalName} creator="IfOnli">
@@ -198,7 +198,7 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
 
         <View style={s.totals} wrap={false}>
           <View style={s.totalRow}>
-            <Text>Items (incl. GST)</Text>
+            <Text>{model.showTax ? "Items (incl. GST)" : "Items"}</Text>
             <Text>{pdfMoney(t.subtotalPaise)}</Text>
           </View>
           {t.discountPaise > 0 ? (
@@ -249,10 +249,11 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
         </View>
 
         <View style={s.notes}>
-          <Text>All prices are inclusive of GST; tax shown above is the amount contained in the price.</Text>
-          {model.kind === "bill_of_supply" ? (
-            <Text>Bill of supply: the seller is not registered under GST, so no tax is charged separately.</Text>
-          ) : null}
+          {model.showTax ? (
+            <Text>All prices are inclusive of GST; tax shown above is the amount contained in the price.</Text>
+          ) : (
+            <Text>All prices are inclusive of all taxes; no tax is charged separately.</Text>
+          )}
           {model.paymentLabel.toLowerCase().includes("cash") ? (
             <Text>Cash on delivery: pay {pdfMoney(t.totalPaise)} to the courier on delivery.</Text>
           ) : null}

@@ -49,6 +49,17 @@ describe("settings registry", () => {
     }
   });
 
+  it("free_shipping_pincodes defaults to the campus pincode and only accepts 6-digit pincodes", () => {
+    const def = SETTINGS.free_shipping_pincodes;
+    expect(def.placeholder).toEqual(["560064"]);
+    expect(def.requiredForLaunch).toBe(false);
+    expect(def.schema.safeParse(["560064", "560001"]).success).toBe(true);
+    expect(def.schema.safeParse([]).success).toBe(true);
+    for (const bad of ["56006", "5600640", "abcdef", " 560064", ""]) {
+      expect(def.schema.safeParse([bad]).success, bad).toBe(false);
+    }
+  });
+
   it("locks and fixed decisions match the plan", () => {
     expect(SETTINGS.prices_include_gst).toMatchObject({ placeholder: true, locked: true });
     expect(SETTINGS.backorders).toMatchObject({ placeholder: false, locked: true });

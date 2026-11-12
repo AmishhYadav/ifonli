@@ -112,6 +112,7 @@ export async function assessCheckout(
     lines: input.lines,
     couponCode: input.couponCode,
     email: input.email,
+    pincode: input.pincode,
     pincodeInfo: info,
     settings: input.settings,
     now: input.now,

@@ -327,6 +327,56 @@ describe("priceCart: shipping", () => {
     expect(r2.shippingPaise).toBe(0);
   });
 
+  describe("free-shipping pincodes", () => {
+    const withPin = (pincode: string | null, freePincodes: readonly string[] = ["560064"], threshold: number | null = 50_000) =>
+      input(cart(1_000), { pincode, shipping: { flatFeePaise: 6_000, freeThresholdPaise: threshold, freePincodes } });
+
+    it("ships free to a listed pincode whatever the order value", () => {
+      const r = priceCart(withPin("560064"));
+      expect(r.shippingPaise).toBe(0);
+      expect(r.totalPaise).toBe(1_000);
+      expect(r.freeShippingRemainingPaise).toBe(0);
+      expect(r.messages).toEqual([{ code: "free_shipping_pincode", text: "Free shipping to your pincode." }]);
+    });
+
+    it("does not nag for more spend once the pincode is free (no progress message)", () => {
+      expect(priceCart(withPin("560064")).messages.map((m) => m.code)).not.toContain("free_shipping_progress");
+    });
+
+    it("still charges other pincodes, an unknown pincode and an empty list", () => {
+      expect(priceCart(withPin("560065")).shippingPaise).toBe(6_000);
+      expect(priceCart(withPin(null)).shippingPaise).toBe(6_000);
+      expect(priceCart(withPin("560064", [])).shippingPaise).toBe(6_000);
+      expect(priceCart(input(cart(1_000), { pincode: "560064" })).shippingPaise).toBe(6_000);
+      // exact match only, no prefix matching
+      expect(priceCart(withPin("56006", ["560064"])).shippingPaise).toBe(6_000);
+    });
+
+    it("works when free shipping by threshold is not offered", () => {
+      const r = priceCart(withPin("560064", ["560064"], null));
+      expect(r.shippingPaise).toBe(0);
+      expect(r.freeShippingRemainingPaise).toBe(0);
+    });
+
+    it("leaves a free_shipping coupon with nothing to waive and keeps the COD fee", () => {
+      const r = priceCart({
+        ...withPin("560064"),
+        coupon: applied({ kind: "free_shipping", value: 0, maxDiscountPaise: null, eligibleLineIds: ["a"] }),
+        paymentMethod: "cod",
+      });
+      expect(r.shippingPaise).toBe(0);
+      expect(r.shippingDiscountPaise).toBe(0);
+      expect(r.codFeePaise).toBe(4_000);
+      expect(r.totalPaise).toBe(1_000 + 4_000);
+    });
+
+    it("a free-pincode order below the threshold totals the same as an always-free shop", () => {
+      const free = priceCart(withPin("560064"));
+      const threshold = priceCart(input(cart(1_000), { shipping: { flatFeePaise: 6_000, freeThresholdPaise: 0 } }));
+      expect(free.totalPaise).toBe(threshold.totalPaise);
+    });
+  });
+
   it("never offers free shipping when threshold is null", () => {
     const r = priceCart(
       input(cart(10_000_000), { shipping: { flatFeePaise: 6_000, freeThresholdPaise: null } }),

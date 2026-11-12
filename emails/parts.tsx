@@ -128,7 +128,8 @@ export function OrderSummary({ order, ctx, showAddress = true }: { order: OrderV
         </tbody>
       </table>
       <p style={{ margin: "0 0 18px", fontFamily: FONT_STACK, fontSize: 12, lineHeight: "18px", color: c.muted }}>
-        All prices include taxes. Includes GST of {money(order.taxIncludedPaise)}.
+        All prices include taxes.
+        {order.taxIncludedPaise > 0 ? ` Includes GST of ${money(order.taxIncludedPaise)}.` : ""}
       </p>
       {showAddress ? (
         <p style={{ margin: "0 0 16px", fontFamily: FONT_STACK, fontSize: 14, lineHeight: "21px", color: c.ink }}>

@@ -48,6 +48,7 @@ describe("settings form model", () => {
     expect(kind("cancellable_statuses")).toBe("choices");
     expect(kind("admin_alert_emails")).toBe("lines");
     expect(kind("cod_excluded_pincodes")).toBe("lines");
+    expect(kind("free_shipping_pincodes")).toBe("lines");
     expect(kind("default_manufacturer")).toBe("object");
     expect(kind("notification_channels")).toBe("object");
     expect(kind("zone_overrides")).toBe("record");

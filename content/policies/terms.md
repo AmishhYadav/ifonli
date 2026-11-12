@@ -47,7 +47,7 @@ If you do not agree with these terms, please do not use the site or place an ord
 
 ## 5. Prices and taxes
 
-- All prices are in Indian rupees (INR) and include all taxes, including GST. We do not add tax on top at checkout.
+- All prices are in Indian rupees (INR) and include all taxes. We do not add tax on top at checkout.
 - The MRP is the maximum retail price listed for the product. Our selling price may be equal to or lower than the MRP.
 - Shipping, any Cash on Delivery fee and any discount are shown as separate lines in your bag and at checkout, before you pay. The total you see is the total you pay.
 - You can use one coupon on an order. Coupons cannot be combined, have no cash value and may end on their end date. The rules for each coupon are shown when you apply it.

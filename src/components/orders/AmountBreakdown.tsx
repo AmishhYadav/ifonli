@@ -8,7 +8,7 @@ export interface AmountBreakdownProps {
   /** Shown only when above 0 (cash on delivery orders). */
   codFeePaise: number;
   totalPaise: number;
-  /** GST already inside the total: "Includes ₹X GST". */
+  /** GST already inside the total: "Includes ₹X GST". The line is hidden when this is 0 (the store charges no GST). */
   taxIncludedPaise: number;
   /** Set while the shipping amount is still a placeholder (no pincode yet). */
   shippingNote?: string;
@@ -67,9 +67,11 @@ export function AmountBreakdown({
         </div>
       </dl>
       {shippingNote ? <p className="text-sm text-ink-muted">{shippingNote}</p> : null}
-      <p className="text-sm text-ink-muted" data-testid="amount-gst">
-        Includes {formatINR(taxIncludedPaise)} GST
-      </p>
+      {taxIncludedPaise > 0 ? (
+        <p className="text-sm text-ink-muted" data-testid="amount-gst">
+          Includes {formatINR(taxIncludedPaise)} GST
+        </p>
+      ) : null}
     </div>
   );
 }

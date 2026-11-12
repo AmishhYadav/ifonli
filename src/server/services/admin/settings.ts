@@ -147,6 +147,7 @@ async function extraIssues(db: DbClient, key: SettingKey, value: unknown): Promi
       }
       break;
     }
+    case "free_shipping_pincodes":
     case "cod_excluded_pincodes": {
       const list = value as string[];
       if (new Set(list).size !== list.length)

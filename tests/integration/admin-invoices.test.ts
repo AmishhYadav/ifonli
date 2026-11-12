@@ -102,6 +102,17 @@ describe("invoice model and PDF", () => {
     expect(pdf.length).toBeGreaterThan(1500);
   });
 
+  it("prints no tax columns or rows when the order contains no GST, even for a GST-registered seller", async () => {
+    await setStore({ ...STORE, gstin: "27ABCDE1234F1Z5" });
+    await configureCommerce({ default_gst_rate_bp: 0 });
+    const { order } = await placePaidOrder(provider, [{ variantId: f.variants.cat!, qty: 1 }]); // default rate = 0
+    const row = (await db().query.orders.findFirst({ where: (o, { eq: e }) => e(o.id, order.orderId) }))!;
+    expect(row.taxIncludedPaise).toBe(0);
+    const model = await buildInvoiceModel(db(), order.orderId);
+    expect(model).toMatchObject({ showTax: false, totals: { cgstPaise: 0, sgstPaise: 0, igstPaise: 0 } });
+    expect((await renderInvoicePdf(model)).subarray(0, 4).toString()).toBe("%PDF");
+  });
+
   it("uses IGST for an inter-state buyer and lists the COD fee", async () => {
     await setStore({ ...STORE, gstin: "27ABCDE1234F1Z5" });
     const { order } = await placeCodOrder([{ variantId: f.variants.skull!, qty: 1 }], {

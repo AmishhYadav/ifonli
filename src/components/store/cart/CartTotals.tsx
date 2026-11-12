@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { shippingNote, shippingValue } from "./cart-math";
 
 /**
- * Subtotal, discount (only when one applies), shipping estimate, total and "Includes GST". Amounts come
+ * Subtotal, discount (only when one applies), shipping estimate, total and "Includes GST" (only when the store charges GST). Amounts come
  * straight from the server's cart view; nothing is added up here. No client hooks, so the page can render
  * it on either side.
  */
@@ -50,7 +50,8 @@ export function CartTotals({ cart, className }: { cart: CartView; className?: st
           </span>
         </div>
         <p className="mt-0.5 text-sm text-ink-muted" data-testid="cart-gst">
-          Includes {formatINR(pricing.taxIncludedPaise)} GST. Final shipping is confirmed at checkout.
+          {pricing.taxIncludedPaise > 0 ? `Includes ${formatINR(pricing.taxIncludedPaise)} GST. ` : ""}
+          Final shipping is confirmed at checkout.
         </p>
         {pricing.savingsVsMrpPaise > 0 ? (
           <p className="mt-0.5 text-sm text-success">You save {formatINR(pricing.savingsVsMrpPaise)} on MRP.</p>

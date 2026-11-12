@@ -48,6 +48,15 @@ describe("template registry", () => {
     expect(r.html).toContain("Your invoice is attached");
   });
 
+  it("order_confirmed prints no GST wording when the order contains no tax", async () => {
+    const ctx = fixtureContext(null, { taxIncludedPaise: 0 });
+    const r = await renderTemplate("order_confirmed", FIXTURE_PAYLOADS.order_confirmed, ctx);
+    for (const body of [r.html, r.text]) {
+      expect(body).not.toMatch(/GST/i);
+      expect(body).toContain("All prices include taxes");
+    }
+  });
+
   it("links to the order page only when the payload carries a token", async () => {
     const r = await renderTemplate("order_confirmed", { ...FIXTURE_PAYLOADS.order_confirmed, accessToken: "tok_abcdef123456" }, fixtureContext());
     expect(r.html).toContain(`https://ifonli.example.test/orders/${ref}?t=tok_abcdef123456`);

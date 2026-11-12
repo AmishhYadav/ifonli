@@ -38,7 +38,11 @@ export interface PriceInput {
     /** null = free shipping is never offered. */
     freeThresholdPaise: number | null;
     zoneFeeOverridesPaise?: Partial<Record<Zone, number>>;
+    /** 6-digit delivery pincodes that always ship free, whatever the order value. */
+    freePincodes?: readonly string[];
   };
+  /** 6-digit delivery pincode once known (checkout); null / omitted = not known yet. */
+  pincode?: string | null;
   zone: Zone | null;
   paymentMethod: PaymentMethod | null;
   cod: { feePaise: number };
@@ -62,6 +66,7 @@ export interface PriceMessage {
     | "coupon_min_subtotal_unmet"
     | "coupon_no_eligible_items"
     | "free_shipping_coupon"
+    | "free_shipping_pincode"
     | "free_shipping_progress"
     | "free_shipping_unlocked";
   text: string;
@@ -89,7 +94,7 @@ export interface PriceResult {
    * `cgst + sgst + igst === taxIncludedPaise`. null when the buyer state is not known yet.
    */
   gst: GstSplit | null;
-  /** Extra spend (after discount) still needed for free shipping; 0 once free; null if not offered / empty cart. */
+  /** Extra spend (after discount) still needed for free shipping; 0 once free (threshold, coupon or free pincode); null if not offered / empty cart. */
   freeShippingRemainingPaise: number | null;
   messages: PriceMessage[];
   /** sum((mrp - unit price) * qty): saving vs MRP from the selling price itself, excluding any coupon. */
@@ -317,13 +322,18 @@ export function priceCart(input: PriceInput): PriceResult {
   const feePaise = zoneFee ?? input.shipping.flatFeePaise;
   const threshold = input.shipping.freeThresholdPaise;
   const freeByThreshold = threshold !== null && afterDiscount >= threshold;
-  const chargeable = freeByThreshold ? 0 : feePaise;
+  const freeByPincode =
+    input.pincode != null && (input.shipping.freePincodes ?? []).includes(input.pincode);
+  const chargeable = freeByThreshold || freeByPincode ? 0 : feePaise;
   const shippingDiscountPaise = freeShippingCoupon ? chargeable : 0;
   const shippingPaise = chargeable - shippingDiscountPaise;
 
   let freeShippingRemainingPaise: number | null = null;
   if (threshold !== null) {
-    freeShippingRemainingPaise = freeShippingCoupon ? 0 : Math.max(0, threshold - afterDiscount);
+    freeShippingRemainingPaise =
+      freeShippingCoupon || freeByPincode ? 0 : Math.max(0, threshold - afterDiscount);
+  } else if (freeByPincode) {
+    freeShippingRemainingPaise = 0;
   }
 
   if (freeShippingCoupon && shippingDiscountPaise > 0) {
@@ -331,6 +341,8 @@ export function priceCart(input: PriceInput): PriceResult {
       code: "free_shipping_coupon",
       text: `Free shipping applied with ${coupon?.code ?? ""}`.trim(),
     });
+  } else if (freeByPincode && feePaise > 0) {
+    messages.push({ code: "free_shipping_pincode", text: "Free shipping to your pincode." });
   } else if (freeByThreshold && feePaise > 0) {
     messages.push({ code: "free_shipping_unlocked", text: "You've unlocked free shipping." });
   } else if (

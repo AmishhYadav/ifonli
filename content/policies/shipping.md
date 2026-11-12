@@ -23,7 +23,7 @@ We currently deliver across India, covering serviceable PIN codes in all states 
 
 Enjoy **FREE delivery** anywhere within the MAHE Bengaluru Campus – no shipping charges, and your order is delivered **within 24 hours**.
 
-India Post Parcel shipping charges start at ₹65 for parcels up to 500 g within the same state, ₹70 for Zone/Metro deliveries, and ₹72 for deliveries to other states, excluding applicable GST.
+India Post Parcel shipping charges start at ₹65 for parcels up to 500 g within the same state, ₹70 for Zone/Metro deliveries, and ₹72 for deliveries to other states.
 
 ## Order Tracking
 

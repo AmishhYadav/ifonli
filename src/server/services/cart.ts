@@ -91,6 +91,8 @@ export interface CartViewPricing {
   /** Extra spend for free shipping; 0 once free; null when not offered. */
   freeShippingRemainingPaise: number | null;
   freeThresholdPaise: number | null;
+  /** Delivery pincodes that always ship free (lets the UI show "Free" as soon as a pincode is typed). */
+  freeShippingPincodes: readonly string[];
   /** Price-engine hints: "Add ₹X more for free shipping", "You've unlocked free shipping.", ... */
   messages: string[];
 }
@@ -414,6 +416,7 @@ const EMPTY_PRICING: CartViewPricing = {
   savingsVsMrpPaise: 0,
   freeShippingRemainingPaise: null,
   freeThresholdPaise: null,
+  freeShippingPincodes: [],
   messages: [],
 };
 
@@ -580,9 +583,10 @@ export async function getCartState(
           freeShippingRemainingPaise: price.freeShippingRemainingPaise,
           freeThresholdPaise:
             settings.shipping.freeThresholdPaise > 0 ? settings.shipping.freeThresholdPaise : null,
+          freeShippingPincodes: settings.shipping.freePincodes,
           messages: price.messages.map((m) => m.text),
         }
-      : { ...EMPTY_PRICING },
+      : { ...EMPTY_PRICING, freeShippingPincodes: settings.shipping.freePincodes },
     notices,
     canCheckout: lines.length > 0,
   };

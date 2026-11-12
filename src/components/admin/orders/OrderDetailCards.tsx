@@ -100,7 +100,9 @@ export function ItemsCard({ detail }: { detail: AdminOrderDetail }) {
           <Row label="Shipping" value={order.shippingPaise > 0 ? formatINR(order.shippingPaise) : "Free"} />
           {order.codFeePaise > 0 ? <Row label="COD fee" value={formatINR(order.codFeePaise)} /> : null}
           <Row label="Total" value={formatINR(order.totalPaise)} strong />
-          <Row label="Includes GST" value={formatINR(order.taxIncludedPaise)} muted />
+          {order.taxIncludedPaise > 0 ? (
+            <Row label="Includes GST" value={formatINR(order.taxIncludedPaise)} muted />
+          ) : null}
         </dl>
       </CardContent>
     </Card>

@@ -12,6 +12,8 @@ export interface CommerceSettings {
     flatFeePaise: number;
     /** 0 = always free (domain: `subtotal - discount >= 0`). */
     freeThresholdPaise: number;
+    /** Delivery pincodes that always ship free. */
+    freePincodes: readonly string[];
     zoneFeeOverridesPaise: Partial<Record<string, number>>;
     serviceabilityMode: SettingValue<"serviceability_mode">;
     processingDays: number;
@@ -45,6 +47,7 @@ export async function loadCommerceSettings(db: DbClient): Promise<CommerceSettin
   const s = await readSettings(db, [
     "flat_fee",
     "free_threshold",
+    "free_shipping_pincodes",
     "zone_overrides",
     "serviceability_mode",
     "processing_days",
@@ -81,6 +84,7 @@ export async function loadCommerceSettings(db: DbClient): Promise<CommerceSettin
     shipping: {
       flatFeePaise: s.flat_fee.value,
       freeThresholdPaise: s.free_threshold.value,
+      freePincodes: s.free_shipping_pincodes.value,
       zoneFeeOverridesPaise: s.zone_overrides.value,
       serviceabilityMode: s.serviceability_mode.value,
       processingDays: s.processing_days.value,

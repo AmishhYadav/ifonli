@@ -104,7 +104,9 @@ export async function buildInvoiceModel(db: DbClient, orderId: string): Promise<
   const sellerStateCode = snapshot.sellerStateCode;
   const parties = { sellerStateCode, buyerStateCode };
   const interState = sellerStateCode !== buyerStateCode;
-  const showTax = invoice.kind === "tax_invoice";
+  // No tax rows or columns when the order contains no tax (the store charges 0% GST); orders placed
+  // earlier with tax inside still print their breakdown.
+  const showTax = invoice.kind === "tax_invoice" && order.taxIncludedPaise > 0;
 
   const makeLine = (
     l: Pick<InvoiceLine, "description" | "sku" | "hsn" | "qty" | "unitPricePaise">,

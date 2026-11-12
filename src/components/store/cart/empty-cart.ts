@@ -16,6 +16,7 @@ export const EMPTY_CART_VIEW: CartView = {
     savingsVsMrpPaise: 0,
     freeShippingRemainingPaise: null,
     freeThresholdPaise: null,
+    freeShippingPincodes: [],
     messages: [],
   },
   notices: [],

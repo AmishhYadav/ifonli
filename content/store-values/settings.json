@@ -16,11 +16,12 @@
   },
   "default_country_of_origin": "India",
 
-  "default_gst_rate_bp": 1800,
+  "default_gst_rate_bp": 0,
   "shipping_tax_rule": "dominant_line_rate",
 
   "flat_fee": 4900,
-  "free_threshold": 29900,
+  "free_threshold": 19900,
+  "free_shipping_pincodes": ["560064"],
   "zone_overrides": {},
   "processing_days": 1,
   "delivery_estimates_by_zone": {

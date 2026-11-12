@@ -296,6 +296,26 @@ describe("createFromCart: prepaid", () => {
   });
 });
 
+describe("createFromCart: free-shipping pincode", () => {
+  it("charges no shipping to a free-shipping pincode and matches the quote", async () => {
+    const { pincodes } = await import("@/server/db/schema");
+    await db()
+      .insert(pincodes)
+      .values({ pincode: "560064", district: "Bengaluru", stateCode: "29", zone: "rest_of_india" });
+    const cart = await makeCart([{ variantId: f.variants.cat!, qty: 1 }]); // 99, far below the 500 threshold
+    const form = { shippingAddress: { name: "Asha Rao", line1: "MAHE campus", city: "Bengaluru", state: "Karnataka", pincode: "560064" } };
+    const o = ok(await place(cart, form)).order;
+    expect(o).toMatchObject({ subtotalPaise: 9900, shippingPaise: 0, totalPaise: 9900 });
+    const row = await orderRow(o.orderId);
+    expect(row.shippingPaise).toBe(0);
+    expect(row.totalPaise).toBe(9900);
+
+    const other = await makeCart([{ variantId: f.variants.cat!, qty: 1 }]);
+    const o2 = ok(await place(other)).order; // default pincode 400001
+    expect(o2).toMatchObject({ shippingPaise: 5000, totalPaise: 14900 });
+  });
+});
+
 describe("createFromCart: idempotency", () => {
   it("returns the existing pending order for a repeat submit", async () => {
     const cart = await makeCart([{ variantId: f.variants.skull!, qty: 1 }]);

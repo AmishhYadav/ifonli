@@ -21,7 +21,7 @@ export interface LandingFacts {
 
 /** What the owner told us the store offers; used when settings cannot be read (never invents new claims). */
 export const FALLBACK_LANDING_FACTS: LandingFacts = {
-  freeShippingRupees: 299,
+  freeShippingRupees: 199,
   codEnabled: true,
   damageWindowHours: 48,
 };

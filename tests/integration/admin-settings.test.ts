@@ -190,6 +190,12 @@ describe("admin settings: saving each kind of value", () => {
       /twice/,
     );
     await save("cod_excluded_pincodes", ["560001", "110001"]);
+    expect((await issuesOf("free_shipping_pincodes", ["56006"]))[0]?.message).toBeTruthy();
+    expect((await issuesOf("free_shipping_pincodes", ["560064", "560064"]))[0]?.message).toMatch(
+      /twice/,
+    );
+    await save("free_shipping_pincodes", ["560064"]);
+    expect(await getSetting("free_shipping_pincodes")).toEqual(["560064"]);
   });
 
   it("nested objects report the failing field path", async () => {

@@ -137,7 +137,7 @@ async function main() {
         seoTitle: p.name,
         seoDesc: p.descriptionMd.split(/(?<=\.)\s/)[0],
         hsnCode: "7117",
-        gstRateBp: 300,
+        gstRateBp: 0,
         countryOfOrigin: "India",
         netQuantity: "1 piece",
         dimensions: null,
