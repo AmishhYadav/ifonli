@@ -5,6 +5,7 @@ import { Background } from "@/features/landing/Background";
 import { LandingBoot } from "@/features/landing/Boot";
 import { buildFacts } from "@/features/landing/facts";
 import { LandingMotion } from "@/features/landing/LandingMotion";
+import { LandingVibe } from "@/features/landing/LandingVibe";
 import { Makes, Moods, Opening, Portal, Why } from "@/features/landing/Sections";
 import { DEFAULT_SHARE_IMAGE, organizationJsonLd } from "@/lib/seo";
 import { FALLBACK_LANDING_FACTS, getLandingFacts, type LandingFacts } from "@/server/cache/landing";
@@ -61,6 +62,7 @@ export default async function LandingPage() {
           <Why facts={facts} />
           <Portal />
         </div>
+        <LandingVibe />
         <LandingMotion />
         <LandingBoot />
       </div>

@@ -57,6 +57,13 @@
       "when": 1793640000000,
       "tag": "0007_remove_hippers",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793726400000,
+      "tag": "0008_diy_chain",
+      "breakpoints": true
     }
   ]
 }

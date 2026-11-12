@@ -14,6 +14,7 @@ const line = (id: string, unit: number, qty: number, discountAllocPaise = 0): Ca
   sku: id,
   image: null,
   qty,
+  isDiyChain: false,
   unitPricePaise: unit,
   mrpPaise: unit,
   lineSubtotalPaise: unit * qty,

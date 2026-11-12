@@ -1,14 +1,17 @@
 /**
  * Builds the inline, blocking <head> script that resolves the active vibe before first paint.
- * The string is generated from config + tokens so it cannot drift from them. Budget: < 1 KB.
+ * The string is generated from config + tokens so it cannot drift from them. Budget: < 1.1 KB.
  *
- * Resolution order: /vibes/<slug> path -> ?vibe= URL param -> cookie -> localStorage -> default ("random" picks one).
+ * The landing page (`/`) always wears LANDING_VIBE and never persists it. Everywhere else the resolution order is:
+ * /vibes/<slug> path -> ?vibe= URL param -> cookie -> localStorage -> default ("random" picks one).
  * Side effects: html[data-vibe], cookie + localStorage (URL or random pick), font preload, theme-color.
  */
 import {
   DEFAULT_VIBE,
   DEFAULT_VIBE_CYCLE,
   DISPLAY_FONT_FILES,
+  LANDING_PATH,
+  LANDING_VIBE,
   VIBE_COOKIE,
   VIBE_COOKIE_MAX_AGE,
   VIBE_STORAGE_KEY,
@@ -52,7 +55,7 @@ export function buildHeadScript({
     `q=p?p[1]:new URLSearchParams(location.search).get(${JSON.stringify(VIBE_URL_PARAM)}),`,
     `m=d.cookie.match(/(?:^|; )${VIBE_COOKIE}=(\\w+)/),l,v,u,e;`,
     `try{l=localStorage.getItem(${s})}catch(e){}`,
-    `v=V.indexOf(q)>-1?(u=1,q):V.indexOf(m&&m[1])>-1?m[1]:V.indexOf(l)>-1?l:${fallback};`,
+    `v=location.pathname==${JSON.stringify(LANDING_PATH)}&&M.${LANDING_VIBE}?${JSON.stringify(LANDING_VIBE)}:V.indexOf(q)>-1?(u=1,q):V.indexOf(m&&m[1])>-1?m[1]:V.indexOf(l)>-1?l:${fallback};`,
     `if(!v){v=V[Math.random()*V.length|0];u=1}`,
     `d.documentElement.dataset.vibe=v;`,
     `if(u){d.cookie="${VIBE_COOKIE}="+v+";max-age=${VIBE_COOKIE_MAX_AGE};path=/;SameSite=Lax"+(location.protocol=="https:"?";Secure":"");`,

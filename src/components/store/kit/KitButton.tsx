@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 
-import { KIT_SLOTS, addToKit, getKit, getServerKit, removeFromKit, subscribeKit } from "./kit-store";
+import { KIT_CHARMS, addToKit, getKit, getServerKit, removeFromKit, subscribeKit } from "./kit-store";
 
 export interface KitButtonProps {
   productId: string;
@@ -16,12 +16,12 @@ export interface KitButtonProps {
   pricePaise: number;
 }
 
-/** The card's action for DIY products (instead of Add to bag): puts the product in the next free slot of the kit tray (or takes it out). */
+/** The card's action on the DIY page (instead of Add to bag): puts the charm in the next free box of the kit tray, or takes it out. */
 export function KitButton({ productId, productName, slug, variantId, imageSrc, pricePaise }: KitButtonProps) {
   const kit = useSyncExternalStore(subscribeKit, getKit, getServerKit);
   const { toast } = useToast();
   const picked = kit.some((i) => i.productId === productId);
-  const full = kit.length >= KIT_SLOTS;
+  const full = kit.length >= KIT_CHARMS;
 
   const onClick = () => {
     if (picked) {
@@ -29,7 +29,7 @@ export function KitButton({ productId, productName, slug, variantId, imageSrc, p
       return;
     }
     if (!addToKit({ productId, variantId, name: productName, slug, imageSrc, pricePaise })) {
-      toast({ title: "Your collection is full", description: `A collection holds ${KIT_SLOTS} items. Remove one to swap.`, tone: "danger" });
+      toast({ title: "Your kit is full", description: `A pack holds ${KIT_CHARMS} charms. Remove one to swap.`, tone: "danger" });
     }
   };
 
@@ -39,7 +39,7 @@ export function KitButton({ productId, productName, slug, variantId, imageSrc, p
       onClick={onClick}
       aria-pressed={picked}
       aria-disabled={!picked && full ? true : undefined}
-      aria-label={`${picked ? "Remove from" : "Add to"} collection: ${productName}`}
+      aria-label={`${picked ? "Remove from" : "Add to"} kit: ${productName}`}
       data-testid="kit-add"
       className={cn(
         "relative z-10 inline-flex min-h-11 w-full items-center justify-center rounded-full px-4 py-2 text-xs font-bold transition-colors ease-vibe",
@@ -50,7 +50,7 @@ export function KitButton({ productId, productName, slug, variantId, imageSrc, p
         !picked && full && "opacity-60",
       )}
     >
-      {picked ? "In your collection" : "Add to collection"}
+      {picked ? "In your kit" : "Add to kit"}
     </button>
   );
 }

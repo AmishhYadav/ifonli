@@ -10,7 +10,6 @@ import { formatINR } from "@/lib/money";
 import type { ProductCard as ProductCardData } from "@/server/services/queries/types";
 
 import { KitButton } from "./kit/KitButton";
-import { KIT_TYPE_SLUG } from "./kit/kit-store";
 import { QuickAdd } from "./QuickAdd";
 
 /** An image ready for `next/image` (the shape `imageProps()` returns). */
@@ -37,6 +36,8 @@ export interface ProductCardViewProps {
   priority?: boolean;
   /** Slot in the top-right corner for the wishlist heart (a button, 44px target). */
   wishlist?: ReactNode;
+  /** DIY page: the card's action is "Add to kit" (the charm goes into the pack tray) instead of Add to bag. */
+  kit?: boolean;
   className?: string;
 }
 
@@ -68,6 +69,7 @@ export function ProductCardView({
   eager = false,
   priority = false,
   wishlist,
+  kit = false,
   className,
 }: ProductCardViewProps) {
   const { name, slug, inStock, lowStock, hasPriceRange, primaryVibe } = product;
@@ -166,7 +168,7 @@ export function ProductCardView({
       </div>
 
       <div className="pt-3">
-        {product.typeSlug === KIT_TYPE_SLUG && product.quickAddVariantId && !soldOut ? (
+        {kit && product.quickAddVariantId && !soldOut ? (
           <KitButton
             productId={product.id}
             productName={name}
