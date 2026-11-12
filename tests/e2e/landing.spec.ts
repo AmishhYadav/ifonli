@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { axeViolations } from "../support/axe";
-import { VIBES, gotoVibe } from "../support/vibes";
+import { gotoVibe } from "../support/vibes";
 
 /**
  * The scroll-through landing page at `/`. Needs only a running server (settings are read through the app,
@@ -176,11 +176,22 @@ test.describe("reduced motion", () => {
     expect(opacities).toEqual(["1", "1", "1", "1"]);
   });
 
-  for (const vibe of VIBES) {
-    test(`axe: static page in ${vibe}`, async ({ page }) => {
-      await gotoVibe(page, "/", vibe);
-      await settle(page);
-      expect(await axeViolations(page)).toEqual([]);
-    });
-  }
+  test("always opens in Mochi, whatever vibe the visitor saved, and leaves the saved vibe alone", async ({ page, context, baseURL }) => {
+    await context.addCookies([{ name: "ifonli_vibe", value: "gothic", url: baseURL ?? "http://localhost:3000" }]);
+    await page.goto("/?vibe=bold");
+    await expect(page.locator("html")).toHaveAttribute("data-vibe", "cute");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("html")).toHaveAttribute("data-vibe", "cute");
+    expect((await context.cookies()).find((c) => c.name === "ifonli_vibe")?.value).toBe("gothic");
+    // Entering the store puts the saved vibe back.
+    await page.getByRole("link", { name: "Skip intro" }).click();
+    await expect(page).toHaveURL(STORE);
+    await expect(page.locator("html")).toHaveAttribute("data-vibe", "gothic");
+  });
+
+  test("axe: static page", async ({ page }) => {
+    await gotoVibe(page, "/", "cute");
+    await settle(page);
+    expect(await axeViolations(page)).toEqual([]);
+  });
 });

@@ -4,10 +4,11 @@ import { Suspense } from "react";
 
 import { JsonLd } from "@/components/store/JsonLd";
 import { CollectionHeader } from "@/components/store/listing/CollectionHeader";
-import { KIT_SLOTS, KIT_TYPE_SLUG } from "@/components/store/kit/kit-store";
+import { KIT_CHARMS, KIT_TYPE_SLUG } from "@/components/store/kit/kit-store";
 import { ListingSection } from "@/components/store/listing/ListingSection";
 import { ListingSkeleton } from "@/components/store/listing/ListingSkeleton";
 import type { RawSearchParams } from "@/components/store/listing/params";
+import { DIY_CHARM_TYPE_SLUG } from "@/lib/diy";
 import { breadcrumbJsonLd, textOr, type Crumb } from "@/lib/seo";
 import { getCollections } from "@/server/cache/catalog";
 
@@ -55,6 +56,8 @@ export default async function TypePage({
   const type = await findType((await params).type);
   if (!type) notFound();
 
+  // The DIY page is where packs are built: it lists every charm, each with "Add to kit".
+  const isDiy = type.slug === KIT_TYPE_SLUG;
   const crumbs: Crumb[] = [
     { name: "Home", path: "/home" },
     { name: "Shop", path: "/shop" },
@@ -68,15 +71,18 @@ export default async function TypePage({
         title={type.name}
         description={textOr(type.definition, `${type.name} in all four vibes.`)}
       >
-        {type.slug === KIT_TYPE_SLUG ? (
-          <p className="mt-3 text-base font-semibold">Pick any {KIT_SLOTS} items — they&apos;ll drop into your set below.</p>
+        {isDiy ? (
+          <p className="mt-3 max-w-2xl text-base font-semibold">
+            Pick 1 to {KIT_CHARMS} charms and they drop into your pack below. A chain comes free with every pack.
+          </p>
         ) : null}
       </CollectionHeader>
       <Suspense fallback={<ListingSkeleton />}>
         <ListingSection
           basePath={`/types/${type.slug}`}
           searchParams={searchParams}
-          fixed={{ type: type.slug }}
+          fixed={{ type: isDiy ? DIY_CHARM_TYPE_SLUG : type.slug }}
+          kit={isDiy}
         />
       </Suspense>
     </>

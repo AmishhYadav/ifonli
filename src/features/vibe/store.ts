@@ -99,6 +99,33 @@ function updateThemeColor(): void {
   meta.content = bg;
 }
 
+/** The vibe the visitor chose (cookie, then localStorage), or null when nothing is saved. */
+export function readSavedVibe(): Vibe | null {
+  const match = new RegExp(`(?:^|; )${VIBE_COOKIE}=(\\w+)`).exec(document.cookie);
+  if (match && isVibe(match[1])) return match[1];
+  try {
+    const stored = window.localStorage.getItem(VIBE_STORAGE_KEY);
+    if (isVibe(stored)) return stored;
+  } catch {
+    // storage blocked
+  }
+  return null;
+}
+
+/**
+ * Wear `vibe` on the page without saving it (no cookie, storage or URL write): for a page that has its own mood,
+ * like the landing page. Returns the undo, which puts back the vibe the visitor saved (or the default).
+ */
+export function wearWithoutSaving(vibe: Vibe): () => void {
+  const root = document.documentElement;
+  root.dataset.vibe = vibe;
+  updateThemeColor();
+  return () => {
+    root.dataset.vibe = readSavedVibe() ?? DEFAULT_VIBE;
+    updateThemeColor();
+  };
+}
+
 function announce(vibe: Vibe): void {
   const region = document.getElementById("vibe-live");
   if (region) region.textContent = `Vibe changed to ${VIBE_NAMES[vibe]}`;

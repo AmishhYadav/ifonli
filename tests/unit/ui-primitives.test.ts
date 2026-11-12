@@ -151,6 +151,24 @@ describe("ProductCardView", () => {
     expect(add).toContain("Add to bag");
   });
 
+  it("on the DIY page the action is Add to kit, in place of Add to bag", () => {
+    const kit = html(
+      createElement(ToastProvider, null, createElement(ProductCardView, {
+        product: { ...base, quickAddVariantId: "v1" },
+        image: null,
+        isCutout: false,
+        kit: true,
+      })),
+    );
+    expect(kit).toContain('data-testid="kit-add"');
+    expect(kit).toContain("Add to kit");
+    expect(kit).not.toContain("Add to bag");
+    // a sold-out charm cannot be picked
+    expect(
+      html(createElement(ToastProvider, null, createElement(ProductCardView, { product: { ...base, inStock: false, quickAddVariantId: "v1" }, image: null, isCutout: false, kit: true }))),
+    ).not.toContain("kit-add");
+  });
+
   it("the image tile wears the product's vibe gradient (neutral without one)", () => {
     expect(card({ primaryVibe: "gothic" })).toContain("art-gothic");
     expect(card({ primaryVibe: null })).toContain("art-none");

@@ -60,6 +60,29 @@ export function CartLines({ cart, onQuantity, onRemove, layout }: CartLinesProps
       )}
     >
       {cart.lines.map((line) => {
+        if (line.isDiyChain) {
+          return (
+            <li
+              key={line.lineId}
+              data-testid="cart-line"
+              data-diy-chain=""
+              data-variant-id={line.variantId}
+              className={cn("flex items-center gap-3 py-4 first:pt-0 last:pb-0", layout === "page" && "gap-4 py-5 first:pt-5 last:pb-5 sm:py-6 sm:first:pt-6 sm:last:pb-6")}
+            >
+              <LineImage line={line} size={size} />
+              <div className="min-w-0 flex-1">
+                <p className="text-base leading-snug font-semibold text-ink">
+                  {line.productName}
+                  {line.qty > 1 ? <span className="font-normal text-ink-muted"> × {line.qty}</span> : null}
+                </p>
+                <p className="text-sm text-ink-muted">Included with your DIY pack</p>
+              </div>
+              <p className="flex-none text-base font-bold text-ink" data-testid="cart-line-total">
+                Free
+              </p>
+            </li>
+          );
+        }
         const showVariant = line.variantTitle && line.variantTitle !== "Default";
         return (
           <li

@@ -1,4 +1,5 @@
 import {
+  addDiyPack,
   addToCart,
   applyCoupon,
   getCart,
@@ -152,6 +153,14 @@ export function addItem(variantId: string, qty: number) {
   return run(
     () => addToCart({ variantId, qty }),
     (data) => `Added to bag. ${summaryAnnouncement(data.cart)}`,
+  );
+}
+
+/** Puts a DIY pack in the bag: the picked charms plus the free chain, all or nothing. */
+export function addPack(variantIds: string[]) {
+  return run(
+    () => addDiyPack({ variantIds }),
+    (data) => `DIY pack added to bag. ${summaryAnnouncement(data.cart)}`,
   );
 }
 

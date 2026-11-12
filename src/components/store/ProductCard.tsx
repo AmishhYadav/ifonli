@@ -14,6 +14,8 @@ export interface ProductCardProps {
   priority?: boolean;
   /** Wishlist heart (a client component) rendered top-right; the wishlist feature plugs in here later. */
   wishlist?: ReactNode;
+  /** DIY page: "Add to kit" instead of Add to bag. */
+  kit?: boolean;
   className?: string;
 }
 

@@ -1,5 +1,6 @@
 import { and, eq, notInArray } from "drizzle-orm";
 
+import { DIY_PARTS_TYPE_SLUG } from "@/lib/diy";
 import { productTypes } from "@/server/db/schema";
 
 /**
@@ -13,3 +14,12 @@ export const storefrontType = () =>
   and(eq(productTypes.active, true), notInArray(productTypes.slug, [...RETIRED_TYPE_SLUGS]));
 
 export const isRetiredType = (slug: string) => (RETIRED_TYPE_SLUGS as readonly string[]).includes(slug);
+
+/**
+ * Types that are switched off for browsing (listings, search, navigation, product pages) but whose products can still
+ * be bought through the cart: the free chain of a DIY pack lives in one. Not purchasable-by-default like a live type
+ * (a shopper cannot find them), and not retired (their order lines stay valid).
+ */
+export const INTERNAL_TYPE_SLUGS: readonly string[] = [DIY_PARTS_TYPE_SLUG];
+
+export const isInternalType = (slug: string) => INTERNAL_TYPE_SLUGS.includes(slug);

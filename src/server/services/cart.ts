@@ -4,7 +4,8 @@ import { randomBytes } from "node:crypto";
 
 import { and, asc, desc, eq, gt, inArray, lt, sql } from "drizzle-orm";
 
-import { cartItems, carts, orderItems, orders, stockReservations } from "@/server/db/schema";
+import { DIY_CHAIN_SKU, DIY_CHARM_TYPE_SLUG, DIY_MAX_CHARMS } from "@/lib/diy";
+import { cartItems, carts, orderItems, orders, stockReservations, variants } from "@/server/db/schema";
 import { clampQtyWithReason, type CartLine } from "@/server/domain";
 
 import { validateCoupon, type CouponErrorCode } from "./coupons";
@@ -61,6 +62,8 @@ export interface CartViewLine {
   sku: string;
   image: { path: string; url: string | null; alt: string } | null;
   qty: number;
+  /** The free chain that comes with a DIY pack: shown as included, quantity not editable. */
+  isDiyChain: boolean;
   unitPricePaise: number;
   mrpPaise: number;
   lineSubtotalPaise: number;
@@ -310,7 +313,31 @@ function reconcile(
       maxQty: Math.min(st.available, maxPerLine),
     });
   }
+  capDiyChain(out);
   return out;
+}
+
+/**
+ * The free chain belongs to a DIY pack, and a pack holds at least one charm, so the chain line can never outnumber
+ * the charms in the bag (and goes when the last charm does). This keeps the chain from being kept, or topped up,
+ * on its own. Silent: the chain is derived from the charms, not something the shopper chose to lose.
+ */
+function capDiyChain(r: Reconciliation): void {
+  const charms = r.lines.reduce((n, l) => (l.snap.typeSlug === DIY_CHARM_TYPE_SLUG ? n + l.qty : n), 0);
+  r.lines = r.lines.filter((l) => {
+    if (l.snap.sku !== DIY_CHAIN_SKU) return true;
+    if (charms <= 0) {
+      r.remove.push(l.item.itemId);
+      r.update = r.update.filter((u) => u.itemId !== l.item.itemId);
+      return false;
+    }
+    if (l.qty > charms) {
+      l.qty = charms;
+      l.maxQty = Math.min(l.maxQty, charms);
+      r.update = [...r.update.filter((u) => u.itemId !== l.item.itemId), { itemId: l.item.itemId, qty: charms }];
+    }
+    return true;
+  });
 }
 
 function limitNotice(
@@ -548,6 +575,7 @@ export async function getCartState(
         ? { path: l.snap.image.path, url: safeImageUrl(l.snap.image.path), alt: l.snap.image.alt }
         : null,
       qty: l.qty,
+      isDiyChain: l.snap.sku === DIY_CHAIN_SKU,
       unitPricePaise: l.snap.pricePaise,
       mrpPaise: l.snap.mrpPaise,
       lineSubtotalPaise: subtotal,
@@ -630,6 +658,8 @@ async function setLineQty(
   requested: number,
   now: Date,
   mode: "add" | "set",
+  /** Only a DIY pack may put the free chain in the bag (see `addDiyPack`). */
+  allowChain = false,
 ): Promise<CartMutation> {
   return db.transaction(async (tx) => {
     if (!(await touchCart(tx, cartId, now))) {
@@ -649,6 +679,9 @@ async function setLineQty(
       .where(and(eq(cartItems.cartId, cartId), eq(cartItems.variantId, variantId)));
 
     const wanted = mode === "add" ? (existing?.qty ?? 0) + requested : requested;
+    if (snap.sku === DIY_CHAIN_SKU && !allowChain && wanted > (existing?.qty ?? 0)) {
+      return fail("unavailable", "The chain comes free with a DIY pack. Build a pack on the DIY page.");
+    }
     const clamped = clampQtyWithReason(wanted, available, settings.inventory.maxQtyPerLine);
     if (clamped.qty <= 0) {
       return fail("sold_out", `${displayName(snap)} is sold out right now.`);
@@ -677,6 +710,57 @@ export async function addItem(
 ): Promise<CartMutation> {
   if (!validQty(input.qty, 1)) return fail("invalid_qty", "Choose a quantity of 1 or more.");
   return setLineQty(db, cartId, input.variantId, input.qty, now, "add");
+}
+
+/** Thrown inside the pack transaction to roll the whole pack back and hand the reason to the caller. */
+class PackRejected extends Error {
+  constructor(readonly mutation: CartMutation) {
+    super("DIY pack rejected");
+  }
+}
+
+/**
+ * Adds a DIY pack: 1 to `DIY_MAX_CHARMS` charms (one each) plus the free chain, once. All or nothing, so the bag
+ * never holds a pack without its chain or half of one. The chain is looked up by SKU here, so its id never
+ * reaches the browser and the generic add-to-bag path cannot add it (see `setLineQty`).
+ */
+export async function addDiyPack(
+  db: DbClient,
+  cartId: string,
+  input: { variantIds: readonly string[] },
+  now: Date = new Date(),
+): Promise<CartMutation> {
+  const ids = [...new Set(input.variantIds)];
+  if (ids.length < 1 || ids.length > DIY_MAX_CHARMS) {
+    return fail("invalid_qty", `A DIY pack holds 1 to ${DIY_MAX_CHARMS} charms.`);
+  }
+  try {
+    return await db.transaction(async (tx) => {
+      const [chain] = await tx.select({ id: variants.id }).from(variants).where(eq(variants.sku, DIY_CHAIN_SKU)).limit(1);
+      if (!chain) throw new PackRejected(fail("unavailable", "DIY packs aren't available right now."));
+      const snaps = await loadVariantSnapshots(tx, ids);
+      for (const id of ids) {
+        const snap = snaps.get(id);
+        if (!snap || !snap.purchasable || snap.typeSlug !== DIY_CHARM_TYPE_SLUG) {
+          throw new PackRejected(fail("unavailable", "One of those charms isn't available right now."));
+        }
+      }
+      const notices: CartNotice[] = [];
+      for (const variantId of [chain.id, ...ids]) {
+        const result = await setLineQty(tx, cartId, variantId, 1, now, "add", true);
+        if (!result.ok) {
+          throw new PackRejected(
+            variantId === chain.id ? fail("sold_out", "DIY packs are sold out for now. Please check back soon.") : result,
+          );
+        }
+        notices.push(...result.notices);
+      }
+      return { ok: true, notices } satisfies CartMutation;
+    });
+  } catch (error) {
+    if (error instanceof PackRejected) return error.mutation;
+    throw error;
+  }
 }
 
 /** Sets the line to exactly `qty` (0 removes it), capped like `addItem`. */

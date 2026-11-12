@@ -15,6 +15,7 @@ import type { Facets, ProductCard as ProductCardData } from "@/server/services/q
 import { ProductCard } from "../ProductCard";
 import { ProductGrid, ProductGridItem } from "../ProductGrid";
 
+import { COMING_SOON_TYPES, ComingSoon } from "./ComingSoon";
 import { FilterDrawer } from "./FilterDrawer";
 import { ListingFilters, type ListingFacets } from "./ListingFilters";
 import { NoResults } from "./NoResults";
@@ -39,6 +40,8 @@ interface ListingSectionProps {
   searchParams: Promise<RawSearchParams>;
   fixed?: FixedFilters;
   mode?: "catalog" | "search";
+  /** DIY page: cards add the charm to the pack tray ("Add to kit") instead of the bag. */
+  kit?: boolean;
 }
 
 /** Slugs and countries that exist (cached): the whitelist URL params are normalised against. */
@@ -179,6 +182,7 @@ export async function ListingSection({
   searchParams,
   fixed = {},
   mode = "catalog",
+  kit = false,
 }: ListingSectionProps) {
   const raw = await searchParams;
   const search = mode === "search";
@@ -215,6 +219,14 @@ export async function ListingSection({
         <SearchTracker query={q!} results={total} />
         <NoResults variant="none" q={q!} />
       </>
+    );
+  }
+  // An announced collection with nothing in it yet (3D stickers) says so, instead of an empty listing with filters.
+  if (!search && items.length === 0 && noFilters && fixed.type && COMING_SOON_TYPES.includes(fixed.type)) {
+    return (
+      <div className="mx-auto max-w-[1440px] px-4 pt-6 pb-4 sm:px-6">
+        <ComingSoon />
+      </div>
     );
   }
   const filterProps = { basePath, q, search, fixed, query, facets: listingFacets };
@@ -267,6 +279,7 @@ export async function ListingSection({
                       // Two columns on a phone: the first row is the LCP candidate.
                       priority={i < 2}
                       sizes={GRID_SIZES}
+                      kit={kit}
                       wishlist={<WishlistHeart productId={product.id} productName={product.name} />}
                     />
                   </ProductGridItem>

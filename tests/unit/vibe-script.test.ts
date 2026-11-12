@@ -47,8 +47,8 @@ function run(script: string, env: Env = {}) {
 describe("head script", () => {
   const script = buildHeadScript();
 
-  it("stays under 1 KB", () => {
-    expect(new TextEncoder().encode(script).length).toBeLessThan(1024);
+  it("stays under 1.1 KB", () => {
+    expect(new TextEncoder().encode(script).length).toBeLessThan(1126);
   });
 
   it("is a single IIFE with no template leftovers", () => {
@@ -88,6 +88,28 @@ describe("head script", () => {
     expect(r.doc.cookie).toMatch(/^ifonli_vibe=funky;/);
     // An unknown slug is ignored; the visitor's own vibe stays.
     expect(run(script, { pathname: "/vibes/nope", cookie: "ifonli_vibe=bold" }).vibe).toBe("bold");
+  });
+
+  it("the landing page (/) always opens in Mochi and never touches the saved vibe", () => {
+    const saved = run(script, {
+      pathname: "/",
+      search: "?vibe=gothic",
+      cookie: "ifonli_vibe=bold",
+      storage: "funky",
+    });
+    expect(saved.vibe).toBe("cute");
+    expect(saved.doc.cookie).toBe("ifonli_vibe=bold"); // untouched
+    expect(saved.store.ifonli_vibe).toBe("funky"); // untouched
+    // Its font and theme colour are Mochi's, not the saved vibe's.
+    expect(saved.head.find((e) => e.tag === "link")?.href).toBe(DISPLAY_FONT_FILES.cute);
+    expect(saved.head.find((e) => e.tag === "meta")?.content).toBe(resolveTokens("cute").palette.bg.toLowerCase());
+    // A "random" default is not rolled (or saved) for the landing page.
+    const random = run(buildHeadScript({ defaultVibe: "random" }), { pathname: "/", random: 0.99 });
+    expect(random.vibe).toBe("cute");
+    expect(random.doc.cookie).toBe("");
+    expect(random.store).toEqual({});
+    // Other paths still follow the saved vibe.
+    expect(run(script, { pathname: "/home", cookie: "ifonli_vibe=bold" }).vibe).toBe("bold");
   });
 
   it("cookie wins over localStorage", () => {

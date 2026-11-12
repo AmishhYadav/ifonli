@@ -3,6 +3,7 @@
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 
+import { DIY_MAX_CHARMS } from "@/lib/diy";
 import { getDb } from "@/server/db";
 import * as cart from "@/server/services/cart";
 import { limitByIp } from "@/server/security/action-limit";
@@ -108,6 +109,21 @@ export async function addToCart(input: { variantId: string; qty: number }) {
   if (!parsed.success) return invalid(parsed.error);
   const { variantId, qty } = parsed.data;
   return mutate((cartId) => cart.addItem(getDb(), cartId, { variantId, qty }));
+}
+
+/** Adds a DIY pack (the picked charms and the free chain) in one step; either all of it goes in the bag or none. */
+export async function addDiyPack(input: { variantIds: string[] }) {
+  const parsed = z
+    .object({
+      variantIds: z
+        .array(variantIdSchema)
+        .min(1, "Pick at least one charm.")
+        .max(DIY_MAX_CHARMS, `A DIY pack holds up to ${DIY_MAX_CHARMS} charms.`),
+    })
+    .safeParse(input);
+  if (!parsed.success) return invalid(parsed.error);
+  const { variantIds } = parsed.data;
+  return mutate((cartId) => cart.addDiyPack(getDb(), cartId, { variantIds }));
 }
 
 /** Sets the line to exactly `qty` (0 removes it). */

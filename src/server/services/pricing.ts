@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isRetiredType } from "./queries/storefront";
+import { isInternalType, isRetiredType } from "./queries/storefront";
 import { asc, eq, inArray } from "drizzle-orm";
 
 import {
@@ -53,7 +53,8 @@ export interface VariantSnapshot {
 /**
  * Loads current catalogue data for variants (price, MRP, GST, names, image, vibes). Server prices
  * always come from here, never from the client. Unknown ids are absent from the map. Purchasable =
- * variant `active` AND product `active` AND its type `active` (the storefront visibility rule).
+ * variant `active` AND product `active` AND its type `active` (the storefront visibility rule), or an internal type
+ * (the DIY chain: bought only into a DIY pack, never listed).
  */
 export async function loadVariantSnapshots(
   db: DbClient,
@@ -115,7 +116,8 @@ export async function loadVariantSnapshots(
       imgs.find((i) => i.variantId === null && i.kind === "cutout") ??
       imgs.find((i) => i.kind === "photo") ??
       imgs[0];
-    const productOk = r.productStatus === "active" && r.typeActive && !isRetiredType(r.typeSlug);
+    const productOk =
+      r.productStatus === "active" && (r.typeActive || isInternalType(r.typeSlug)) && !isRetiredType(r.typeSlug);
     out.set(r.variantId, {
       variantId: r.variantId,
       productId: r.productId,

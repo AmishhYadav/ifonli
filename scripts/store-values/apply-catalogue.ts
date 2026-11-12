@@ -16,6 +16,7 @@ import path from "node:path";
 
 import { config } from "dotenv";
 
+import { DIY_CHAIN_PRODUCT_SLUG } from "../../src/lib/diy";
 import { requireLocalOrAllowRemote } from "../db-guard";
 
 config({ path: ".env.local" });
@@ -78,10 +79,11 @@ async function main() {
     if (!vibeId.has(p.vibe)) throw new Error(`${p.slug}: unknown vibe ${p.vibe}`);
 
   // ---- 1. remove everything that is not in the new catalogue ----------------------------------
+  // (the free chain of the DIY pack, made by migration 0008, is not a catalogue product and stays)
   const old = await db
     .select({ id: products.id, slug: products.slug })
     .from(products)
-    .where(notInArray(products.slug, slugs));
+    .where(notInArray(products.slug, [...slugs, DIY_CHAIN_PRODUCT_SLUG]));
   // No orders exist yet, so the old products' ledger rows are only the placeholder opening stock.
   await db.transaction(async (tx) => {
     const oldIds = old.map((o) => o.id);

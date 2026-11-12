@@ -9,6 +9,9 @@ export type Vibe = (typeof VIBES)[number];
 /** Fixed cycle order of the hand button (differs from the nav/listing order in VIBES). Fed by `settings.vibe_cycle`. */
 export const DEFAULT_VIBE_CYCLE: readonly Vibe[] = ["cute", "gothic", "funky", "bold"];
 export const DEFAULT_VIBE: Vibe = "cute";
+/** The landing page (`/`) always opens in this mood, whatever the visitor saved elsewhere; it is never persisted. */
+export const LANDING_VIBE: Vibe = "cute";
+export const LANDING_PATH = "/";
 
 /** `"random"` picks a vibe client-side when nothing is stored (settings.default_vibe may be "random"). */
 export type DefaultVibeSetting = Vibe | "random";
