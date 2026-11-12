@@ -121,12 +121,12 @@ export function checkEnvironment(env: Env): LaunchItem[] {
       "Set RAZORPAY_WEBHOOK_SECRET (a different secret from the key secret) and register the webhook URL.",
     );
   }
-  if (!present(env.RESEND_API_KEY)) {
+  if (!present(env.RESEND_API_KEY) && !present(env.BREVO_API_KEY)) {
     add(
       "resend",
       "blocker",
-      "Resend API key is missing",
-      "Set RESEND_API_KEY so order emails and login codes are delivered.",
+      "Email API key is missing",
+      "Set BREVO_API_KEY (or RESEND_API_KEY) so order emails are delivered.",
     );
   }
   if (!present(env.EMAIL_FROM)) {
@@ -134,7 +134,7 @@ export function checkEnvironment(env: Env): LaunchItem[] {
       "email-from",
       "blocker",
       "Sender address is missing",
-      "Set EMAIL_FROM to an address on the verified Resend domain, e.g. IfOnli <orders@your-domain>.",
+      "Set EMAIL_FROM to a sender verified in Brevo (e.g. IfOnli <shop.ifonli@gmail.com>) or an address on the verified Resend domain.",
     );
   }
   const secret = env.BETTER_AUTH_SECRET?.trim() ?? "";
