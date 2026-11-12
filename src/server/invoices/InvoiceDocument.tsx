@@ -1,4 +1,7 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import { Defs, Document, Line, LinearGradient, Page, Rect, Stop, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+
+import { DEFAULT_VIBE } from "@/features/vibe/config";
+import { ART_GRADIENTS, resolveTokens } from "@/features/vibe/tokens";
 
 import type { InvoiceLine, InvoiceModel } from "./model";
 
@@ -50,39 +53,132 @@ function dateText(d: Date): string {
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
 }
 
-const INK = "#1c1b1a";
-const MUTED = "#6b6a66";
-const RULE = "#d9d6cf";
-const WARN = "#b42318";
+/*
+ * Colours come from the store's default mood (Mochi), so the PDF looks like the shop it came from. The page stays
+ * mostly white so it prints cheaply; the colour sits in the frame, the header band, the table head and the total.
+ */
+const mochi = resolveTokens(DEFAULT_VIBE).palette;
+const [ART_A, ART_B] = ART_GRADIENTS[DEFAULT_VIBE];
+const INK = mochi.ink;
+const MUTED = mochi["ink-muted"];
+const ACCENT = mochi.accent;
+const ON_ACCENT = mochi["on-accent"];
+const TINT = mochi.bg;
+const SURFACE = mochi.surface;
+const RULE = mochi.hairline;
+const PEACH = mochi["accent-2"];
+const SKY = mochi["accent-3"];
+const WARN = mochi.danger;
 
 const s = StyleSheet.create({
-  page: { padding: 36, fontFamily: "Helvetica", fontSize: 9, color: INK, lineHeight: 1.35 },
-  banner: { backgroundColor: "#fdecea", borderColor: WARN, borderWidth: 1, padding: 6, marginBottom: 10, color: WARN },
-  head: { flexDirection: "row", justifyContent: "space-between", marginBottom: 14 },
-  brand: { fontSize: 15, fontFamily: "Helvetica-Bold", marginBottom: 4 },
-  heading: { fontSize: 15, fontFamily: "Helvetica-Bold", textAlign: "right", marginBottom: 4 },
+  page: { paddingVertical: 40, paddingHorizontal: 40, fontFamily: "Helvetica", fontSize: 9, color: INK, lineHeight: 1.35 },
+  /* Repeated on every page: a rounded accent frame with a thin peach line inside it. */
+  frame: { position: "absolute", top: 14, left: 14, right: 14, bottom: 14, borderWidth: 2, borderColor: ACCENT, borderRadius: 14 },
+  frameInner: { position: "absolute", top: 19, left: 19, right: 19, bottom: 19, borderWidth: 0.75, borderColor: PEACH, borderRadius: 10 },
+  banner: { backgroundColor: "#fdecea", borderColor: WARN, borderWidth: 1, borderRadius: 6, padding: 6, marginBottom: 10, color: WARN },
+  head: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    padding: 14,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  headBg: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  logoTile: { width: 46, height: 46, borderRadius: 12, backgroundColor: SURFACE, borderWidth: 1.5, borderColor: INK, alignItems: "center", justifyContent: "center" },
+  brand: { fontSize: 22, fontFamily: "Helvetica-Bold", color: ACCENT, lineHeight: 1 },
+  tagline: { fontSize: 8, color: MUTED, marginTop: 3 },
+  headingBox: { alignItems: "flex-end" },
+  heading: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: ON_ACCENT,
+    backgroundColor: ACCENT,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginBottom: 6,
+  },
   muted: { color: MUTED },
   bold: { fontFamily: "Helvetica-Bold" },
-  cols: { flexDirection: "row", gap: 16, marginBottom: 14 },
-  col: { flex: 1 },
-  label: { fontSize: 7.5, color: MUTED, textTransform: "uppercase", marginBottom: 2 },
-  tableHead: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: INK, paddingBottom: 3, marginBottom: 2 },
-  row: { flexDirection: "row", paddingVertical: 3, borderBottomWidth: 0.5, borderBottomColor: RULE },
+  cols: { flexDirection: "row", gap: 10, marginBottom: 16 },
+  col: { flex: 1, padding: 9, borderRadius: 10, backgroundColor: TINT, borderWidth: 0.75, borderColor: RULE },
+  label: { fontSize: 7, fontFamily: "Helvetica-Bold", color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 },
+  tableHead: {
+    flexDirection: "row",
+    backgroundColor: ACCENT,
+    color: ON_ACCENT,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  row: { flexDirection: "row", paddingVertical: 5, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: RULE },
+  rowAlt: { backgroundColor: TINT },
   right: { textAlign: "right" },
-  totals: { marginTop: 10, alignSelf: "flex-end", width: 250 },
+  totals: { marginTop: 12, alignSelf: "flex-end", width: 250, padding: 10, borderRadius: 10, backgroundColor: TINT, borderWidth: 0.75, borderColor: RULE },
   totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 1.5 },
   grand: {
     flexDirection: "row",
     justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: INK,
-    marginTop: 4,
-    paddingTop: 4,
+    backgroundColor: ACCENT,
+    color: ON_ACCENT,
+    borderRadius: 8,
+    marginTop: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     fontFamily: "Helvetica-Bold",
-    fontSize: 11,
+    fontSize: 12,
   },
-  notes: { marginTop: 18, color: MUTED, fontSize: 8 },
+  thanks: { marginTop: 22, fontSize: 13, fontFamily: "Helvetica-Bold", color: ACCENT },
+  thanksSub: { marginTop: 2, color: MUTED },
+  notes: { marginTop: 12, paddingTop: 8, borderTopWidth: 0.75, borderTopColor: RULE, borderTopStyle: "dashed", color: MUTED, fontSize: 8 },
+  dots: { position: "absolute", bottom: 26, left: 0, right: 0, flexDirection: "row", justifyContent: "center", gap: 5 },
+  dot: { width: 5, height: 5, borderRadius: 2.5 },
 });
+
+/* The brand hand (same geometry as scripts/brand/render-brand.ts, 90x90 viewBox): ink outline, then skin on top. */
+const FINGERTIPS: readonly (readonly [number, number])[] = [
+  [14, 46],
+  [30, 18],
+  [46, 10],
+  [62, 16],
+  [76, 32],
+];
+
+function HandLogo({ size }: { size: number }) {
+  const fingers = (stroke: string, width: number, key: string) =>
+    FINGERTIPS.map(([x, y], i) => (
+      <Line key={`${key}${i}`} x1={32 + i * 7} y1={56} x2={x} y2={y} stroke={stroke} strokeWidth={width} strokeLinecap="round" />
+    ));
+  return (
+    <Svg width={size} height={size} viewBox="6 4 78 80">
+      {fingers(INK, 14, "o")}
+      <Rect x={24} y={48} width={42} height={34} rx={14} fill={INK} />
+      {fingers(mochi.hand, 9, "s")}
+      <Rect x={26} y={50} width={38} height={30} rx={12} fill={mochi.hand} />
+    </Svg>
+  );
+}
+
+/** Mint-to-sky wash behind the header, the same gradient as the home-screen icon and the Mochi product tiles. */
+function HeaderWash() {
+  return (
+    <Svg style={s.headBg} viewBox="0 0 100 100" preserveAspectRatio="none">
+      <Defs>
+        <LinearGradient id="wash" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor={ART_A} />
+          <Stop offset="1" stopColor={ART_B} />
+        </LinearGradient>
+      </Defs>
+      <Rect x={0} y={0} width={100} height={100} fill="url(#wash)" />
+    </Svg>
+  );
+}
 
 interface Col {
   key: string;
@@ -145,6 +241,14 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
   return (
     <Document title={`${model.heading} ${model.number}`} author={model.seller.legalName} creator="IfOnli">
       <Page size="A4" style={s.page}>
+        <View style={s.frame} fixed />
+        <View style={s.frameInner} fixed />
+        <View style={s.dots} fixed>
+          {[ACCENT, PEACH, SKY, PEACH, ACCENT].map((c, i) => (
+            <View key={i} style={[s.dot, { backgroundColor: c }]} />
+          ))}
+        </View>
+
         {model.placeholderFields.length > 0 ? (
           <Text style={s.banner}>
             PLACEHOLDER values on this document (set them in Settings before launch): {model.placeholderFields.join(", ")}.
@@ -152,11 +256,17 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
         ) : null}
 
         <View style={s.head}>
-          <View>
-            <Text style={s.brand}>{pdfText(model.seller.brandName)}</Text>
-            <Text style={s.muted}>{pdfText(model.seller.legalName)}</Text>
+          <HeaderWash />
+          <View style={s.brandRow}>
+            <View style={s.logoTile}>
+              <HandLogo size={36} />
+            </View>
+            <View>
+              <Text style={s.brand}>{pdfText(model.seller.brandName)}</Text>
+              <Text style={s.tagline}>{pdfText(model.seller.legalName)}</Text>
+            </View>
           </View>
-          <View>
+          <View style={s.headingBox}>
             <Text style={s.heading}>{pdfText(model.heading)}</Text>
             <Text style={s.right}>No. {pdfText(model.number)}</Text>
             <Text style={s.right}>Date: {dateText(model.issuedAt)}</Text>
@@ -181,13 +291,13 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
 
         <View style={s.tableHead} fixed>
           {cols.map((c) => (
-            <Text key={c.key} style={[cellBox(c), { fontSize: 8, fontFamily: "Helvetica-Bold" }, c.align === "right" ? s.right : {}]}>
+            <Text key={c.key} style={[cellBox(c), { fontSize: 8, fontFamily: "Helvetica-Bold", color: ON_ACCENT }, c.align === "right" ? s.right : {}]}>
               {c.label}
             </Text>
           ))}
         </View>
         {[...model.lines, ...model.extraLines].map((l, i) => (
-          <View key={i} style={s.row} wrap={false}>
+          <View key={i} style={i % 2 === 1 ? [s.row, s.rowAlt] : s.row} wrap={false}>
             {cols.map((c) => (
               <Text key={c.key} style={[cellBox(c), c.align === "right" ? s.right : {}]}>
                 {pdfText(c.cell(l))}
@@ -246,6 +356,11 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
             <Text>Total</Text>
             <Text>{pdfMoney(t.totalPaise)}</Text>
           </View>
+        </View>
+
+        <View wrap={false}>
+          <Text style={s.thanks}>Thank you for shopping with {pdfText(model.seller.brandName)}!</Text>
+          <Text style={s.thanksSub}>Hope your order makes you smile. Order {pdfText(model.orderRef)}.</Text>
         </View>
 
         <View style={s.notes}>
