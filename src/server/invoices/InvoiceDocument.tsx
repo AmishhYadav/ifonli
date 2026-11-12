@@ -1,8 +1,6 @@
-import { Defs, Document, Line, LinearGradient, Page, Rect, Stop, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { Defs, Document, Image, LinearGradient, Page, Rect, Stop, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 
-import { DEFAULT_VIBE } from "@/features/vibe/config";
-import { ART_GRADIENTS, resolveTokens } from "@/features/vibe/tokens";
-
+import { LOGO_DATA_URI } from "./logo";
 import type { InvoiceLine, InvoiceModel } from "./model";
 
 /**
@@ -54,40 +52,40 @@ function dateText(d: Date): string {
 }
 
 /*
- * Colours come from the store's default mood (Mochi), so the PDF looks like the shop it came from. The page stays
- * mostly white so it prints cheaply; the colour sits in the frame, the header band, the table head and the total.
+ * Colours are sampled from the cat badge (public/brand/ifonli-logo.png): brick-red lettering, a coral-to-butter sunset
+ * and black outlines. The page stays mostly white so it prints cheaply; the colour sits in the frame, the header
+ * band, the table head and the total.
  */
-const mochi = resolveTokens(DEFAULT_VIBE).palette;
-const [ART_A, ART_B] = ART_GRADIENTS[DEFAULT_VIBE];
-const INK = mochi.ink;
-const MUTED = mochi["ink-muted"];
-const ACCENT = mochi.accent;
-const ON_ACCENT = mochi["on-accent"];
-const TINT = mochi.bg;
-const SURFACE = mochi.surface;
-const RULE = mochi.hairline;
-const PEACH = mochi["accent-2"];
-const SKY = mochi["accent-3"];
-const WARN = mochi.danger;
+const INK = "#1f1a17";
+const MUTED = "#7a5a4e";
+const ACCENT = "#b5311c";
+const ON_ACCENT = "#ffffff";
+const CORAL = "#ec7f76";
+const PEACH = "#eeb083";
+const BUTTER = "#f7d985";
+const TINT = "#fff6ec";
+const RULE = "#f1d9c4";
+const WARN = "#b42318";
 
 const s = StyleSheet.create({
   page: { paddingVertical: 40, paddingHorizontal: 40, fontFamily: "Helvetica", fontSize: 9, color: INK, lineHeight: 1.35 },
-  /* Repeated on every page: a rounded accent frame with a thin peach line inside it. */
-  frame: { position: "absolute", top: 14, left: 14, right: 14, bottom: 14, borderWidth: 2, borderColor: ACCENT, borderRadius: 14 },
-  frameInner: { position: "absolute", top: 19, left: 19, right: 19, bottom: 19, borderWidth: 0.75, borderColor: PEACH, borderRadius: 10 },
-  banner: { backgroundColor: "#fdecea", borderColor: WARN, borderWidth: 1, borderRadius: 6, padding: 6, marginBottom: 10, color: WARN },
+  /* Repeated on every page: a square-cornered double rule, heavy outside and hairline inside. */
+  frame: { position: "absolute", top: 14, left: 14, right: 14, bottom: 14, borderWidth: 2.5, borderColor: ACCENT },
+  frameInner: { position: "absolute", top: 19, left: 19, right: 19, bottom: 19, borderWidth: 0.75, borderColor: ACCENT },
+  banner: { backgroundColor: "#fdecea", borderColor: WARN, borderWidth: 1, padding: 6, marginBottom: 10, color: WARN },
   head: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
     padding: 14,
-    borderRadius: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: ACCENT,
     overflow: "hidden",
   },
   headBg: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  logoTile: { width: 46, height: 46, borderRadius: 12, backgroundColor: SURFACE, borderWidth: 1.5, borderColor: INK, alignItems: "center", justifyContent: "center" },
+  logo: { width: 58, height: 58 },
   brand: { fontSize: 22, fontFamily: "Helvetica-Bold", color: ACCENT, lineHeight: 1 },
   tagline: { fontSize: 8, color: MUTED, marginTop: 3 },
   headingBox: { alignItems: "flex-end" },
@@ -106,7 +104,7 @@ const s = StyleSheet.create({
   muted: { color: MUTED },
   bold: { fontFamily: "Helvetica-Bold" },
   cols: { flexDirection: "row", gap: 10, marginBottom: 16 },
-  col: { flex: 1, padding: 9, borderRadius: 10, backgroundColor: TINT, borderWidth: 0.75, borderColor: RULE },
+  col: { flex: 1, padding: 9, backgroundColor: TINT, borderWidth: 0.75, borderColor: RULE },
   label: { fontSize: 7, fontFamily: "Helvetica-Bold", color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 4 },
   tableHead: {
     flexDirection: "row",
@@ -114,20 +112,17 @@ const s = StyleSheet.create({
     color: ON_ACCENT,
     paddingVertical: 5,
     paddingHorizontal: 8,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
   },
   row: { flexDirection: "row", paddingVertical: 5, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: RULE },
   rowAlt: { backgroundColor: TINT },
   right: { textAlign: "right" },
-  totals: { marginTop: 12, alignSelf: "flex-end", width: 250, padding: 10, borderRadius: 10, backgroundColor: TINT, borderWidth: 0.75, borderColor: RULE },
+  totals: { marginTop: 12, alignSelf: "flex-end", width: 250, padding: 10, backgroundColor: TINT, borderWidth: 0.75, borderColor: RULE },
   totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 1.5 },
   grand: {
     flexDirection: "row",
     justifyContent: "space-between",
     backgroundColor: ACCENT,
     color: ON_ACCENT,
-    borderRadius: 8,
     marginTop: 6,
     paddingVertical: 6,
     paddingHorizontal: 8,
@@ -141,38 +136,15 @@ const s = StyleSheet.create({
   dot: { width: 5, height: 5, borderRadius: 2.5 },
 });
 
-/* The brand hand (same geometry as scripts/brand/render-brand.ts, 90x90 viewBox): ink outline, then skin on top. */
-const FINGERTIPS: readonly (readonly [number, number])[] = [
-  [14, 46],
-  [30, 18],
-  [46, 10],
-  [62, 16],
-  [76, 32],
-];
-
-function HandLogo({ size }: { size: number }) {
-  const fingers = (stroke: string, width: number, key: string) =>
-    FINGERTIPS.map(([x, y], i) => (
-      <Line key={`${key}${i}`} x1={32 + i * 7} y1={56} x2={x} y2={y} stroke={stroke} strokeWidth={width} strokeLinecap="round" />
-    ));
-  return (
-    <Svg width={size} height={size} viewBox="6 4 78 80">
-      {fingers(INK, 14, "o")}
-      <Rect x={24} y={48} width={42} height={34} rx={14} fill={INK} />
-      {fingers(mochi.hand, 9, "s")}
-      <Rect x={26} y={50} width={38} height={30} rx={12} fill={mochi.hand} />
-    </Svg>
-  );
-}
-
-/** Mint-to-sky wash behind the header, the same gradient as the home-screen icon and the Mochi product tiles. */
+/** The badge's sunset (coral at the top fading to butter) behind the header. */
 function HeaderWash() {
   return (
     <Svg style={s.headBg} viewBox="0 0 100 100" preserveAspectRatio="none">
       <Defs>
-        <LinearGradient id="wash" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={ART_A} />
-          <Stop offset="1" stopColor={ART_B} />
+        <LinearGradient id="wash" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor={CORAL} stopOpacity={0.55} />
+          <Stop offset="0.5" stopColor={PEACH} stopOpacity={0.45} />
+          <Stop offset="1" stopColor={BUTTER} stopOpacity={0.55} />
         </LinearGradient>
       </Defs>
       <Rect x={0} y={0} width={100} height={100} fill="url(#wash)" />
@@ -244,7 +216,7 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
         <View style={s.frame} fixed />
         <View style={s.frameInner} fixed />
         <View style={s.dots} fixed>
-          {[ACCENT, PEACH, SKY, PEACH, ACCENT].map((c, i) => (
+          {[ACCENT, CORAL, BUTTER, CORAL, ACCENT].map((c, i) => (
             <View key={i} style={[s.dot, { backgroundColor: c }]} />
           ))}
         </View>
@@ -258,9 +230,8 @@ export function InvoiceDocument({ model }: { model: InvoiceModel }) {
         <View style={s.head}>
           <HeaderWash />
           <View style={s.brandRow}>
-            <View style={s.logoTile}>
-              <HandLogo size={36} />
-            </View>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image has no alt; the PDF title names the brand. */}
+            <Image style={s.logo} src={LOGO_DATA_URI} />
             <View>
               <Text style={s.brand}>{pdfText(model.seller.brandName)}</Text>
               <Text style={s.tagline}>{pdfText(model.seller.legalName)}</Text>
