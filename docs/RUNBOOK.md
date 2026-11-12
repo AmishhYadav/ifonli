@@ -49,7 +49,7 @@ Local-only test helpers: `IFONLI_TEST_DB` (integration test database name), `E2E
 
 ## 2. Deploy and roll back (Vercel)
 
-**Deploy.** Merging to `main` builds and deploys Production; every PR gets a Preview. The build runs `next build`, which **prerenders product, vibe and type pages from the database**: the Production build therefore needs `DATABASE_URL` pointing at a migrated database. Order matters when a release has a migration: run the migration first (section 3), then deploy.
+**Deploy.** Merging to `main` builds and deploys Production; every PR gets a Preview. The build runs `next build`, which **prerenders product, vibe and type pages from the database**: the Production build therefore needs `DATABASE_URL` pointing at a migrated database. Production builds apply pending migrations automatically before `next build` (`vercel-build` runs `scripts/migrate-on-deploy.mjs`, with `DATABASE_URL`; previews skip it). A failed migration fails the build, so the previous deployment stays live. Migrations must therefore stay backward compatible with the release before them (expand, then contract: section 3). Manual `pnpm db:migrate` (section 3) still works.
 
 Before a release
 1. CI green on the PR (static, integration, e2e-dev, prod jobs).
