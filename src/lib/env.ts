@@ -45,6 +45,8 @@ const serverEnvSchema = z.object({
 
   // Email
   RESEND_API_KEY: optionalString,
+  /** Takes precedence over Resend when set (no own domain needed). */
+  BREVO_API_KEY: optionalString,
   EMAIL_FROM: optionalString,
 
   // Internal secrets
@@ -91,7 +93,6 @@ const MIN_SECRET_LENGTH = 32;
 
 const REQUIRED_IN_PRODUCTION = [
   "DATABASE_URL",
-  "RESEND_API_KEY",
   "EMAIL_FROM",
 ] as const;
 /**
@@ -131,6 +132,7 @@ export function productionEnvProblems(source: Record<string, string | undefined>
   for (const name of REQUIRED_IN_PRODUCTION) {
     if (!get(name)) problems.push(`${name} is not set`);
   }
+  if (!get("RESEND_API_KEY") && !get("BREVO_API_KEY")) problems.push("RESEND_API_KEY or BREVO_API_KEY is not set (no e-mail provider)");
   if (RAZORPAY_VARS.some((name) => get(name))) {
     for (const name of RAZORPAY_VARS) {
       if (!get(name)) problems.push(`${name} is not set (Razorpay is half configured: set all of ${RAZORPAY_VARS.join(", ")}, or none of them)`);

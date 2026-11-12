@@ -26,7 +26,7 @@ Set in Vercel (Project, Settings, Environment Variables). Use separate **Product
 | `NEXT_PUBLIC_RAZORPAY_KEY_ID` | yes | no | Checkout.js key id (same as `RAZORPAY_KEY_ID`) |
 | `RAZORPAY_WEBHOOK_SECRET` | only to take orders | yes | HMAC of `/api/webhooks/razorpay`. A **different** secret from the key secret. Unset together with the other two Razorpay variables is fine (the webhook answers 503) |
 | `PAYMENTS_TEST_MODE` | no | no | Server-only. Exactly `1` lets the launch gate open on `rzp_test_` keys, for a public demo before live KYC is approved: the launch checklist shows a warning ("Razorpay is in test mode") instead of a blocker, and checkout shows "Test mode: no real money is charged". Without it, test keys in production still block orders. Has no effect with `rzp_live_` keys (the checklist warns to remove it). Remove it when switching to live keys |
-| `RESEND_API_KEY` / `EMAIL_FROM` | yes | key: yes | Transactional e-mail. `EMAIL_FROM` like `IfOnli <orders@your-domain>` on a Resend-verified domain |
+| `BREVO_API_KEY` or `RESEND_API_KEY`, and `EMAIL_FROM` | yes (one key) | key: yes | Transactional e-mail. Brevo wins when both are set. Brevo: `EMAIL_FROM` is a sender verified in Brevo, e.g. `IfOnli <shop.ifonli@gmail.com>` (no domain needed). Resend: an address on a Resend-verified domain |
 | `CRON_SECRET` | yes | yes | Vercel Cron sends it as `Authorization: Bearer ...`; with no secret every cron call is rejected. At least 32 characters |
 | `SENTRY_DSN` | recommended | semi | Enables error reporting. Empty = reporter is a no-op |
 | `NEXT_PUBLIC_GA4_ID` | optional | no | GA4 measurement id (wins over the admin setting `ga4_measurement_id`). The CSP always allows the Google origins, so the admin setting works without it |
