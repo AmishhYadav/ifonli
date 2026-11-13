@@ -147,10 +147,13 @@
   --color-admin-warning-soft: var(--admin-warning-soft);
   --color-admin-info: var(--admin-info);
   --color-admin-info-soft: var(--admin-info-soft);
-  --color-admin-nav-bg: var(--admin-nav-bg);
-  --color-admin-nav-ink: var(--admin-nav-ink);
-  --color-admin-nav-muted: var(--admin-nav-muted);
-  --color-admin-nav-hover: var(--admin-nav-hover);
-  --color-admin-nav-active: var(--admin-nav-active);
-  --color-admin-nav-border: var(--admin-nav-border);
+  --color-admin-coral: var(--admin-coral);
+  --color-admin-peach: var(--admin-peach);
+  --color-admin-butter: var(--admin-butter);
+  --color-admin-glass: var(--admin-glass);
+  --color-admin-glass-border: var(--admin-glass-border);
+  --color-admin-scrim: var(--admin-scrim);
+  --font-admin-display: var(--admin-font-display);
+  --font-admin-ui: var(--admin-font-sans);
+  --font-admin-mono: var(--admin-font-mono);
 }

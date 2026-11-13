@@ -18,10 +18,10 @@ export function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { hideClose?: boolean }) {
   return (
     <DialogPrimitive.Portal container={adminPortalContainer()}>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40" />
+      <DialogPrimitive.Overlay className="admin-overlay fixed inset-0 z-50 bg-admin-scrim backdrop-blur-[2px]" />
       <DialogPrimitive.Content
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-xl border border-admin-border bg-admin-surface p-6 text-admin-ink shadow-xl",
+          "admin-dialog fixed top-1/2 left-1/2 z-50 grid max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto overscroll-contain rounded-2xl border border-admin-border bg-admin-surface p-6 text-admin-ink shadow-xl",
           className,
         )}
         {...props}
@@ -29,7 +29,7 @@ export function DialogContent({
         {children}
         {hideClose ? null : (
           <DialogPrimitive.Close
-            className="absolute top-4 right-4 rounded-sm p-1 text-admin-ink-muted hover:bg-admin-surface-2 hover:text-admin-ink"
+            className="absolute top-4 right-4 rounded-lg p-1.5 text-admin-ink-muted transition-colors hover:bg-admin-primary-soft hover:text-admin-primary active:scale-90"
             aria-label="Close"
           >
             <X className="size-4" aria-hidden />
@@ -57,7 +57,7 @@ export function DialogTitle({
   className,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
-  return <DialogPrimitive.Title className={cn("text-base font-semibold", className)} {...props} />;
+  return <DialogPrimitive.Title className={cn("text-lg font-semibold", className)} {...props} />;
 }
 
 export function DialogDescription({

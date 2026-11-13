@@ -13,7 +13,7 @@ export function Table({ className, ...props }: React.ComponentProps<"table">) {
 export function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
-      className={cn("border-b border-admin-border bg-admin-surface-2/60", className)}
+      className={cn("border-b border-admin-border bg-admin-surface-2/70", className)}
       {...props}
     />
   );
@@ -27,7 +27,7 @@ export function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       className={cn(
-        "border-b border-admin-border transition-colors hover:bg-admin-surface-2/50",
+        "border-b border-admin-border transition-colors duration-150 hover:bg-admin-primary-soft/60",
         className,
       )}
       {...props}
@@ -39,7 +39,7 @@ export function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "h-9 px-3 text-left align-middle text-xs font-medium tracking-wide whitespace-nowrap text-admin-ink-muted uppercase",
+        "h-10 px-3 text-left align-middle text-xs font-semibold whitespace-nowrap text-admin-ink-muted",
         className,
       )}
       {...props}
@@ -48,5 +48,5 @@ export function TableHead({ className, ...props }: React.ComponentProps<"th">) {
 }
 
 export function TableCell({ className, ...props }: React.ComponentProps<"td">) {
-  return <td className={cn("px-3 py-2.5 align-middle", className)} {...props} />;
+  return <td className={cn("px-3 py-3 align-middle", className)} {...props} />;
 }

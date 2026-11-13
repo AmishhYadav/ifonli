@@ -20,7 +20,7 @@ export function DropdownMenuContent({
         sideOffset={sideOffset}
         align={align}
         className={cn(
-          "z-50 min-w-44 overflow-hidden rounded-lg border border-admin-border bg-admin-surface p-1 text-sm text-admin-ink shadow-lg",
+          "admin-menu z-50 min-w-48 overflow-hidden rounded-xl border border-admin-border bg-admin-surface p-1.5 text-sm text-admin-ink shadow-lg",
           className,
         )}
         {...props}
@@ -37,7 +37,7 @@ export function DropdownMenuItem({
   return (
     <MenuPrimitive.Item
       className={cn(
-        "flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-admin-surface-2 [&_svg]:size-4 [&_svg]:text-admin-ink-muted",
+        "flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-admin-primary-soft [&_svg]:size-4 [&_svg]:text-admin-ink-muted",
         destructive &&
           "text-admin-danger data-[highlighted]:bg-admin-danger-soft [&_svg]:text-admin-danger",
         className,
@@ -65,7 +65,7 @@ export function DropdownMenuSeparator({
 }: React.ComponentProps<typeof MenuPrimitive.Separator>) {
   return (
     <MenuPrimitive.Separator
-      className={cn("-mx-1 my-1 h-px bg-admin-border", className)}
+      className={cn("-mx-1.5 my-1.5 h-px bg-admin-border", className)}
       {...props}
     />
   );

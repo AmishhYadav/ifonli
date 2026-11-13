@@ -13,7 +13,7 @@ export function Checkbox({
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        "peer flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-admin-border-strong bg-admin-surface shadow-xs transition-colors hover:border-admin-ink-faint disabled:opacity-50 data-[state=checked]:border-admin-primary data-[state=checked]:bg-admin-primary data-[state=checked]:text-admin-on-primary",
+        "peer flex size-[1.125rem] shrink-0 items-center justify-center rounded-[5px] border border-admin-border-strong bg-admin-surface shadow-xs transition-[background-color,border-color,transform] active:scale-90 hover:border-admin-ink-faint disabled:opacity-50 data-[state=checked]:border-admin-primary data-[state=checked]:bg-admin-primary data-[state=checked]:bg-[image:var(--admin-grad-strong)] data-[state=checked]:text-admin-on-primary",
         className,
       )}
       {...props}

@@ -70,7 +70,7 @@ export async function createAdminSession(
   await page.getByRole("button", { name: "Verify and turn on" }).click();
   await expect(page.getByRole("heading", { name: "Save your backup codes" })).toBeVisible();
   await page.getByRole("button", { name: /I have saved them/ }).click();
-  await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard", level: 1, exact: true })).toBeVisible();
   const storageState = path.join(tmpdir(), `ifonli-qa-admin-${role}-${stamp}.json`);
   await context.storageState({ path: storageState });
   await context.close();

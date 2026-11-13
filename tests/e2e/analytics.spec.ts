@@ -262,7 +262,7 @@ test.describe("reports", () => {
     await page.getByLabel("6-digit code").fill(totp(secret));
     await page.getByRole("button", { name: "Verify and turn on" }).click();
     await page.getByRole("button", { name: /I have saved them/ }).click();
-    await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dashboard", level: 1, exact: true })).toBeVisible();
 
     // Reports is in the sidebar and no longer a placeholder.
     await page.getByRole("link", { name: "Reports", exact: true }).first().click();

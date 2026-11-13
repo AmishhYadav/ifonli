@@ -6,24 +6,24 @@ import * as React from "react";
 import { cn } from "./cn";
 
 export const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,transform,filter] duration-150 select-none active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        primary: "bg-admin-primary text-admin-on-primary shadow-xs hover:bg-admin-primary-hover",
-        secondary: "bg-admin-surface-2 text-admin-ink hover:bg-admin-border",
+        primary: "admin-btn-primary text-admin-on-primary",
+        secondary: "bg-admin-primary-soft text-admin-primary hover:bg-admin-surface-2",
         outline:
-          "border border-admin-border-strong bg-admin-surface text-admin-ink shadow-xs hover:bg-admin-surface-2",
+          "border border-admin-border-strong bg-admin-surface text-admin-ink shadow-xs hover:border-admin-primary/40 hover:bg-admin-primary-soft",
         ghost: "text-admin-ink-muted hover:bg-admin-surface-2 hover:text-admin-ink",
-        danger: "bg-admin-danger text-admin-on-primary shadow-xs hover:brightness-95",
+        danger: "bg-admin-danger text-admin-on-primary shadow-sm hover:brightness-110",
         "danger-outline":
-          "border border-admin-danger/40 bg-admin-surface text-admin-danger hover:bg-admin-danger-soft",
-        link: "h-auto p-0 text-admin-primary underline-offset-4 hover:underline",
+          "border border-admin-danger/40 bg-admin-surface text-admin-danger hover:border-admin-danger/70 hover:bg-admin-danger-soft",
+        link: "h-auto p-0 text-admin-primary underline-offset-4 hover:underline active:scale-100",
       },
       size: {
-        sm: "h-8 px-2.5 text-[13px]",
-        md: "h-9 px-3.5",
-        lg: "h-10 px-5",
+        sm: "h-8 px-3 text-[13px]",
+        md: "h-9 px-4",
+        lg: "h-11 px-5 text-[15px]",
         icon: "size-9",
         "icon-sm": "size-8",
       },

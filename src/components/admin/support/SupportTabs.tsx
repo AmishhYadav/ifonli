@@ -29,10 +29,10 @@ export function SupportTabs({
           href={i.href}
           aria-current={i.tab === active ? "page" : undefined}
           className={cn(
-            "relative -mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors",
+            "relative -mb-px inline-flex items-center gap-1.5 rounded-t-lg border-b-2 px-3.5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
             i.tab === active
-              ? "border-admin-primary text-admin-ink"
-              : "border-transparent text-admin-ink-muted hover:text-admin-ink",
+              ? "border-admin-primary text-admin-primary"
+              : "border-transparent text-admin-ink-muted hover:border-admin-border-strong hover:text-admin-ink",
           )}
         >
           {i.label}

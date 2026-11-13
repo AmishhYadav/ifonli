@@ -62,7 +62,7 @@ test.describe("admin content flows", () => {
     await page.getByRole("button", { name: "Verify and turn on" }).click();
     await expect(page.getByRole("heading", { name: "Save your backup codes" })).toBeVisible();
     await page.getByRole("button", { name: /I have saved them/ }).click();
-    await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dashboard", level: 1, exact: true })).toBeVisible();
     return secret;
   }
 
@@ -80,7 +80,7 @@ test.describe("admin content flows", () => {
     usedSteps.set(who.secret, step());
     await page.getByLabel("Authenticator code").fill(totp(who.secret));
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dashboard", level: 1, exact: true })).toBeVisible();
   }
 
   test.beforeAll(() => {

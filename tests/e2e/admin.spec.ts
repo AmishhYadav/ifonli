@@ -60,7 +60,7 @@ async function signInWithTotp(page: Page, email: string, password: string, secre
   await expect(page.getByRole("heading", { name: "Two-factor code" })).toBeVisible();
   await page.getByLabel("Authenticator code").fill(totp(secret));
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard", level: 1, exact: true })).toBeVisible();
 }
 
 test.describe("full flow", () => {
@@ -108,7 +108,7 @@ test.describe("full flow", () => {
     await page.getByRole("button", { name: "Verify and turn on" }).click();
     await expect(page.getByRole("heading", { name: "Save your backup codes" })).toBeVisible();
     await page.getByRole("button", { name: /I have saved them/ }).click();
-    await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dashboard", level: 1, exact: true })).toBeVisible();
   });
 
   test("sign out and back in with password + authenticator code", async ({ page, isMobile }) => {

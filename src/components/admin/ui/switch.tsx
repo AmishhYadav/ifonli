@@ -9,12 +9,12 @@ export function Switch({ className, ...props }: React.ComponentProps<typeof Swit
   return (
     <SwitchPrimitive.Root
       className={cn(
-        "peer inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-transparent bg-admin-border-strong shadow-xs transition-colors disabled:opacity-50 data-[state=checked]:bg-admin-primary",
+        "peer inline-flex h-6 w-10 shrink-0 items-center rounded-full border border-transparent bg-admin-border-strong shadow-xs transition-colors duration-200 disabled:opacity-50 data-[state=checked]:bg-admin-primary data-[state=checked]:bg-[image:var(--admin-grad-strong)]",
         className,
       )}
       {...props}
     >
-      <SwitchPrimitive.Thumb className="pointer-events-none block size-4 translate-x-0.5 rounded-full bg-admin-surface shadow transition-transform data-[state=checked]:translate-x-[18px]" />
+      <SwitchPrimitive.Thumb className="pointer-events-none block size-5 translate-x-0.5 rounded-full bg-admin-surface shadow-md transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-x-110 data-[state=checked]:translate-x-[18px]" />
     </SwitchPrimitive.Root>
   );
 }

@@ -102,7 +102,7 @@ export function DataTable<T extends RowData>({
           {searchText ? (
             <div className="relative w-full max-w-xs min-w-48 flex-1">
               <Search
-                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-admin-ink-faint"
+                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-admin-ink-faint"
                 aria-hidden
               />
               <Input
@@ -111,7 +111,7 @@ export function DataTable<T extends RowData>({
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={searchPlaceholder}
                 aria-label={searchPlaceholder}
-                className="pl-8"
+                className="pl-9"
               />
             </div>
           ) : null}
@@ -124,7 +124,7 @@ export function DataTable<T extends RowData>({
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-lg border border-admin-border bg-admin-surface shadow-xs">
+      <div className="overflow-hidden rounded-2xl border border-admin-border bg-admin-surface shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((group) => (
@@ -150,7 +150,7 @@ export function DataTable<T extends RowData>({
                           type="button"
                           onClick={header.column.getToggleSortingHandler()}
                           className={cn(
-                            "inline-flex items-center gap-1 uppercase hover:text-admin-ink",
+                            "inline-flex items-center gap-1 hover:text-admin-ink",
                             right && "flex-row-reverse",
                           )}
                         >

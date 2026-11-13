@@ -22,7 +22,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
+        "mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
         className,
       )}
     >
@@ -30,20 +30,20 @@ export function PageHeader({
         {back ? (
           <Link
             href={back.href}
-            className="mb-1 inline-flex items-center gap-0.5 text-[13px] text-admin-ink-muted hover:text-admin-ink"
+            className="group mb-1.5 inline-flex items-center gap-0.5 text-[13px] text-admin-ink-muted transition-colors hover:text-admin-primary"
           >
-            <ChevronLeft className="size-3.5" aria-hidden />
+            <ChevronLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden />
             {back.label}
           </Link>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl leading-tight font-semibold tracking-tight text-admin-ink">
+          <h1 className="text-2xl leading-tight font-bold tracking-tight text-admin-ink sm:text-[1.75rem]">
             {title}
           </h1>
           {badges}
         </div>
         {description ? (
-          <p className="mt-1 max-w-2xl text-[13px] text-admin-ink-muted">{description}</p>
+          <p className="mt-1.5 max-w-2xl text-sm text-admin-ink-muted">{description}</p>
         ) : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}

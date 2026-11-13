@@ -23,6 +23,9 @@ import {
   Input,
 } from "@/components/admin/ui";
 
+const GLASS =
+  "admin-glass-card border-admin-glass-border bg-admin-glass shadow-xl backdrop-blur-xl";
+
 export function EnrollForm({
   email: initialEmail,
   enrolled,
@@ -82,9 +85,9 @@ export function EnrollForm({
 
   if (stage === "backup" && setup) {
     return (
-      <Card>
+      <Card className={GLASS}>
         <CardHeader>
-          <CardTitle className="text-base">Save your backup codes</CardTitle>
+          <CardTitle className="text-lg">Save your backup codes</CardTitle>
           <CardDescription>
             Each code works once if you lose your phone. Store them somewhere safe; they are not
             shown again.
@@ -119,9 +122,9 @@ export function EnrollForm({
   }
 
   return (
-    <Card>
+    <Card className={GLASS}>
       <CardHeader>
-        <CardTitle className="text-base">Set up two-factor sign-in</CardTitle>
+        <CardTitle className="text-lg">Set up two-factor sign-in</CardTitle>
         <CardDescription>
           Admin accounts need an authenticator app (Google Authenticator, 1Password, Authy). Signed
           in as {email}.
@@ -181,7 +184,7 @@ export function EnrollForm({
               <li>Scan this QR code with your authenticator app.</li>
               <li>Enter the 6-digit code it shows.</li>
             </ol>
-            <div className="mx-auto rounded-lg border border-admin-border bg-white p-2">
+            <div className="mx-auto rounded-lg border border-admin-border bg-admin-surface p-2">
               <Image
                 src={setup.qrDataUrl}
                 alt="Authenticator QR code"

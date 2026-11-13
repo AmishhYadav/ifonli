@@ -16,6 +16,9 @@ import {
   Input,
 } from "@/components/admin/ui";
 
+const GLASS =
+  "admin-glass-card border-admin-glass-border bg-admin-glass shadow-xl backdrop-blur-xl";
+
 export function LoginForm() {
   const router = useRouter();
   const [step, setStep] = React.useState<"credentials" | "totp">("credentials");
@@ -52,9 +55,9 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
+    <Card className={GLASS}>
       <CardHeader>
-        <CardTitle className="text-base">
+        <CardTitle className="text-lg">
           {step === "credentials" ? "Sign in" : "Two-factor code"}
         </CardTitle>
         <CardDescription>
@@ -67,7 +70,7 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         {step === "credentials" ? (
-          <form onSubmit={submitCredentials} className="flex flex-col gap-4" noValidate>
+          <form onSubmit={submitCredentials} className="admin-rise-in flex flex-col gap-4" noValidate>
             <Field label="Email" htmlFor="email">
               <Input
                 id="email"
@@ -90,13 +93,13 @@ export function LoginForm() {
                 aria-invalid={!!error}
               />
             </Field>
-            <Button type="submit" disabled={pending || !email || !password}>
+            <Button type="submit" size="lg" disabled={pending || !email || !password}>
               {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
               Continue
             </Button>
           </form>
         ) : (
-          <form onSubmit={submitCode} className="flex flex-col gap-4" noValidate>
+          <form onSubmit={submitCode} className="admin-rise-in flex flex-col gap-4" noValidate>
             <Field
               label={backup ? "Backup code" : "Authenticator code"}
               htmlFor="code"
@@ -115,14 +118,14 @@ export function LoginForm() {
                 placeholder={backup ? "xxxxx-xxxxx" : "123456"}
               />
             </Field>
-            <Button type="submit" disabled={pending || code.trim().length < 6}>
+            <Button type="submit" size="lg" disabled={pending || code.trim().length < 6}>
               {pending ? <Loader2 className="animate-spin" aria-hidden /> : null}
               Sign in
             </Button>
             <div className="flex justify-between text-xs">
               <button
                 type="button"
-                className="text-admin-primary hover:underline"
+                className="rounded-md font-medium text-admin-primary hover:underline"
                 onClick={() => {
                   setBackup((b) => !b);
                   setCode("");
