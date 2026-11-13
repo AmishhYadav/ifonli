@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
+import { FreeThreadLine } from "@/components/orders/FreeThreadLine";
 import { Button } from "@/components/ui/Button";
 import { Drawer, DrawerContent } from "@/components/ui/Drawer";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -82,6 +83,7 @@ export function CartDrawerPanel({ emptyTitle, emptyBody, returnPolicyText }: Car
           <div className="flex flex-col gap-4">
             <CartNotices notices={notices} error={error} />
             <CartLines cart={cart} layout="drawer" onQuantity={setQuantity} onRemove={remove} />
+            <FreeThreadLine size="sm" className="border-t border-hairline pt-4" />
           </div>
         )}
         <p role="status" aria-live="polite" className="sr-only">

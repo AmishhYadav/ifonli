@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
+import { FreeThreadLine } from "@/components/orders/FreeThreadLine";
 import { buttonVariants } from "@/components/ui/buttonStyles";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
@@ -85,6 +86,7 @@ export function CartPageView({ initial, returnPolicyText, emptyTitle, emptyBody 
         </h2>
         <CartNotices notices={shownNotices} error={error} />
         <CartLines cart={cart} layout="page" onQuantity={setQuantity} onRemove={remove} />
+        <FreeThreadLine className="border-t border-hairline pt-5" />
         <Link
           href="/shop"
           className="inline-flex min-h-11 items-center gap-1.5 self-start text-base font-semibold text-link underline underline-offset-4 hover:no-underline"

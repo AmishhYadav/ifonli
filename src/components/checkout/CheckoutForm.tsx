@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { AmountBreakdown } from "@/components/orders/AmountBreakdown";
+import { FreeThreadLine } from "@/components/orders/FreeThreadLine";
 import { formatDateRange } from "@/components/orders/format";
 import { OrderLines } from "@/components/orders/OrderLines";
 import { Button } from "@/components/ui/Button";
@@ -736,6 +737,7 @@ export function CheckoutForm({
             imageUrl: line.image?.url ?? null,
           }))}
         />
+        <FreeThreadLine size="sm" />
 
         {cart.notices.length > 0 ? (
           <ul
