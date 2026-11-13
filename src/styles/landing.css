@@ -893,6 +893,121 @@ html[data-vibe="funky"] .l-ch--gif {
   display: none;
 }
 
+/* Instagram link under the store button: the badge bobs, wiggles now and then, and a shine sweeps across it. */
+.l-insta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.4rem 1.1rem 0.4rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 80%, white);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  font-size: 1rem;
+  text-decoration: none;
+  transition: translate 0.25s var(--l-ease), box-shadow 0.25s var(--l-ease);
+}
+
+.l-insta:hover {
+  translate: 0 -2px;
+}
+
+.l-insta:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.l-insta__badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  overflow: hidden;
+  border-radius: 0.8rem;
+  color: #fff;
+  background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5, #d62976, #feda75);
+  background-size: 300% 300%;
+  animation:
+    l-insta-hue 6s linear infinite,
+    l-insta-bob 3.2s ease-in-out infinite;
+}
+
+/* Shine sweep. */
+.l-insta__badge::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(115deg, transparent 40%, rgb(255 255 255 / 0.55) 50%, transparent 60%);
+  translate: -100% 0;
+  animation: l-insta-shine 3.2s ease-in-out infinite;
+}
+
+.l-insta__icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke-width: 2;
+}
+
+.l-insta:hover .l-insta__badge {
+  animation:
+    l-insta-hue 2s linear infinite,
+    l-insta-wiggle 0.6s ease-in-out;
+}
+
+@keyframes l-insta-hue {
+  to {
+    background-position: 300% 300%;
+  }
+}
+
+@keyframes l-insta-bob {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  40% {
+    translate: 0 -3px;
+    rotate: 0deg;
+  }
+  50% {
+    rotate: -10deg;
+  }
+  58% {
+    rotate: 8deg;
+  }
+  66% {
+    rotate: 0deg;
+  }
+}
+
+@keyframes l-insta-wiggle {
+  25% {
+    rotate: -14deg;
+    scale: 1.12;
+  }
+  60% {
+    rotate: 10deg;
+    scale: 1.12;
+  }
+  100% {
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+@keyframes l-insta-shine {
+  0%,
+  55% {
+    translate: -100% 0;
+  }
+  85%,
+  100% {
+    translate: 100% 0;
+  }
+}
+
 .l-portal__status {
   min-height: 1.5em;
   margin: 0;
@@ -1010,7 +1125,10 @@ html[data-vibe="funky"] .l-ch--gif {
   .l-open__sub,
   .l-cue,
   .l-cue__line,
-  .l-blob {
+  .l-blob,
+  .l-insta__badge,
+  .l-insta__badge::after,
+  .l-insta:hover .l-insta__badge {
     animation: none;
   }
 }

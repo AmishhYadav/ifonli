@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 
 import { VIBE_TAGLINES } from "@/components/store/vibe-taglines";
 import { buttonVariants } from "@/components/ui/buttonStyles";
+import { Icon } from "@/components/ui/Icon";
 import { VIBES, VIBE_NAMES, type Vibe } from "@/features/vibe/config";
 
 import { Cutout } from "./Cutout";
@@ -33,6 +34,8 @@ function MoodName({ vibe }: { vibe: Vibe }) {
 }
 
 const LETTERS = ["I", "f", "O", "n", "l", "i"] as const;
+
+const INSTAGRAM_URL = "https://www.instagram.com/ifonli_studio/";
 
 /** Chapter 1: the LCP. Entrance is CSS only, so nothing waits for JS. */
 export function Opening() {
@@ -259,6 +262,20 @@ export function Portal() {
               >
                 Enter the store
               </Link>
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="l-insta"
+                aria-label="Follow IfOnli on Instagram (opens in a new tab)"
+              >
+                <span className="l-insta__badge" aria-hidden="true">
+                  <Icon name="instagram" className="l-insta__icon" />
+                </span>
+                <span className="l-insta__text">
+                  Follow <strong>@ifonli_studio</strong>
+                </span>
+              </a>
               <p className="l-portal__status" role="status" data-portal-status />
             </div>
           </div>
