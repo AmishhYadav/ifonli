@@ -430,6 +430,45 @@ html[data-low-power] .l-bg .l-bg__fill[data-vibe]:not(:root)::before {
   color: var(--link);
 }
 
+/*
+ * The O is the cat GIF. The glyph stays (invisible) so the baseline and spacing are the font's own; the GIF sits on
+ * top. Its art is a disc (diameter 91.2% of the frame, centre 49.3% down) on an opaque black square, so the clip keeps
+ * only the disc. --o-d is the disc diameter and --o-y its centre from the top of the letter box, both measured from
+ * each display font's O ink; min-width makes room when the font's O is narrower than the disc.
+ */
+.l-ch--gif {
+  --o-d: 0.73em;
+  --o-y: 0.48em;
+  position: relative;
+  min-width: calc(var(--o-d) + 0.03em);
+  color: transparent;
+  text-align: center;
+}
+html[data-vibe="bold"] .l-ch--gif {
+  --o-d: 0.82em;
+  --o-y: 0.505em;
+}
+html[data-vibe="gothic"] .l-ch--gif {
+  --o-d: 0.66em;
+  --o-y: 0.468em;
+}
+html[data-vibe="funky"] .l-ch--gif {
+  --o-d: 0.735em;
+  --o-y: 0.44em;
+}
+
+.l-ch__gif {
+  --o-size: calc(var(--o-d) / 0.912);
+  position: absolute;
+  top: calc(var(--o-y) - var(--o-size) * 0.493);
+  left: 50%;
+  width: var(--o-size);
+  height: var(--o-size);
+  max-width: none;
+  translate: -50% 0;
+  clip-path: circle(45.6% at 49.5% 49.3%);
+}
+
 @keyframes l-ch-in {
   from {
     opacity: 0;

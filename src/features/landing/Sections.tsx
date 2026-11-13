@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
@@ -70,10 +71,23 @@ export function Opening() {
               <span
                 key={i}
                 aria-hidden="true"
-                className={i < 2 ? "l-ch" : "l-ch l-ch--accent"}
+                className={ch === "O" ? "l-ch l-ch--accent l-ch--gif" : i < 2 ? "l-ch" : "l-ch l-ch--accent"}
                 style={{ "--i": i } as Vars}
               >
                 {ch}
+                {ch === "O" && (
+                  <Image
+                    src="/brand/wordmark-o-cat.gif"
+                    alt=""
+                    width={410}
+                    height={410}
+                    unoptimized
+                    draggable={false}
+                    loading="eager"
+                    fetchPriority="high"
+                    className="l-ch__gif"
+                  />
+                )}
               </span>
             ))}
           </h1>
