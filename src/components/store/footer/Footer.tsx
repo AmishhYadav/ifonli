@@ -2,14 +2,11 @@ import Link from "next/link";
 
 import { Icon } from "@/components/ui/Icon";
 import { AnalyticsFooterLink } from "@/features/analytics/AnalyticsMount";
-import { isVibe } from "@/features/vibe/config";
-import { textOr } from "@/lib/seo";
 import { getCollections } from "@/server/cache/catalog";
 import { getStoreInfo } from "@/server/cache/settings";
 
 import { Logo } from "../header/Logo";
 import { InstagramLink } from "../InstagramLink";
-import { VIBE_TAGLINES } from "../vibe-taglines";
 
 import { FooterMoods } from "./FooterMoods";
 
@@ -48,13 +45,7 @@ export async function Footer() {
           <p className="max-w-xs text-base text-ink-muted">
             Charms, 3D stickers and DIY kits in four moods. Made in India.
           </p>
-          <FooterMoods
-            moods={collections.vibes.map((v) => ({
-              slug: v.slug,
-              name: v.name,
-              tagline: isVibe(v.slug) ? VIBE_TAGLINES[v.slug] : textOr(v.description, v.name),
-            }))}
-          />
+          <FooterMoods moods={collections.vibes.map((v) => ({ slug: v.slug, name: v.name }))} />
           <InstagramLink className="mt-2 self-start" />
         </div>
 

@@ -330,56 +330,41 @@
   }
 }
 
-/* Footer moods: plain 3D text buttons (extruded in the ink colour, not the mood colours); pressing one sinks it. */
-@keyframes ui-mood-tagline-in {
-  from {
-    opacity: 0;
-    translate: 0 -6px;
-  }
-}
-
+/* Footer moods: 3D keycap buttons in the ink colour (not the mood colours). A solid edge underneath gives the depth;
+ * hover lifts the key, pressing sinks it onto the edge. */
 @layer components {
   .mood-3d {
-    --mood-depth: color-mix(in srgb, var(--ink) 22%, transparent);
-    display: inline-flex;
+    --mood-edge: color-mix(in srgb, var(--ink) 85%, transparent);
+    display: flex;
     min-height: 2.75rem;
     align-items: center;
-    padding: 0.35rem 0.85rem;
-    border: 1px solid var(--hairline);
-    border-radius: 999px;
-    background: transparent;
+    justify-content: center;
+    padding: 0.4rem 0.75rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 0.75rem;
+    background: var(--surface, #fff);
+    box-shadow: 0 4px 0 var(--mood-edge);
     color: var(--ink);
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-weight: 800;
-    letter-spacing: 0.01em;
-    text-shadow:
-      1px 1px 0 var(--mood-depth),
-      2px 2px 0 var(--mood-depth),
-      3px 3px 0 var(--mood-depth),
-      4px 4px 6px color-mix(in srgb, var(--ink) 18%, transparent);
-    cursor: pointer;
+    line-height: 1.15;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
     transition:
-      translate var(--motion-dur) var(--motion-ease),
-      text-shadow var(--motion-dur) var(--motion-ease),
-      border-color var(--motion-dur) var(--motion-ease);
+      translate 140ms var(--motion-ease),
+      box-shadow 140ms var(--motion-ease);
   }
   .mood-3d:hover {
-    translate: -1px -1px;
+    translate: 0 -2px;
+    box-shadow: 0 6px 0 var(--mood-edge);
   }
-  .mood-3d:active,
-  .mood-3d[aria-expanded="true"] {
-    translate: 2px 2px;
-    border-color: var(--ink);
-    text-shadow:
-      1px 1px 0 var(--mood-depth),
-      2px 2px 3px color-mix(in srgb, var(--ink) 14%, transparent);
+  .mood-3d:active {
+    translate: 0 4px;
+    box-shadow: 0 0 0 var(--mood-edge);
   }
   .mood-3d:focus-visible {
     outline: 3px solid var(--focus-ring);
-    outline-offset: 2px;
-  }
-  .mood-3d__tagline {
-    margin: 0;
-    animation: ui-mood-tagline-in var(--motion-dur) var(--motion-ease) both;
+    outline-offset: 3px;
   }
 }
