@@ -64,6 +64,13 @@
       "when": 1793726400000,
       "tag": "0008_diy_chain",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793812800000,
+      "tag": "0009_short_store_address",
+      "breakpoints": true
     }
   ]
 }
