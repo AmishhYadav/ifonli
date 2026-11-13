@@ -6,6 +6,7 @@ import { getCollections } from "@/server/cache/catalog";
 import { getStoreInfo } from "@/server/cache/settings";
 
 import { Logo } from "../header/Logo";
+import { InstagramLink } from "../InstagramLink";
 
 import { PlaceholderValue } from "./PlaceholderValue";
 
@@ -51,6 +52,7 @@ export async function Footer() {
               </li>
             ))}
           </ul>
+          <InstagramLink className="mt-2 self-start" />
         </div>
 
         <Column title="Shop and help">

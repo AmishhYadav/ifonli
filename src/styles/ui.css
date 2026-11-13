@@ -221,3 +221,111 @@
     -webkit-appearance: none;
   }
 }
+
+/* Instagram link (landing portal and store footer): the badge cycles the Instagram gradient, bobs, wiggles now and
+ * then and a shine sweeps across it; it wiggles on hover. */
+@keyframes ui-insta-hue {
+  to {
+    background-position: 300% 300%;
+  }
+}
+@keyframes ui-insta-bob {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  40% {
+    translate: 0 -3px;
+    rotate: 0deg;
+  }
+  50% {
+    rotate: -10deg;
+  }
+  58% {
+    rotate: 8deg;
+  }
+  66% {
+    rotate: 0deg;
+  }
+}
+@keyframes ui-insta-wiggle {
+  25% {
+    rotate: -14deg;
+    scale: 1.12;
+  }
+  60% {
+    rotate: 10deg;
+    scale: 1.12;
+  }
+  100% {
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+@keyframes ui-insta-shine {
+  0%,
+  55% {
+    translate: -100% 0;
+  }
+  85%,
+  100% {
+    translate: 100% 0;
+  }
+}
+
+@layer components {
+  .insta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.4rem 1.1rem 0.4rem 0.4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 80%, white);
+    box-shadow: var(--shadow-card);
+    color: var(--ink);
+    font-size: 1rem;
+    text-decoration: none;
+    transition: translate var(--motion-dur) var(--motion-ease);
+  }
+  .insta-link:hover {
+    translate: 0 -2px;
+  }
+  .insta-link:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+  .insta-link__badge {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    overflow: hidden;
+    border-radius: 0.8rem;
+    color: #fff;
+    background: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5, #d62976, #feda75);
+    background-size: 300% 300%;
+    animation:
+      ui-insta-hue 6s linear infinite,
+      ui-insta-bob 3.2s ease-in-out infinite;
+  }
+  .insta-link__badge::after {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: linear-gradient(115deg, transparent 40%, rgb(255 255 255 / 0.55) 50%, transparent 60%);
+    translate: -100% 0;
+    animation: ui-insta-shine 3.2s ease-in-out infinite;
+  }
+  .insta-link__icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    stroke-width: 2;
+  }
+  .insta-link:hover .insta-link__badge {
+    animation:
+      ui-insta-hue 2s linear infinite,
+      ui-insta-wiggle 0.6s ease-in-out;
+  }
+}
