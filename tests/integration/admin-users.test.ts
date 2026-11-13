@@ -77,12 +77,9 @@ describe("admin users: listing", () => {
       .set({ banned: true, banReason: "left the company" })
       .where(eq(user.id, "ful-1"));
     const rows = await listStaffUsers(db());
-    expect(rows.map((r) => r.email).sort()).toEqual([
-      "admin@example.com",
-      "ful@example.com",
-      "owner1@example.com",
-      "owner2@example.com",
-    ]);
+    // The owner is shown by role only: name "Owner", e-mail hidden.
+    expect(rows.map((r) => r.email).sort()).toEqual(["", "", "admin@example.com", "ful@example.com"]);
+    expect(rows.filter((r) => r.role === "owner").map((r) => r.name)).toEqual(["Owner", "Owner"]);
     expect(rows.find((r) => r.id === "admin-1")).toMatchObject({
       activeSessions: 2,
       twoFactorEnabled: true,

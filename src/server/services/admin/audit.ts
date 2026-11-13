@@ -4,6 +4,7 @@ import { and, desc, eq, gte, ilike, lt, or, sql, type SQL } from "drizzle-orm";
 
 import { assertCan } from "@/server/auth/permissions";
 import { adminAuditLog, user } from "@/server/db/schema";
+import { staffEmailSql, staffNameSql } from "./staff-display";
 import type { DbClient } from "@/server/services/queries/shared";
 
 /**
@@ -87,8 +88,8 @@ const selection = {
   id: adminAuditLog.id,
   createdAt: adminAuditLog.createdAt,
   actorId: adminAuditLog.actorId,
-  actorName: user.name,
-  actorEmail: user.email,
+  actorName: staffNameSql,
+  actorEmail: staffEmailSql,
   action: adminAuditLog.action,
   entity: adminAuditLog.entity,
   entityId: adminAuditLog.entityId,
@@ -141,15 +142,18 @@ export async function getAuditFacets(db: DbClient, viewer: { role: string }): Pr
       .from(adminAuditLog)
       .orderBy(adminAuditLog.action),
     db
-      .selectDistinct({ id: user.id, name: user.name, email: user.email })
+      .selectDistinct({ id: user.id, name: staffNameSql, email: staffEmailSql })
       .from(adminAuditLog)
       .innerJoin(user, eq(adminAuditLog.actorId, user.id))
-      .orderBy(user.name),
+      .orderBy(staffNameSql),
   ]);
   return {
     entities: entities.map((e) => e.v),
     actions: actions.map((a) => a.v),
-    actors: actors.map((a) => ({ id: a.id, label: `${a.name} (${a.email})` })),
+    actors: actors.map((a) => ({
+      id: a.id,
+      label: a.email ? `${a.name} (${a.email})` : (a.name ?? ""),
+    })),
   };
 }
 

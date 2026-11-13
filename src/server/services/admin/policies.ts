@@ -13,6 +13,7 @@ import {
 } from "@/server/content/policies";
 import { renderTemplate, type TemplateProblem } from "@/server/content/render-template";
 import { policies, policyVersions, user } from "@/server/db/schema";
+import { staffNameSql } from "./staff-display";
 import { writeAudit } from "@/server/services/audit";
 import type { DbClient } from "@/server/services/queries/shared";
 
@@ -173,7 +174,7 @@ export async function getPolicyEditor(
       bodyMd: policyVersions.bodyMd,
       effectiveAt: policyVersions.effectiveAt,
       publishedBy: policyVersions.publishedBy,
-      publisherName: user.name,
+      publisherName: staffNameSql,
     })
     .from(policyVersions)
     .leftJoin(user, eq(policyVersions.publishedBy, user.id))

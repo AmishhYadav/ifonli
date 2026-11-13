@@ -12,6 +12,7 @@ import {
   supportCases,
   user,
 } from "@/server/db/schema";
+import { staffNameSql } from "./staff-display";
 import { istDateString, type FulfillmentStatus, type OrderStatus, type PaymentMethod, type PaymentStatus } from "@/server/domain";
 import { listLowStock } from "@/server/services/inventory";
 import type { DbClient } from "@/server/services/queries/shared";
@@ -200,7 +201,7 @@ export async function getDashboardStats(
             action: adminAuditLog.action,
             entity: adminAuditLog.entity,
             entityId: adminAuditLog.entityId,
-            actorName: user.name,
+            actorName: staffNameSql,
             createdAt: adminAuditLog.createdAt,
           })
           .from(adminAuditLog)

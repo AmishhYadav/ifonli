@@ -364,7 +364,9 @@ export function UsersManager({ users, canManage }: { users: StaffView[]; canMana
                   {u.isSelf ? (
                     <span className="ml-1.5 text-xs text-admin-ink-muted">(you)</span>
                   ) : null}
-                  <span className="block text-xs text-admin-ink-muted">{u.email}</span>
+                  {u.email ? (
+                    <span className="block text-xs text-admin-ink-muted">{u.email}</span>
+                  ) : null}
                 </TableCell>
                 <TableCell className="w-44">
                   {canManage && !u.isSelf ? (

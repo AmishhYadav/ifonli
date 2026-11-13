@@ -82,8 +82,8 @@ describe("audit log: listing and filters", () => {
       "setting.update",
     ]);
     expect(page.items[1]).toMatchObject({
-      actorName: "Olivia Owner",
-      actorEmail: "olivia@example.com",
+      actorName: "Owner",
+      actorEmail: null,
       entityId: "terms",
     });
     expect(page.items[0]).toMatchObject({ actorId: null, actorName: null });
@@ -163,7 +163,7 @@ describe("audit log: listing and filters", () => {
     ]);
     expect(facets.actors).toEqual([
       { id: "admin-1", label: "Adam Admin (adam@example.com)" },
-      { id: "owner-1", label: "Olivia Owner (olivia@example.com)" },
+      { id: "owner-1", label: "Owner" },
     ]);
   });
 
@@ -195,7 +195,7 @@ describe("audit log: CSV export", () => {
     const lines = csv.split("\r\n");
     expect(lines[0]).toBe("Time (UTC),Actor,Actor email,Action,Entity,Entity id,IP,Changes");
     expect(csv).toContain(
-      "2026-10-05T00:00:00.000Z,Olivia Owner,olivia@example.com,setting.update,setting,",
+      "2026-10-05T00:00:00.000Z,Owner,,setting.update,setting,",
     );
     expect(csv).toContain(`"'=HYPERLINK(""http://evil"")"`); // apostrophe-prefixed, quotes doubled
     expect(csv).toContain(`"{""note"":""line1\\nline2, \\""quoted\\""""}"`);

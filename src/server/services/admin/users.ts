@@ -13,6 +13,7 @@ import {
 } from "@/server/auth/admin-user";
 import { ADMIN_ROLES, assertCan } from "@/server/auth/permissions";
 import { account, session, twoFactor, user } from "@/server/db/schema";
+import { staffDisplayEmail, staffDisplayName } from "./staff-display";
 import { writeAudit } from "@/server/services/audit";
 import type { DbClient } from "@/server/services/queries/shared";
 
@@ -76,8 +77,8 @@ export async function listStaffUsers(
   }
   return rows.map((r) => ({
     id: r.id,
-    name: r.name,
-    email: r.email,
+    name: staffDisplayName(r.name, r.role),
+    email: staffDisplayEmail(r.email, r.role) ?? "",
     role: r.role as StaffRole,
     banned: r.banned === true,
     banReason: r.banReason,

@@ -4,6 +4,7 @@ import { eq, sql } from "drizzle-orm";
 
 import { assertCan } from "@/server/auth/permissions";
 import { settings, states, user } from "@/server/db/schema";
+import { staffNameSql } from "./staff-display";
 import { VIBES } from "@/features/vibe/config";
 import { writeAudit } from "@/server/services/audit";
 import type { DbClient } from "@/server/services/queries/shared";
@@ -85,7 +86,7 @@ export async function listSettingsAdmin(db: DbClient): Promise<AdminSettingRow[]
       value: settings.value,
       isPlaceholder: settings.isPlaceholder,
       updatedAt: settings.updatedAt,
-      updatedByName: user.name,
+      updatedByName: staffNameSql,
     })
     .from(settings)
     .leftJoin(user, eq(settings.updatedBy, user.id));

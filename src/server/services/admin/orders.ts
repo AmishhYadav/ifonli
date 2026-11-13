@@ -19,6 +19,7 @@ import {
   user,
   invoices,
 } from "@/server/db/schema";
+import { staffNameSql } from "./staff-display";
 import {
   FULFILLMENT_STATUSES,
   ORDER_STATUSES,
@@ -420,13 +421,13 @@ export async function getAdminOrderDetail(db: DbClient, orderId: string): Promis
       db.select().from(shipments).where(eq(shipments.orderId, orderId)).orderBy(asc(shipments.createdAt)),
       db.select().from(payments).where(eq(payments.orderId, orderId)).orderBy(asc(payments.createdAt)),
       db
-        .select({ r: refunds, actorName: user.name })
+        .select({ r: refunds, actorName: staffNameSql })
         .from(refunds)
         .leftJoin(user, eq(refunds.actorId, user.id))
         .where(eq(refunds.orderId, orderId))
         .orderBy(asc(refunds.createdAt)),
       db
-        .select({ e: orderEvents, actorName: user.name })
+        .select({ e: orderEvents, actorName: staffNameSql })
         .from(orderEvents)
         .leftJoin(user, eq(orderEvents.actorId, user.id))
         .where(eq(orderEvents.orderId, orderId))

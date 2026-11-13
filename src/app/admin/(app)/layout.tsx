@@ -4,6 +4,7 @@ import { AdminFrame, type FrameNavGroup } from "@/components/admin/shell/AdminFr
 import { NAV, hrefFor } from "@/components/admin/nav";
 import { can } from "@/server/auth/permissions";
 import { requireAdmin } from "@/server/auth/session";
+import { staffDisplayEmail, staffDisplayName } from "@/server/services/admin/staff-display";
 
 /**
  * Authenticated admin shell. The session is read behind Suspense (cache components: request data
@@ -33,7 +34,11 @@ async function Shell({ children }: { children: React.ReactNode }) {
   return (
     <AdminFrame
       groups={groups}
-      user={{ name: session.user.name, email: session.user.email, role: session.user.role }}
+      user={{
+        name: staffDisplayName(session.user.name, session.user.role),
+        email: staffDisplayEmail(session.user.email, session.user.role) ?? "",
+        role: session.user.role,
+      }}
     >
       {children}
     </AdminFrame>

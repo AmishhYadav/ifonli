@@ -75,7 +75,9 @@ function Row({ row }: { row: AuditRow }) {
         {row.actorName ? (
           <>
             <span className="font-medium">{row.actorName}</span>
-            <span className="block text-xs text-admin-ink-muted">{row.actorEmail}</span>
+            {row.actorEmail ? (
+              <span className="block text-xs text-admin-ink-muted">{row.actorEmail}</span>
+            ) : null}
           </>
         ) : (
           <span className="text-admin-ink-muted">{row.actorId ? "Deleted user" : "System"}</span>

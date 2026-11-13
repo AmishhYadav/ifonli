@@ -211,8 +211,8 @@ describe("admin policies", () => {
 
     editor = await getPolicyEditor(getDb(), "terms");
     expect(editor?.history.map((h) => [h.version, h.isLive, h.publishedByName])).toEqual([
-      [2, true, "Olivia Owner"],
-      [1, false, "Olivia Owner"],
+      [2, true, "Owner"],
+      [1, false, "Owner"],
     ]);
     // History rows are immutable once published: later drafts only touch version 3.
     await savePolicyDraft(getDb(), "terms", draft("v3 text", "Terms (newer)"), admin);

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { formatINR } from "@/lib/money";
 import { assertCan, can } from "@/server/auth/permissions";
 import { adminAuditLog, contactMessages, orders, supportCases, user } from "@/server/db/schema";
+import { staffDisplayName, staffNameSql } from "./staff-display";
 import {
   ACTIVE_CASE_STATUSES,
   ACTIVE_CONTACT_STATUSES,
@@ -29,7 +30,13 @@ import { addOrderEvent } from "@/server/services/order-events";
 import type { DbClient } from "@/server/services/queries/shared";
 import { createSignedReadUrl } from "@/server/storage";
 
-import { getAdminOrderDetail, label, refundOrder, withAdvisoryLock, type AdminOrderDetail } from "./orders";
+import {
+  getAdminOrderDetail,
+  label,
+  refundOrder,
+  withAdvisoryLock,
+  type AdminOrderDetail,
+} from "./orders";
 import { AdminInputError, type AdminActor } from "./products";
 import {
   ReplacementError,
@@ -120,7 +127,13 @@ export async function listAssignableStaff(db: DbClient): Promise<StaffOption[]> 
       ),
     )
     .orderBy(asc(user.name), asc(user.id));
-  return rows.filter((r) => can(r.role, "support:view"));
+  return rows
+    .filter((r) => can(r.role, "support:view"))
+    .map((r) => ({
+      ...r,
+      name: staffDisplayName(r.name, r.role),
+      email: r.role === "owner" ? "" : r.email,
+    }));
 }
 
 export interface SupportCounts {
@@ -230,7 +243,7 @@ export async function listContactMessages(
   const total = totalRow?.n ?? 0;
   const { page, pageCount } = pageOf(total, pageSize, params.page);
   const rows = await db
-    .select({ m: contactMessages, assigneeName: user.name })
+    .select({ m: contactMessages, assigneeName: staffNameSql })
     .from(contactMessages)
     .leftJoin(user, eq(contactMessages.assignedTo, user.id))
     .where(where)
@@ -328,7 +341,13 @@ export async function listSupportCases(
   const { page, pageCount } = pageOf(total, pageSize, params.page);
   const assignee = alias(user, "assignee");
   const rows = await db
-    .select({ c: supportCases, order: orders, assigneeName: assignee.name })
+    .select({
+      c: supportCases,
+      order: orders,
+      assigneeName: sql<
+        string | null
+      >`case when ${assignee.role} = 'owner' then 'Owner' else ${assignee.name} end`,
+    })
     .from(supportCases)
     .innerJoin(orders, eq(orders.id, supportCases.orderId))
     .leftJoin(assignee, eq(supportCases.assignedTo, assignee.id))
@@ -375,7 +394,7 @@ export interface SupportTimelineEntry {
 
 async function loadTimeline(db: DbClient, entity: "support_case" | "contact_message", id: string) {
   const rows = await db
-    .select({ a: adminAuditLog, actorName: user.name })
+    .select({ a: adminAuditLog, actorName: staffNameSql })
     .from(adminAuditLog)
     .leftJoin(user, eq(adminAuditLog.actorId, user.id))
     .where(and(eq(adminAuditLog.entity, entity), eq(adminAuditLog.entityId, id)))
@@ -422,7 +441,7 @@ export async function getContactMessageDetail(
   id: string,
 ): Promise<ContactMessageDetail | null> {
   const [row] = await db
-    .select({ m: contactMessages, assigneeName: user.name })
+    .select({ m: contactMessages, assigneeName: staffNameSql })
     .from(contactMessages)
     .leftJoin(user, eq(contactMessages.assignedTo, user.id))
     .where(eq(contactMessages.id, id))
@@ -496,12 +515,16 @@ async function resolveAssignee(tx: DbClient, assignedTo: string | null) {
   if (!u || u.banned || !can(u.role, "support:view")) {
     throw new AdminInputError("That person can't be assigned. Pick someone from the team list.");
   }
-  return { id: u.id, name: u.name };
+  return { id: u.id, name: staffDisplayName(u.name, u.role) };
 }
 
 async function nameOf(tx: DbClient, userId: string | null): Promise<string | null> {
   if (!userId) return null;
-  const [u] = await tx.select({ name: user.name }).from(user).where(eq(user.id, userId)).limit(1);
+  const [u] = await tx
+    .select({ name: staffNameSql })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
   return u?.name ?? null;
 }
 
@@ -706,7 +729,7 @@ export async function getSupportCaseDetail(
   id: string,
 ): Promise<SupportCaseDetail | null> {
   const [row] = await db
-    .select({ c: supportCases, assigneeName: user.name })
+    .select({ c: supportCases, assigneeName: staffNameSql })
     .from(supportCases)
     .leftJoin(user, eq(supportCases.assignedTo, user.id))
     .where(eq(supportCases.id, id))
@@ -1055,7 +1078,9 @@ export async function resolveSupportCase(
 
   if (input.resolution === "refund") {
     // One refund per case: a double click or a second admin waits here, then finds the case decided.
-    return withAdvisoryLock(db, `support-refund:${caseId}`, () => resolveWithRefund(db, caseId, input, actor, provider));
+    return withAdvisoryLock(db, `support-refund:${caseId}`, () =>
+      resolveWithRefund(db, caseId, input, actor, provider),
+    );
   }
 
   return resolveWithReplacement(db, caseId, input, actor);

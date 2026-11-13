@@ -174,7 +174,11 @@ export function AdminFrame({
 }) {
   const [open, setOpen] = React.useState(false);
   const signOutForm = React.useRef<HTMLFormElement>(null);
-  const initial = (user.name || user.email).trim().charAt(0).toUpperCase();
+  const isOwner = user.role === "owner";
+  const roleLabel = ROLE_LABEL[user.role] ?? user.role;
+  // The owner is shown by role only: no name, no e-mail.
+  const displayName = isOwner ? roleLabel : user.name;
+  const initial = (displayName || user.email).trim().charAt(0).toUpperCase();
 
   React.useEffect(() => {
     if (!open) return;
@@ -262,20 +266,26 @@ export function AdminFrame({
                   {initial}
                 </span>
                 <span className="hidden text-left leading-tight sm:block">
-                  <span className="block text-[13px] font-medium">{user.name}</span>
+                  <span className="block text-[13px] font-medium">{displayName}</span>
                   <span className="block text-[11px] text-admin-ink-muted">
-                    {ROLE_LABEL[user.role] ?? user.role}
+                    {isOwner ? "Logged in" : roleLabel}
                   </span>
                 </span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>
-                <span className="block text-sm font-medium text-admin-ink">{user.name}</span>
-                <span className="block">{user.email}</span>
-                <Badge tone="primary" className="mt-1.5">
-                  {ROLE_LABEL[user.role] ?? user.role}
-                </Badge>
+                <span className="block text-sm font-medium text-admin-ink">{displayName}</span>
+                {isOwner ? (
+                  <span className="block">Logged in</span>
+                ) : (
+                  <>
+                    <span className="block">{user.email}</span>
+                    <Badge tone="primary" className="mt-1.5">
+                      {roleLabel}
+                    </Badge>
+                  </>
+                )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {/* The form lives outside the menu: closing the menu unmounts its content before a submit button inside it could fire. */}
