@@ -52,7 +52,7 @@ export interface SupportPhotoFile {
 export function validatePhotoFiles(files: readonly SupportPhotoFile[]): string | null {
   if (files.length > SUPPORT_PHOTO_MAX) return `You can add up to ${SUPPORT_PHOTO_MAX} photos.`;
   for (const file of files) {
-    if (!(file.type in SUPPORT_PHOTO_TYPES)) return "Photos must be JPEG, PNG or WebP images.";
+    if (!Object.hasOwn(SUPPORT_PHOTO_TYPES, file.type)) return "Photos must be JPEG, PNG or WebP images.";
     if (!Number.isFinite(file.size) || file.size <= 0) return "One of the photos is empty.";
     if (file.size > SUPPORT_PHOTO_MAX_BYTES) {
       return `Each photo can be up to ${Math.round(SUPPORT_PHOTO_MAX_BYTES / (1024 * 1024))} MB. Try a smaller one.`;

@@ -82,6 +82,10 @@ describe("support report rules", () => {
     expect(validatePhotoFiles(Array.from({ length: SUPPORT_PHOTO_MAX + 1 }, () => jpeg))).toMatch(/up to 4/);
     expect(validatePhotoFiles([{ type: "image/gif", size: 10 }])).toMatch(/JPEG, PNG or WebP/);
     expect(validatePhotoFiles([{ type: "application/pdf", size: 10 }])).toMatch(/JPEG, PNG or WebP/);
+    // Names that exist on every object are not file types.
+    for (const type of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+      expect(validatePhotoFiles([{ type, size: 10 }])).toMatch(/JPEG, PNG or WebP/);
+    }
     expect(validatePhotoFiles([{ type: "image/png", size: 0 }])).toMatch(/empty/);
     expect(validatePhotoFiles([{ type: "image/webp", size: SUPPORT_PHOTO_MAX_BYTES + 1 }])).toMatch(/up to 8 MB/);
     expect(validatePhotoFiles([{ type: "image/webp", size: SUPPORT_PHOTO_MAX_BYTES }])).toBeNull();

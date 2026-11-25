@@ -325,6 +325,11 @@ describe("listCustomers", () => {
       dir: "sideways" as never,
     });
     expect(junk.items.map((r) => r.email)).toEqual(await order("last_order"));
+    // Names inherited from Object.prototype are junk too: they must not reach the raw ORDER BY.
+    for (const inherited of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+      const res = await listCustomers(db(), { sort: inherited as never });
+      expect(res.items.map((r) => r.email)).toEqual(junk.items.map((r) => r.email));
+    }
 
     const p1 = await listCustomers(db(), { sort: "spent", pageSize: 2 });
     const p2 = await listCustomers(db(), { sort: "spent", pageSize: 2, page: 2 });

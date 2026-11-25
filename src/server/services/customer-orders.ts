@@ -269,7 +269,9 @@ export async function cancelOrderForCustomer(
   }
   const decisions = await Promise.all([
     consumeRateLimit(db, `cancel:ip:${input.ip}`, CUSTOMER_CANCEL_LIMITS.ip),
-    consumeRateLimit(db, `cancel:ref:${digest(normalizeOrderRef(input.ref))}`, CUSTOMER_CANCEL_LIMITS.ref),
+    // Per (reference, IP): a budget shared by everyone would let anyone who knows a reference lock the
+    // real customer out of cancelling.
+    consumeRateLimit(db, `cancel:ref-ip:${digest(normalizeOrderRef(input.ref))}:${digest(input.ip)}`, CUSTOMER_CANCEL_LIMITS.ref),
   ]);
   const blocked = decisions.find((d) => !d.allowed);
   if (blocked) {

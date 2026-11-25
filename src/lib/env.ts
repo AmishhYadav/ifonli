@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { parseAllowedIps } from "./ip-allowlist";
+
 /**
  * Validated server environment.
  *
@@ -16,6 +18,29 @@ const optionalString = z.preprocess(
 const optionalUrl = z.preprocess(
   (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
   z.url().optional(),
+);
+
+/**
+ * Optional admin IP allow-list: comma-separated IPv4/IPv6 addresses and IPv4 CIDR ranges. A value we
+ * cannot fully understand is an error (not "ignore the bad entries"): a half-read allow-list would
+ * either lock the admins out or silently let more people in.
+ */
+const optionalIpAllowList = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  z
+    .string()
+    .superRefine((value, ctx) => {
+      const { rules, invalid } = parseAllowedIps(value);
+      if (invalid.length > 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: `not an IPv4 / IPv6 address or IPv4 CIDR (a.b.c.d/n, n from 1 to 32): ${invalid.join(", ")}`,
+        });
+      } else if (rules.length === 0) {
+        ctx.addIssue({ code: "custom", message: "lists no address" });
+      }
+    })
+    .optional(),
 );
 
 const serverEnvSchema = z.object({
@@ -52,6 +77,13 @@ const serverEnvSchema = z.object({
   // Internal secrets
   CRON_SECRET: optionalString,
   ORDER_TOKEN_SECRET: optionalString,
+
+  /**
+   * Server-only. When set, /admin and /api/admin answer a plain 404 to every client IP not in this
+   * list (see `src/proxy.ts`). Unset = no IP filtering. A wrong value locks staff out until it is
+   * fixed and redeployed (RUNBOOK section 1).
+   */
+  ADMIN_ALLOWED_IPS: optionalIpAllowList,
 
   // Observability / analytics
   SENTRY_DSN: optionalString,
@@ -131,6 +163,15 @@ export function productionEnvProblems(source: Record<string, string | undefined>
   }
   for (const name of REQUIRED_IN_PRODUCTION) {
     if (!get(name)) problems.push(`${name} is not set`);
+  }
+  const allowedIps = get("ADMIN_ALLOWED_IPS");
+  if (allowedIps) {
+    const { rules, invalid } = parseAllowedIps(allowedIps);
+    if (invalid.length > 0) {
+      problems.push(`ADMIN_ALLOWED_IPS has entries that are not an IPv4/IPv6 address or IPv4 CIDR (${invalid.join(", ")}); the admin would be unreachable`);
+    } else if (rules.length === 0) {
+      problems.push("ADMIN_ALLOWED_IPS lists no address; the admin would be unreachable (unset it to turn the filter off)");
+    }
   }
   if (!get("RESEND_API_KEY") && !get("BREVO_API_KEY")) problems.push("RESEND_API_KEY or BREVO_API_KEY is not set (no e-mail provider)");
   if (RAZORPAY_VARS.some((name) => get(name))) {

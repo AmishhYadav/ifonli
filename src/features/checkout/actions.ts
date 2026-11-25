@@ -214,9 +214,12 @@ export async function retryPayment(ref: string, token: string): Promise<RetryPay
       return { ok: false, error: { code: "not_found", message: "We couldn't find that order." } };
     }
     const db = getDb();
+    const ip = await getRequestIp();
+    // The reference budget is per (reference, IP): a budget shared by everyone would let anyone who
+    // knows a reference use it up and stop the real customer from retrying their payment.
     const decisions = await Promise.all([
-      consumeRateLimit(db, `payretry:ip:${await getRequestIp()}`, { limit: 20, windowSeconds: 600 }),
-      consumeRateLimit(db, `payretry:ref:${keyDigest(ref.trim().toUpperCase())}`, { limit: 10, windowSeconds: 600 }),
+      consumeRateLimit(db, `payretry:ip:${ip}`, { limit: 20, windowSeconds: 600 }),
+      consumeRateLimit(db, `payretry:ref-ip:${keyDigest(ref.trim().toUpperCase())}:${keyDigest(ip)}`, { limit: 10, windowSeconds: 600 }),
     ]);
     const blocked = decisions.find((d) => !d.allowed);
     if (blocked) {

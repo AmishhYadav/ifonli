@@ -54,7 +54,8 @@ test.describe("DIY pack", () => {
     const adds = page.getByTestId("kit-add");
     for (let i = 0; i < 4; i += 1) await adds.nth(i).click();
     await expect(tray(page).getByTestId("kit-status")).toContainText("Free chain + 4 of 4 charms");
-    await adds.nth(4).click();
+    // a full kit marks the button aria-disabled but keeps it clickable so it can explain why
+    await adds.nth(4).click({ force: true });
     await expect(page.getByText("Your kit is full")).toBeVisible();
     await expect(filled(page)).toHaveCount(4);
     // removing one frees a box

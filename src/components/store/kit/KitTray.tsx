@@ -68,7 +68,7 @@ export function KitTray() {
             <p className="text-right text-xs text-ink-muted sm:text-left" data-testid="kit-status" aria-live="polite">
               {kit.length === 0
                 ? `Free chain, pick 1 to ${KIT_CHARMS} charms`
-                : `Free chain + ${kit.length} of ${KIT_CHARMS} ${kit.length === 1 ? "charm" : "charms"}`}
+                : `Free chain + ${kit.length} of ${KIT_CHARMS} charms`}
             </p>
           </div>
           <ol className="flex gap-2 sm:gap-3">

@@ -2,3 +2,9 @@ allowBuilds:
   esbuild: true
   sharp: false
   unrs-resolver: false
+# Security overrides for dev-only tooling (2026-11-26 audit). Neither package ships in the site:
+# esbuild is drizzle-kit's config loader (GHSA-67mh-4wv8-2f99), minimatch is used by ESLint's
+# TypeScript parser (ReDoS). Remove once drizzle-kit and eslint-plugin-import pull patched versions.
+overrides:
+  "@esbuild-kit/core-utils>esbuild": "^0.25.12"
+  "minimatch@>=7.0.0 <11.0.1": "^11.0.1"

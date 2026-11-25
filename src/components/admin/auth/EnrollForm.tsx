@@ -158,7 +158,7 @@ export function EnrollForm({
               <Field
                 label="New password"
                 htmlFor="new-password"
-                hint="At least 12 characters. Other sessions are signed out."
+                hint="At least 12 characters, and not one seen in known data breaches. Other sessions are signed out."
                 error={error ?? undefined}
               >
                 <Input

@@ -47,6 +47,7 @@ const EXPECTED_TABLES = [
   "shipments",
   "states",
   "stock_reservations",
+  "store_values_applied",
   "support_cases",
   "two_factor",
   "user",

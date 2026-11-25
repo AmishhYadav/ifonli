@@ -11,7 +11,7 @@ export function InstagramLink({ className }: { className?: string }) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn("insta-link", className)}
-      aria-label="Follow IfOnli on Instagram (opens in a new tab)"
+      aria-label="Follow @ifonli_studio on Instagram (opens in a new tab)"
     >
       <span className="insta-link__badge" aria-hidden="true">
         <Icon name="instagram" className="insta-link__icon" />

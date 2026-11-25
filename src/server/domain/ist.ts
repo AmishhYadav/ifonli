@@ -54,3 +54,16 @@ export function istDateString(date: Date): string {
   const p = istParts(date);
   return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
 }
+
+/** "26 Nov 2026, 3:42 pm IST": date and wall-clock time in Asia/Kolkata (used in security e-mails). */
+export function formatIstDateTime(date: Date): string {
+  const t = date.getTime();
+  if (!Number.isFinite(t)) {
+    throw new RangeError("Invalid Date");
+  }
+  const shifted = new Date(t + IST_OFFSET_MS);
+  const hour24 = shifted.getUTCHours();
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+  const minute = String(shifted.getUTCMinutes()).padStart(2, "0");
+  return `${formatIstDate(date)}, ${hour12}:${minute} ${hour24 < 12 ? "am" : "pm"} IST`;
+}

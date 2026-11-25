@@ -7,8 +7,11 @@
  *   --email <email>       required
  *   --role <role>         owner | admin | fulfilment   (default owner)
  *   --name <name>         display name (default: the part before the @)
- *   --password <pw>       at least 12 characters; omitted = a strong random one is generated and printed
- *                         once (or set ADMIN_PASSWORD to keep it out of shell history)
+ *   --password <pw>       at least 12 characters, not containing "ifonli", "password" or "admin", not the
+ *                         e-mail's first part, not one repeated character; and not in known data
+ *                         breaches (checked online: only a 5-character hash prefix leaves this machine;
+ *                         if the check cannot run it warns and goes on). Omitted = a strong random one
+ *                         is generated and printed once (or set ADMIN_PASSWORD to keep it out of shell history)
  *   --reset-2fa           drop the existing authenticator so TOTP is enrolled again at next login
  *
  * Safe to re-run: an existing account is updated (role, password), never duplicated. Refuses to
@@ -44,6 +47,18 @@ async function main() {
   const generated = !values.password && !process.env.ADMIN_PASSWORD;
   const password =
     values.password || process.env.ADMIN_PASSWORD || randomBytes(15).toString("base64url");
+
+  if (!generated) {
+    // A password a person chose gets the same rules as the admin screens. Generated ones are random and skip them.
+    const { adminPasswordProblem, describeAdminPasswordProblem } = await import("../src/server/auth/password-policy");
+    const problem = adminPasswordProblem(password, values.email);
+    if (problem) throw new Error(describeAdminPasswordProblem(problem));
+    const { checkPasswordBreach, BREACHED_PASSWORD_MESSAGE } = await import("../src/server/auth/password-breach");
+    const breach = await checkPasswordBreach(password);
+    if (breach === "breached") throw new Error(BREACHED_PASSWORD_MESSAGE);
+    // An operator is at the keyboard, unlike the web flow: do not block on a network problem.
+    if (breach === "unavailable") console.warn("warning: could not check the password against known data breaches (offline?); continuing");
+  }
 
   const { getDb } = await import("../src/server/db");
   const { upsertAdminUser } = await import("../src/server/auth/admin-user");

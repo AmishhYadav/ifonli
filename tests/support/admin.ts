@@ -30,7 +30,7 @@ export async function createAdminSession(
   stamp = `${Date.now()}${Math.floor(Math.random() * 1000)}`,
 ): Promise<AdminLogin> {
   const email = `qa-admin-${role}-${stamp}@ifonli.local`;
-  const password = `Qa-Admin-${stamp}-Pw!`;
+  const password = `Qa-Staff-${stamp}-Pw!`;
   execFileSync(
     "pnpm",
     [

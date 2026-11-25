@@ -18,7 +18,8 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (c) => escapeMap[c] ?? c);
 }
 
-const SAFE_URL = /^(?:https?:\/\/|mailto:|tel:|\/(?!\/)|#)/i;
+// `/` must not be followed by `/` or `\`: browsers read `/\host` like `//host` (a protocol-relative link).
+const SAFE_URL = /^(?:https?:\/\/|mailto:|tel:|\/(?![/\\])|#)/i;
 
 /** Returns the URL when it is safe to put in an `href` / `src`, else null. */
 export function safeUrl(href: string | null | undefined): string | null {

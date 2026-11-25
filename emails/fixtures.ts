@@ -89,4 +89,19 @@ export const FIXTURE_PAYLOADS: { [T in TemplateName]: PayloadOf<T> } = {
   new_support_case: { ref: "IFO-2611-7K3Q", caseId: "c-1", type: "damaged", description: "The handle arrived cracked.\nPhotos attached on the case." },
   new_contact: { name: "Asha Rao", email: "asha@example.test", orderRef: "IFO-2611-7K3Q", message: "Can I change the delivery address?" },
   outbox_failure: { template: "order_confirmed", outboxId: "0f0f0f0f-0000-4000-8000-000000000000", attempts: 6, error: "Resend: rate_limit_exceeded", orderRef: "IFO-2611-7K3Q" },
+  admin_login_locked: {
+    account: "owner@ifonli.example.test",
+    scope: "address",
+    failures: 10,
+    at: "2026-11-26T09:30:00.000Z",
+    lockedUntil: "2026-11-27T00:00:00.000Z",
+    ip: "203.0.113.45",
+  },
+  admin_new_sign_in: {
+    account: "owner@ifonli.example.test",
+    role: "owner",
+    at: "2026-11-26T09:30:00.000Z",
+    ip: "203.0.113.45",
+    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+  },
 };

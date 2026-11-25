@@ -13,7 +13,7 @@ import {
 import { orderTokenMatches } from "@/server/services/commerce/order-token";
 import { finalizePaidOrder, PaymentFlowError, type FinalizeResult } from "@/server/services/payments";
 import type { DbClient } from "@/server/services/queries/shared";
-import { consumeRateLimit } from "@/server/services/rate-limit";
+import { consumeRateLimit, digestKey } from "@/server/services/rate-limit";
 
 import { confirmProviderPayment } from "./confirm";
 import type { PaymentProvider } from "./provider";
@@ -77,7 +77,10 @@ export async function handleVerifyRequest(
 
   const decisions = await Promise.all([
     consumeRateLimit(db, `payverify:ip:${ctx.ip}`, { limit: 40, windowSeconds: 600 }, ctx.now),
-    consumeRateLimit(db, `payverify:ref:${ref}`, { limit: 20, windowSeconds: 600 }, ctx.now),
+    // Per (reference, IP), not per reference: a budget shared by everyone would let anyone who knows a
+    // reference (short, and in e-mails) use it up and block the real customer's payment confirmation.
+    // Guessing the 256-bit order token is hopeless anyway, so the shared budget protected nothing.
+    consumeRateLimit(db, `payverify:ref-ip:${digestKey(ref)}:${digestKey(ctx.ip)}`, { limit: 20, windowSeconds: 600 }, ctx.now),
   ]);
   const blocked = decisions.find((d) => !d.allowed);
   if (blocked) return failure(429, "rate_limited", blocked.retryAfterSeconds);

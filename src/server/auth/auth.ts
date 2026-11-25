@@ -1,12 +1,10 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
-
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
-import { admin, emailOTP, twoFactor } from "better-auth/plugins";
+import { admin, emailOTP, haveIBeenPwned, twoFactor } from "better-auth/plugins";
 
 import { getServerEnv } from "@/lib/env";
 import { getDb } from "@/server/db";
@@ -15,6 +13,8 @@ import * as schema from "@/server/db/schema";
 import { sendOtp } from "./otp-sender";
 import { getPasswordChangeState } from "./admin-user";
 import { isAuthApiError } from "./api-error";
+import { keyDigest } from "./login-keys";
+import { BREACHED_PASSWORD_MESSAGE } from "./password-breach";
 import { consumeRateLimit, isRateLimited } from "./rate-limit";
 import { ADMIN_ROLES, DEFAULT_ROLE, ac, authRoles, isAdminRole } from "./permissions";
 
@@ -52,7 +52,7 @@ const OTP_SEND_IP_LIMIT = { limit: 20, windowSec: 600 } as const;
 const OTP_FAIL_EMAIL_IP_LIMIT = { limit: 8, windowSec: 600 } as const;
 const OTP_FAIL_IP_LIMIT = { limit: 30, windowSec: 600 } as const;
 
-const digest = (value: string) => createHash("sha256").update(value).digest("hex").slice(0, 24);
+const digest = keyDigest;
 
 function requestIp(ctx: { headers?: Headers | null }): string | null {
   const forwarded = ctx.headers?.get("x-forwarded-for");
@@ -147,6 +147,18 @@ const afterGuards = createAuthMiddleware(async (ctx) => {
 });
 
 /**
+ * Staff sessions: 12 hours, sliding. A session lasts 12 hours from its last refresh; Better Auth
+ * pushes the end forward when the session is used and the last refresh is more than `updateAge`
+ * (1 hour) old, so an admin who keeps working stays signed in and one who walks away is signed out
+ * within 12 hours (Better Auth's default is 7 days). There is no absolute cap: a session in
+ * continuous use does not end by itself. `freshAge` stays at Better Auth's 24 hours (counted from
+ * the session's creation): the sensitive endpoints (`enableTwoFactor`, `changePassword`) need a
+ * session younger than that, and the enrolment flow runs minutes after sign-in, so the shorter
+ * `expiresIn` does not touch it. Customer sessions (passwordless e-mail OTP) share this config.
+ */
+const SESSION = { expiresIn: 12 * 60 * 60, updateAge: 60 * 60 } as const;
+
+/**
  * Better Auth instance (server only). The HTTP handler is mounted at `src/app/api/auth/[...all]`.
  *
  * - `emailOTP`: passwordless login for customers. Delivery goes through `sendOtp`
@@ -157,6 +169,12 @@ const afterGuards = createAuthMiddleware(async (ctx) => {
  *   control built from `permissions.ts`.
  * - `twoFactor`: TOTP. Credential sign-in of an enrolled admin returns `twoFactorRedirect`; a
  *   not-yet-enrolled admin gets a session that `requireAdmin` confines to /admin/enroll-2fa.
+ * - `haveIBeenPwned`: refuses known-breached passwords on `changePassword` and the other password
+ *   endpoints (only the first 5 characters of the password's SHA-1 leave the server). If the
+ *   service cannot be reached it FAILS CLOSED (a 500 "Failed to check password"), which is
+ *   the safe default; the enrolment action pre-checks and shows a "try again" message
+ *   (`password-breach.ts`). Passwords our own code generates for staff (temporary passwords) are
+ *   hashed with `hashPassword` directly, outside the plugin, and are random anyway.
  * - `nextCookies` (must be last): lets Server Actions that call `auth.api.*` set the cookies.
  * - HTTP: only `HTTP_ALLOWED_PATHS` answer over `/api/auth/*`; everything else is a Server Action.
  * - Rate limit: Better Auth's limiter only sees requests through the HTTP handler (not
@@ -175,6 +193,7 @@ function createAuth() {
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(getDb(), { provider: "pg", schema }),
     advanced: { cookiePrefix: AUTH_COOKIE_PREFIX },
+    session: { expiresIn: SESSION.expiresIn, updateAge: SESSION.updateAge },
     emailAndPassword: {
       enabled: true,
       disableSignUp: true,
@@ -211,6 +230,7 @@ function createAuth() {
         adminRoles: [...ADMIN_ROLES],
       }),
       twoFactor({ issuer: "IfOnli" }),
+      haveIBeenPwned({ customPasswordCompromisedMessage: BREACHED_PASSWORD_MESSAGE }),
       nextCookies(),
     ],
   });

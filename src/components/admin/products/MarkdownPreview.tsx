@@ -1,18 +1,17 @@
 "use client";
 
-import { marked } from "marked";
 import * as React from "react";
 
-// Raw HTML typed into the description is shown as text, never injected.
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-marked.use({ renderer: { html: ({ text }) => escapeHtml(text) } });
+import { renderProductMarkdown } from "@/components/store/pdp/markdown";
 
+/**
+ * Live preview of a product description. It renders with the SAME sanitising renderer as the
+ * storefront (`renderProductMarkdown`: raw HTML escaped, link and image URLs limited to http(s),
+ * mailto, tel and site-relative paths), because another staff member may open a description someone
+ * else typed and click its links here; the preview must not be a way to run script in the admin.
+ */
 export function MarkdownPreview({ source }: { source: string }) {
-  const html = React.useMemo(
-    () => marked.parse(source, { async: false, gfm: true, breaks: false }),
-    [source],
-  );
+  const html = React.useMemo(() => renderProductMarkdown(source), [source]);
   if (!source.trim()) {
     return <p className="text-[13px] text-admin-ink-faint">Nothing to preview yet.</p>;
   }

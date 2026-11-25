@@ -31,7 +31,7 @@ test.describe("admin content flows", () => {
   };
   const admin = {
     email: `e2e-admin-${stamp}@ifonli.local`,
-    password: `E2e-Admin-${stamp}!`,
+    password: `E2e-Staff-${stamp}!`,
     secret: "",
   };
 

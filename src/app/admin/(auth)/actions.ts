@@ -10,9 +10,21 @@ import {
   clearPasswordChangeRequired,
   getPasswordChangeState,
 } from "@/server/auth/admin-user";
-import { isAuthApiError } from "@/server/auth/api-error";
+import {
+  consumeAdminLoginAttempt,
+  isAdminLoginLocked,
+  recordFailedAdminLogin,
+} from "@/server/auth/admin-login-guard";
+import { authErrorStatus, isAuthApiError } from "@/server/auth/api-error";
 import { getAuth } from "@/server/auth/auth";
+import {
+  BREACHED_PASSWORD_MESSAGE,
+  BREACH_CHECK_UNAVAILABLE_MESSAGE,
+  checkPasswordBreach,
+} from "@/server/auth/password-breach";
+import { adminPasswordProblem, describeAdminPasswordProblem } from "@/server/auth/password-policy";
 import { consumeRateLimit } from "@/server/auth/rate-limit";
+import { alertOnNewSignIn } from "@/server/auth/security-alerts";
 import { getClientIp, getSession, requireEnrolling } from "@/server/auth/session";
 import { getDb } from "@/server/db";
 import { writeAudit } from "@/server/services/audit";
@@ -34,17 +46,29 @@ async function limited(key: string, limit: number, windowSec: number): Promise<b
   return !res.allowed;
 }
 
-/** Step 1: email + password. Enrolled admins get a TOTP challenge; others go to enrolment. */
+/**
+ * Step 1: email + password. Enrolled admins get a TOTP challenge; others go to enrolment.
+ *
+ * Limits, in order (every refusal is the same generic `TOO_MANY`, so the response never says which
+ * one fired nor whether the account exists):
+ *  - 30 attempts per 10 minutes per IP;
+ *  - daily budgets of WRONG passwords per e-mail: 10 from one address (that address is then locked
+ *    out of the account) and 100 from all addresses together (the account is then locked everywhere).
+ *    Once spent, every attempt is refused, even with the right password, until the 24-hour window
+ *    ends. They are checked read-only up front and only failures are added, so successful sign-ins
+ *    never use them up. The first lock of each kind in a window e-mails the owners and the account
+ *    holder (`recordFailedAdminLogin`);
+ *  - 8 attempts of any kind per 10 minutes per e-mail.
+ * E-mails are keyed by a sha256 digest, never stored raw in `rate_limits`.
+ */
 export async function signInAction(input: unknown): Promise<Result<{ next: "totp" | "enroll" }>> {
   const parsed = credentialsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: GENERIC_LOGIN_ERROR };
   const { email, password } = parsed.data;
   if (await limited("admin-login", 30, 600)) return { ok: false, error: TOO_MANY };
-  const perEmail = await consumeRateLimit(`admin-login-email:${email}`, {
-    limit: 8,
-    windowSec: 600,
-  });
-  if (!perEmail.allowed) return { ok: false, error: TOO_MANY };
+  const ip = await getClientIp();
+  if (await isAdminLoginLocked(email, ip)) return { ok: false, error: TOO_MANY };
+  if (!(await consumeAdminLoginAttempt(email))) return { ok: false, error: TOO_MANY };
 
   try {
     const res = (await getAuth().api.signInEmail({
@@ -53,7 +77,10 @@ export async function signInAction(input: unknown): Promise<Result<{ next: "totp
     })) as { twoFactorRedirect?: boolean } | null;
     return { ok: true, data: { next: res?.twoFactorRedirect ? "totp" : "enroll" } };
   } catch (error) {
-    if (isAuthApiError(error)) return { ok: false, error: GENERIC_LOGIN_ERROR };
+    if (isAuthApiError(error)) {
+      await recordFailedAdminLogin(email, ip);
+      return { ok: false, error: GENERIC_LOGIN_ERROR };
+    }
     throw error;
   }
 }
@@ -72,13 +99,22 @@ export async function verifyTotpAction(input: unknown): Promise<Result> {
           headers: await headers(),
         })
       : await auth.api.verifyTOTP({ body: { code: parsed.data.code }, headers: await headers() });
+    const ip = await getClientIp();
+    // Judge "new address" BEFORE this sign-in's own audit row exists. Never blocks or fails the sign-in.
+    await alertOnNewSignIn(getDb(), {
+      userId: res.user.id,
+      email: res.user.email,
+      role: (res.user as { role?: string }).role ?? "admin",
+      ip,
+      userAgent: (await headers()).get("user-agent"),
+    });
     await writeAudit(getDb(), {
       actorId: res.user.id,
       action: "admin.login",
       entity: "user",
       entityId: res.user.id,
       diff: { method: parsed.data.backup ? "backup_code" : "totp" },
-      ip: await getClientIp(),
+      ip,
     });
     return { ok: true, data: undefined };
   } catch (error) {
@@ -121,6 +157,12 @@ export async function startEnrollmentAction(input: unknown): Promise<Result<Enro
     if (newPassword === password) {
       return { ok: false, error: "The new password must be different from the temporary one." };
     }
+    // Checked before any state changes (turning two-factor on comes next), so a refusal leaves nothing half done.
+    const problem = adminPasswordProblem(newPassword, admin.user.email);
+    if (problem) return { ok: false, error: describeAdminPasswordProblem(problem) };
+    const breach = await checkPasswordBreach(newPassword);
+    if (breach === "breached") return { ok: false, error: BREACHED_PASSWORD_MESSAGE };
+    if (breach === "unavailable") return { ok: false, error: BREACH_CHECK_UNAVAILABLE_MESSAGE };
   }
   try {
     const auth = getAuth();
@@ -130,10 +172,21 @@ export async function startEnrollmentAction(input: unknown): Promise<Result<Enro
     });
     if (res.method !== "totp") return { ok: false, error: "Could not start two-factor setup." };
     if (mustChange && newPassword) {
-      await auth.api.changePassword({
-        body: { currentPassword: password, newPassword, revokeOtherSessions: true },
-        headers: await headers(),
-      });
+      try {
+        await auth.api.changePassword({
+          body: { currentPassword: password, newPassword, revokeOtherSessions: true },
+          headers: await headers(),
+        });
+      } catch (error) {
+        // The `haveIBeenPwned` plugin (auth.ts) checks again inside changePassword; it is the safety
+        // net for the pre-check above (a breach list that changed in between, or a blip).
+        if (isAuthApiError(error)) {
+          const code = (error as { body?: { code?: string } }).body?.code;
+          if (code === "PASSWORD_COMPROMISED") return { ok: false, error: BREACHED_PASSWORD_MESSAGE };
+          if (authErrorStatus(error) === 500) return { ok: false, error: BREACH_CHECK_UNAVAILABLE_MESSAGE };
+        }
+        throw error;
+      }
       await clearPasswordChangeRequired(getDb(), admin.user.id);
       await writeAudit(getDb(), {
         actorId: admin.user.id,
