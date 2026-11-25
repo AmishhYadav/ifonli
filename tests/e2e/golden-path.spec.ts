@@ -112,10 +112,10 @@ test("browse, product page, add to cart, checkout with cash on delivery, order p
   await page.getByTestId("add-to-cart").click();
   await expect(page.locator('[data-testid="cart-count"]:visible')).toHaveText("1");
 
-  // Cart page: the total includes GST and the shipping estimate.
+  // Cart page: 0% GST, so the total carries only the shipping note.
   await page.goto("/cart");
   await expect(page.getByTestId("cart-totals")).toBeVisible();
-  await expect(page.getByTestId("cart-gst")).toContainText("GST");
+  await expect(page.getByTestId("cart-gst")).toHaveText("Final shipping is confirmed at checkout.");
   await page
     .getByRole("link", { name: /Checkout|Continue to checkout/ })
     .first()

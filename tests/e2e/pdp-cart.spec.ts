@@ -199,7 +199,8 @@ test.describe("cart", () => {
     await line.getByRole("button", { name: /Increase quantity/ }).click();
     await expect(drawer(page).getByTestId("cart-subtotal")).toHaveText("₹798");
     await expect(cartCount(page)).toHaveText("2");
-    await expect(drawer(page).getByTestId("cart-gst")).toContainText("GST");
+    // 0% GST: no tax line, only the shipping note
+    await expect(drawer(page).getByTestId("cart-gst")).toHaveText("Final shipping is confirmed at checkout.");
     await expect(drawer(page).getByText(/change-of-mind returns/)).toBeVisible();
     await expect(drawer(page).getByTestId("drawer-checkout")).toHaveAttribute("href", "/checkout");
 
@@ -250,7 +251,7 @@ test.describe("cart", () => {
       money(await page.getByTestId("cart-subtotal").textContent()) + shippingValue,
     );
     await expect(page.getByTestId("cart-discount")).toHaveCount(0);
-    await expect(page.getByTestId("cart-gst")).toContainText("Includes");
+    await expect(page.getByTestId("cart-gst")).toHaveText("Final shipping is confirmed at checkout.");
     await expect(page.getByText(/change-of-mind returns/)).toBeVisible();
     await expect(page.getByTestId("cart-checkout")).toHaveAttribute("href", "/checkout");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
