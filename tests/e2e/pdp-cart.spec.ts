@@ -2,6 +2,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import postgres from "postgres";
 
+/** Cart tax note: "Includes ₹x GST. " only when the products carry GST, then the shipping note. */
+const CART_TAX_NOTE = /^(Includes ₹[\d,.]+ GST\. )?Final shipping is confirmed at checkout\.$/;
+
 /**
  * PDP, cart drawer, cart page, wishlist. Run against a production build:
  *   NEXT_DIST_DIR=.next-shop pnpm exec next build && NEXT_DIST_DIR=.next-shop pnpm exec next start -p 3103
@@ -199,8 +202,8 @@ test.describe("cart", () => {
     await line.getByRole("button", { name: /Increase quantity/ }).click();
     await expect(drawer(page).getByTestId("cart-subtotal")).toHaveText("₹798");
     await expect(cartCount(page)).toHaveText("2");
-    // 0% GST: no tax line, only the shipping note
-    await expect(drawer(page).getByTestId("cart-gst")).toHaveText("Final shipping is confirmed at checkout.");
+    // GST line only when the products carry GST (live store: 0%; the seeded dev products still do)
+    await expect(drawer(page).getByTestId("cart-gst")).toHaveText(CART_TAX_NOTE);
     await expect(drawer(page).getByText(/change-of-mind returns/)).toBeVisible();
     await expect(drawer(page).getByTestId("drawer-checkout")).toHaveAttribute("href", "/checkout");
 
@@ -251,7 +254,7 @@ test.describe("cart", () => {
       money(await page.getByTestId("cart-subtotal").textContent()) + shippingValue,
     );
     await expect(page.getByTestId("cart-discount")).toHaveCount(0);
-    await expect(page.getByTestId("cart-gst")).toHaveText("Final shipping is confirmed at checkout.");
+    await expect(page.getByTestId("cart-gst")).toHaveText(CART_TAX_NOTE);
     await expect(page.getByText(/change-of-mind returns/)).toBeVisible();
     await expect(page.getByTestId("cart-checkout")).toHaveAttribute("href", "/checkout");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);

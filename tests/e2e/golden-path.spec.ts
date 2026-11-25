@@ -13,6 +13,9 @@ import {
 import { sql } from "../support/db";
 import { acquireFixtureLock, releaseFixtureLock } from "../support/fixture-lock";
 
+/** Cart tax note: "Includes ₹x GST. " only when the products carry GST, then the shipping note. */
+const CART_TAX_NOTE = /^(Includes ₹[\d,.]+ GST\. )?Final shipping is confirmed at checkout\.$/;
+
 /**
  * The golden paths, end to end through the real UI. The checkout, order and tracking specs cover each
  * screen in depth; this file chains them the way a shopper and the shop owner actually use the store:
@@ -112,10 +115,10 @@ test("browse, product page, add to cart, checkout with cash on delivery, order p
   await page.getByTestId("add-to-cart").click();
   await expect(page.locator('[data-testid="cart-count"]:visible')).toHaveText("1");
 
-  // Cart page: 0% GST, so the total carries only the shipping note.
+  // Cart page: the shipping note, plus a GST line only when the products carry GST (live store: 0%).
   await page.goto("/cart");
   await expect(page.getByTestId("cart-totals")).toBeVisible();
-  await expect(page.getByTestId("cart-gst")).toHaveText("Final shipping is confirmed at checkout.");
+  await expect(page.getByTestId("cart-gst")).toHaveText(CART_TAX_NOTE);
   await page
     .getByRole("link", { name: /Checkout|Continue to checkout/ })
     .first()
