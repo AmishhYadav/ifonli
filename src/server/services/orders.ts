@@ -31,6 +31,12 @@ import { recordOrderPlaced, recordPurchase } from "./analytics/purchase";
 import { assessCheckout } from "./checkout";
 import { cartUsableBy, findCartByToken } from "./cart";
 import { confirmRedemption, releaseRedemption, reserveRedemption } from "./coupons";
+import {
+  CONTACT_LIMIT_MESSAGE,
+  consumeContactOrderBudget,
+  contactLimitsRelaxed,
+  releaseContactOrderBudget,
+} from "./commerce/contact-limits";
 import { composeIdempotencyKey, checkoutFingerprint } from "./commerce/idempotency";
 import { getOrderGate, STORE_CLOSED_MESSAGE } from "./commerce/launch-gate";
 import { addOrderTokenHash, orderTokenMatches } from "./commerce/order-token";
@@ -59,6 +65,8 @@ export type OrderErrorCode =
   | "invalid_total"
   | "checkout_expired"
   | "payment_init_failed"
+  /** This e-mail or phone has used up its daily order budget (see `commerce/contact-limits`). */
+  | "rate_limited"
   /** Production launch gate: the shop is not taking orders yet (launch checklist not clear). */
   | "store_closed";
 
@@ -81,6 +89,8 @@ export interface OrderError {
   items?: ShortageItem[];
   /** Per-field messages for `invalid_input` (dotted path -> message). */
   fieldErrors?: Record<string, string>;
+  /** Seconds until the budget resets, for `rate_limited`. */
+  retryAfterSeconds?: number;
 }
 
 /** Thrown inside the order transaction to roll it back with a typed error. */
@@ -146,6 +156,13 @@ export interface CreateFromCartInput {
    */
   initiatePayment?: PaymentInitiator;
   hooks?: CreateFromCartHooks;
+  /**
+   * Per-contact daily order budgets (`commerce/contact-limits`) are always on in production. Outside
+   * it they are skipped only for the functional e2e run (`E2E_MOCK_CHECKOUT=1`); pass `true` to keep
+   * them on regardless (the tests that exercise the limits themselves). There is deliberately no way
+   * to switch them off from here.
+   */
+  enforceContactLimits?: boolean;
 }
 
 export type CreateFromCartResult =
@@ -326,7 +343,14 @@ export async function releaseExpiredReservations(
 /** Upper bound on retries of one checkout (each expired attempt makes the next key); a runaway guard. */
 const MAX_CHECKOUT_ATTEMPTS = 50;
 
-type TxOutcome = { kind: "created" | "replay"; order: OrderRow; token: string; productIds: string[] };
+type TxOutcome = {
+  kind: "created" | "replay";
+  order: OrderRow;
+  token: string;
+  productIds: string[];
+  /** True when this order was counted against the per-contact budgets (so a refund can undo it). */
+  limited: boolean;
+};
 
 /**
  * Turns the cart into an order (plan 7.5). Server-side truth throughout: prices, GST, shipping and
@@ -415,6 +439,12 @@ export async function createFromCart(
     if (!result.ok) {
       if (outcome.kind === "created") {
         await expireOrder(db, placed.orderId, { now, reason: "payment_init_failed" });
+        // The order never took anything, so it must not eat the customer's daily budget either.
+        if (outcome.limited) {
+          await releaseContactOrderBudget(db, form, now).catch((e) => {
+            console.error("releaseContactOrderBudget failed", e instanceof Error ? e.name : "unknown");
+          });
+        }
       }
       return {
         ok: false,
@@ -486,7 +516,7 @@ async function runOrderTransaction(
   }
   if (existing) {
     const token = await issueOrderAccessToken(tx, existing.id);
-    return { kind: "replay", order: existing, token, productIds: [] };
+    return { kind: "replay", order: existing, token, productIds: [], limited: false };
   }
 
   const items = await tx
@@ -496,6 +526,22 @@ async function runOrderTransaction(
     .orderBy(asc(cartItems.variantId));
   if (items.length === 0) {
     return fail({ code: "empty_cart", message: "Your bag is empty. Add something first." });
+  }
+
+  // 2b. Per-contact daily budgets (anti fake-order spam). After the replay check, so a repeat submit
+  //     of an existing order is never refused, and before anything is written. The counters live in
+  //     THIS transaction: a refusal or any later failure rolls them back, so only orders that are
+  //     really created use up budget.
+  const limited = input.enforceContactLimits === true || !contactLimitsRelaxed();
+  if (limited) {
+    const budget = await consumeContactOrderBudget(tx, form, now);
+    if (!budget.allowed) {
+      return fail({
+        code: "rate_limited",
+        message: CONTACT_LIMIT_MESSAGE,
+        retryAfterSeconds: budget.retryAfterSeconds,
+      });
+    }
   }
 
   // 3. Release this cart's earlier pending orders (locking them before the variants, the same
@@ -778,6 +824,7 @@ async function runOrderTransaction(
     order,
     token,
     productIds: [...new Set(price.lines.map((l) => snaps.get(l.variantId)!.productId))],
+    limited,
   };
 }
 

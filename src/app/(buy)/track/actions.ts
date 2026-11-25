@@ -13,6 +13,17 @@ import type { TrackFormState } from "./types";
 const NOT_FOUND =
   "We couldn't find that order. Check the order reference and the email or mobile number you used at checkout.";
 
+/** Lookups allowed per contact (normalised e-mail or phone) per 24 h, whoever asks. */
+const TRACK_CONTACT_LIMIT = { limit: 15, windowSeconds: 24 * 60 * 60 };
+
+/** "in 5 minutes" up to an hour, "in 20 hours" beyond (the per-contact budget resets daily). */
+function waitText(retryAfterSeconds: number): string {
+  const minutes = Math.ceil(retryAfterSeconds / 60);
+  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+  const hours = Math.ceil(minutes / 60);
+  return `${hours} hour${hours === 1 ? "" : "s"}`;
+}
+
 const text = (value: FormDataEntryValue | null) => (typeof value === "string" ? value : "");
 
 /**
@@ -20,6 +31,11 @@ const text = (value: FormDataEntryValue | null) => (typeof value === "string" ? 
  * by IP and by (reference, IP); every mismatch gets the same answer so refs and emails cannot be
  * enumerated. The reference budget is per caller on purpose: a budget shared by everyone would let
  * anyone who knows a reference use it up and lock the real customer out of their own tracking page.
+ *
+ * Both of those are per caller, so someone who knows a victim's e-mail or phone could spread guesses
+ * of the (short) reference across many IPs. A third budget therefore caps the lookups per contact
+ * (`TRACK_CONTACT_LIMIT` a day, digest key, counted on every lookup). It is only spent once the
+ * per-caller checks have passed, so a single blocked caller cannot burn it.
  */
 export async function trackOrder(
   _prev: TrackFormState,
@@ -31,8 +47,9 @@ export async function trackOrder(
 
   const fieldErrors: NonNullable<TrackFormState["fieldErrors"]> = {};
   if (!ref) fieldErrors.ref = "Enter your order reference, like IFO-2611-7K3Q";
+  const parsedContact = contact ? parseTrackingContact(contact) : null;
   if (!contact) fieldErrors.contact = "Enter the email or mobile number you used at checkout";
-  else if (!parseTrackingContact(contact)) {
+  else if (!parsedContact) {
     fieldErrors.contact = "Enter a valid email address or a 10-digit mobile number";
   }
   if (fieldErrors.ref || fieldErrors.contact) return { status: "invalid", values, fieldErrors };
@@ -47,15 +64,22 @@ export async function trackOrder(
         windowSeconds: 600,
       }),
     ]);
+    const tooMany = (retryAfterSeconds: number): TrackFormState => ({
+      status: "rate_limited",
+      values,
+      message: `Too many attempts. Please try again in ${waitText(retryAfterSeconds)}.`,
+    });
     const blocked = decisions.find((d) => !d.allowed);
-    if (blocked) {
-      const minutes = Math.ceil(blocked.retryAfterSeconds / 60);
-      return {
-        status: "rate_limited",
-        values,
-        message: `Too many attempts. Please try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`,
-      };
-    }
+    if (blocked) return tooMany(blocked.retryAfterSeconds);
+
+    // Per contact, whoever asks: ref guesses spread over many IPs still hit this one budget. Counted
+    // on every lookup (found or not) and keyed by a digest of the normalised contact.
+    const byContact = await consumeRateLimit(
+      db,
+      `track:contact:${keyDigest(parsedContact!.value)}`,
+      TRACK_CONTACT_LIMIT,
+    );
+    if (!byContact.allowed) return tooMany(byContact.retryAfterSeconds);
 
     const view = await lookupOrderForTracking(db, { ref, emailOrPhone: contact });
     if (!view) return { status: "not_found", values, message: NOT_FOUND };

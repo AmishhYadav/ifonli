@@ -267,7 +267,9 @@ export async function createSupportCase(
 
   const decisions = await Promise.all([
     consumeRateLimit(db, `support:ip:${input.ip}`, SUPPORT_LIMITS.ip),
-    consumeRateLimit(db, `support:order:${digest(normalizeOrderRef(input.ref))}`, SUPPORT_LIMITS.order),
+    // Per (reference, IP): a budget shared by everyone would let anyone who knows a reference lock the
+    // real customer out of reporting a problem. Opening a case still needs the order link or the account.
+    consumeRateLimit(db, `support:order-ip:${digest(normalizeOrderRef(input.ref))}:${digest(input.ip)}`, SUPPORT_LIMITS.order),
   ]);
   const blocked = decisions.find((d) => !d.allowed);
   if (blocked) {
@@ -308,7 +310,7 @@ export async function createSupportCase(
         !info ||
         info.bytes <= 0 ||
         info.bytes > SUPPORT_PHOTO_MAX_BYTES ||
-        !(info.contentType in SUPPORT_PHOTO_TYPES) ||
+        !Object.hasOwn(SUPPORT_PHOTO_TYPES, info.contentType) ||
         // What the bytes say must match the claimed type and the file extension in the path.
         (info.header !== undefined &&
           (sniffPhotoType(info.header) !== info.contentType ||

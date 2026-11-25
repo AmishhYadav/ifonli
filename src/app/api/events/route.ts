@@ -1,6 +1,8 @@
 import { after } from "next/server";
 
+import { LIMITS } from "@/lib/analytics/events";
 import { getDb } from "@/server/db";
+import { readTextLimited } from "@/server/security/request";
 import { handleEventsRequest } from "@/server/services/analytics/ingest";
 
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -17,9 +19,13 @@ function clientIp(req: Request): string {
  */
 export async function POST(req: Request): Promise<Response> {
   try {
+    // Streamed with a byte cap, so a chunked body without Content-Length cannot be buffered whole. When
+    // it is too large the handler is told so (an over-limit length), which keeps its check order
+    // (origin first, then 413).
+    const body = await readTextLimited(req, LIMITS.maxBodyBytes);
     const out = await handleEventsRequest(getDb(), {
-      body: await req.text(),
-      contentLength: Number(req.headers.get("content-length")) || null,
+      body: body ?? "",
+      contentLength: body === null ? LIMITS.maxBodyBytes + 1 : Number(req.headers.get("content-length")) || null,
       userAgent: req.headers.get("user-agent"),
       origin: req.headers.get("origin"),
       host: req.headers.get("x-forwarded-host") ?? req.headers.get("host"),

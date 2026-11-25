@@ -7,6 +7,7 @@ import { payments } from "@/server/db/schema";
 import type { MockPaymentProvider } from "@/server/payments/mock";
 import { getPaymentProvider, isMockProvider } from "@/server/payments/registry";
 import { handleRazorpayWebhook } from "@/server/payments/webhook";
+import { readTextLimited } from "@/server/security/request";
 
 /**
  * DEV ONLY. Stands in for the Razorpay Checkout popup when no Razorpay keys are configured, so the
@@ -30,6 +31,14 @@ const bodySchema = z.object({
 
 const notFound = () => new Response("Not found", { status: 404 });
 
+function safeJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: Request): Promise<Response> {
   if (process.env.NODE_ENV === "production") return notFound();
   let provider: MockPaymentProvider;
@@ -43,7 +52,10 @@ export async function POST(req: Request): Promise<Response> {
     return notFound();
   }
 
-  const parsed = bodySchema.safeParse(await req.json().catch(() => null));
+  // Dev only, but capped like the real verify route (the body is three short fields).
+  const text = await readTextLimited(req, 8 * 1024);
+  if (text === null) return Response.json({ ok: false, error: "payload_too_large" }, { status: 413 });
+  const parsed = bodySchema.safeParse(safeJson(text));
   if (!parsed.success) return Response.json({ ok: false, error: "invalid_request" }, { status: 400 });
   const { razorpayOrderId, outcome, webhook } = parsed.data;
   if (outcome === "dismiss") return Response.json({ ok: true, outcome });

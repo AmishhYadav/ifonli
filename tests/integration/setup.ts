@@ -6,6 +6,11 @@ import { createSql, testDatabaseUrl } from "./helpers/db";
 process.env.DATABASE_URL = testDatabaseUrl();
 process.env.DIRECT_URL = testDatabaseUrl();
 
+// Most suites place many orders with the one factory contact; the per-contact daily order budgets
+// (`commerce/contact-limits`) are relaxed for them exactly as for the e2e run. The suite that tests
+// the budgets passes `enforceContactLimits: true` (or unsets this).
+process.env.E2E_MOCK_CHECKOUT = "1";
+
 const sql = createSql();
 
 beforeEach(async () => {

@@ -1,11 +1,10 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
-
 import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
 
 import { getSession } from "@/server/auth/session";
+import { digestKey } from "@/server/services/rate-limit";
 
 /** Name of the httpOnly cookie that holds the opaque cart token. */
 export const CART_COOKIE = "cart_token";
@@ -58,5 +57,5 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
 /** Short stable digest for rate-limit keys, so secrets such as the cart token are never stored. */
 export function keyDigest(value: string): string {
-  return createHash("sha256").update(value).digest("hex").slice(0, 16);
+  return digestKey(value);
 }

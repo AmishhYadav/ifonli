@@ -92,7 +92,7 @@ If your machine has a Chromium that is not the build Playwright expects (typical
 PW_CHROMIUM_PATH=/path/to/chrome pnpm e2e --project=chromium-desktop
 ```
 
-`PW_CHROMIUM_PATH` only sets `launchOptions.executablePath` for Chromium projects and is never needed in CI. Other switches: `E2E_ADMIN_FLOW=1` (admin flows that need the dev database), `E2E_MOCK_CHECKOUT=1` (checkout up to the dev mock payment dialog, `next dev` only).
+`PW_CHROMIUM_PATH` only sets `launchOptions.executablePath` for Chromium projects and is never needed in CI. Other switches: `E2E_ADMIN_FLOW=1` (admin flows that need the dev database), `E2E_MOCK_CHECKOUT=1` (checkout up to the dev mock payment dialog, `next dev` only; it also relaxes the per-contact daily order limits, which are always on in production).
 
 ## Docs
 

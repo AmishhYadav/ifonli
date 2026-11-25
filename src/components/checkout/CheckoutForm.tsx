@@ -416,7 +416,7 @@ export function CheckoutForm({
       const unmapped: string[] = [];
       if ("fieldErrors" in error && error.fieldErrors) {
         for (const [path, message] of Object.entries(error.fieldErrors)) {
-          if (path in FIELD_LABELS) setError(path as "email", { type: "server", message });
+          if (Object.hasOwn(FIELD_LABELS, path)) setError(path as "email", { type: "server", message });
           else unmapped.push(message);
         }
       }

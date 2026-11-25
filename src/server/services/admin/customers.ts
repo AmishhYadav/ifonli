@@ -301,9 +301,10 @@ export async function listCustomers(
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const page = Math.min(pageCount, Math.max(1, Math.trunc(params.page ?? 1) || 1));
 
-  const sort: CustomerSort = params.sort && params.sort in SORT_COLUMN ? params.sort : "last_order";
+  const sort: CustomerSort = params.sort && Object.hasOwn(SORT_COLUMN, params.sort) ? params.sort : "last_order";
   const dir = params.dir === "asc" ? "asc" : "desc";
-  // The column and direction come from closed whitelists, never from the request.
+  // The column and direction come from closed whitelists (own keys only: `in` would also accept
+  // "constructor" or "toString"), never from the request.
   const orderBy = sql.raw(`${SORT_COLUMN[sort]} ${dir} nulls last, email asc`);
 
   const rows = await db.execute<PersonRow>(sql`

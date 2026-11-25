@@ -5,8 +5,12 @@ import { dispatchOutboxSoon } from "@/server/notify/dispatch";
 import { PaymentConfigError } from "@/server/payments/provider";
 import { getPaymentProvider } from "@/server/payments/registry";
 import { handleVerifyRequest } from "@/server/payments/verify";
+import { readTextLimited } from "@/server/security/request";
 
 const NO_STORE = { "Cache-Control": "no-store" };
+
+/** The verify body is five short strings; anything near this size is not from Checkout.js. */
+const MAX_BODY_BYTES = 8 * 1024;
 
 function clientIp(req: Request): string {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
@@ -15,12 +19,16 @@ function clientIp(req: Request): string {
 /**
  * POST { razorpay_order_id, razorpay_payment_id, razorpay_signature, ref, token }
  * Called by the Checkout.js success handler. The order is confirmed only after the signature AND the
- * provider's own record of the payment check out (see `handleVerifyRequest`).
+ * provider's own record of the payment check out (see `handleVerifyRequest`). The body is capped at 8 KB.
  */
 export async function POST(req: Request): Promise<Response> {
   let body: unknown;
   try {
-    body = await req.json();
+    const text = await readTextLimited(req, MAX_BODY_BYTES);
+    if (text === null) {
+      return Response.json({ ok: false, error: "payload_too_large" }, { status: 413, headers: NO_STORE });
+    }
+    body = JSON.parse(text);
   } catch {
     return Response.json({ ok: false, error: "invalid_request" }, { status: 400, headers: NO_STORE });
   }

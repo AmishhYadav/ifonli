@@ -23,9 +23,14 @@ export interface DeliveryCheck {
   delivery: { fromDate: string; toDate: string } | null;
 }
 
-/** PDP delivery check: serviceability, COD and the estimated delivery window for a pincode (no cart needed). */
+/**
+ * PDP delivery check: serviceability, COD and the estimated delivery window for a pincode (no cart needed).
+ * Public endpoint: `lookupPincode` validates the pincode with Zod and rate limits by IP (120 / 10 min),
+ * so this adds no database work of its own before that gate. `input` itself may be anything a caller
+ * posts, hence the optional chaining.
+ */
 export async function checkDelivery(input: { pincode: string }): Promise<ActionResult<DeliveryCheck>> {
-  const lookup = await lookupPincode({ pincode: input.pincode });
+  const lookup = await lookupPincode({ pincode: input?.pincode });
   if (!lookup.ok) return lookup;
   const l = lookup.data;
   try {

@@ -180,6 +180,16 @@ describe("customer cancel", () => {
     expect(results.slice(0, 6).every((r) => !r.ok && r.code === "not_found")).toBe(true);
     expect(results[7]).toMatchObject({ ok: false, code: "rate_limited" });
   });
+
+  it("a stranger who knows the reference cannot use up the real customer's budget", async () => {
+    const { order, token } = await codFor("victim@example.com");
+    const wrong: OrderAccess = { kind: "token", token: "wrong-wrong-wrong" };
+    for (let i = 0; i < 8; i++) {
+      await cancelOrderForCustomer(db(), { ref: order.ref, access: wrong, ip: "203.0.113.66" });
+    }
+    const real = await cancelOrderForCustomer(db(), { ref: order.ref, access: { kind: "token", token }, ip });
+    expect(real).toMatchObject({ ok: true, alreadyCancelled: false });
+  });
 });
 
 describe("order ownership and history", () => {

@@ -1,6 +1,8 @@
 import "server-only";
 
-import { lt, sql } from "drizzle-orm";
+import { createHash } from "node:crypto";
+
+import { and, eq, lt, sql } from "drizzle-orm";
 
 import { rateLimits } from "@/server/db/schema";
 
@@ -47,6 +49,33 @@ export async function consumeRateLimit(
     remaining: Math.max(0, rule.limit - count),
     retryAfterSeconds: Math.max(1, Math.ceil((windowStart.getTime() + windowMs - now.getTime()) / 1000)),
   };
+}
+
+/**
+ * Gives one attempt back (a no-op at zero): for budgets that count something that did not end up
+ * happening, such as an order whose payment could not be started. Pass the same `now` the attempt
+ * was counted with so the same window is hit.
+ */
+export async function releaseRateLimit(
+  db: DbClient,
+  key: string,
+  rule: Pick<RateLimitRule, "windowSeconds">,
+  now: Date = new Date(),
+): Promise<void> {
+  const windowMs = rule.windowSeconds * 1000;
+  const windowStart = new Date(Math.floor(now.getTime() / windowMs) * windowMs);
+  await db
+    .update(rateLimits)
+    .set({ count: sql`greatest(${rateLimits.count} - 1, 0)` })
+    .where(and(eq(rateLimits.key, key), eq(rateLimits.windowStart, windowStart)));
+}
+
+/**
+ * Short stable digest for rate-limit keys, so personal data (an e-mail, a phone number) and secrets
+ * (the cart token) are never stored in `rate_limits`.
+ */
+export function digestKey(value: string): string {
+  return createHash("sha256").update(value).digest("hex").slice(0, 16);
 }
 
 /** Housekeeping: deletes windows that started before `olderThan`. Returns the rows removed. */
