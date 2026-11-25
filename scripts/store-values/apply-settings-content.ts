@@ -294,10 +294,9 @@ async function applyPolicies(
   only: readonly string[] | null = null,
 ): Promise<number> {
   const { eq } = await import("drizzle-orm");
-  const { savePolicyDraft, publishPolicy, istDateToInstant } =
+  const { savePolicyDraft, publishPolicy } =
     await import("../../src/server/services/admin/policies");
   const { POLICY_SLUGS } = await import("../../src/server/content/policies");
-  const effective = istDateToInstant(POLICY_EFFECTIVE_DATE).getTime();
   let failures = 0;
 
   const fileFor = new Map<string, import("../../src/server/content/seed").PolicyFile>();
@@ -342,12 +341,9 @@ async function applyPolicies(
       const source = only ? fileFor.get(slug) : undefined;
       const title = source?.title ?? row.title;
       const bodyMd = (source?.bodyMd ?? row.bodyMd).replace(DRAFT_NOTICE, "");
-      if (
-        row.published &&
-        row.bodyMd === bodyMd &&
-        row.title === title &&
-        row.effectiveAt?.getTime() === effective
-      ) {
+      // Same text, different effective date: publishPolicy refuses a draft identical to the published
+      // version, so the published one stands with its own date.
+      if (row.published && row.bodyMd === bodyMd && row.title === title) {
         log("policies", `${slug}: v${row.version} already published`);
         continue;
       }
