@@ -12,6 +12,7 @@ import {
   upsertAdminUser,
 } from "@/server/auth/admin-user";
 import { ADMIN_ROLES, assertCan } from "@/server/auth/permissions";
+import { adminPasswordProblem, describeAdminPasswordProblem } from "@/server/auth/password-policy";
 import { account, session, twoFactor, user } from "@/server/db/schema";
 import { staffDisplayEmail, staffDisplayName } from "./staff-display";
 import { writeAudit } from "@/server/services/audit";
@@ -91,19 +92,29 @@ export async function listStaffUsers(
 
 const roleSchema = z.enum(ADMIN_ROLES);
 
-export const newStaffSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100),
-  email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address")),
-  role: roleSchema,
-  /** Blank = generate one. */
-  password: z
-    .string()
-    .nullish()
-    .transform((v) => (v && v.length > 0 ? v : null))
-    .refine((v) => v === null || v.length >= MIN_ADMIN_PASSWORD_LENGTH, {
-      message: `At least ${MIN_ADMIN_PASSWORD_LENGTH} characters`,
-    }),
-});
+export const newStaffSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required").max(100),
+    email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address")),
+    role: roleSchema,
+    /** Blank = generate one. */
+    password: z
+      .string()
+      .nullish()
+      .transform((v) => (v && v.length > 0 ? v : null))
+      .refine((v) => v === null || v.length >= MIN_ADMIN_PASSWORD_LENGTH, {
+        message: `At least ${MIN_ADMIN_PASSWORD_LENGTH} characters`,
+      }),
+  })
+  // An owner-chosen password goes through the local deny-list (it needs the e-mail, hence the
+  // object-level check). It is only a temporary password: the person must replace it while
+  // enrolling, and that new password is also checked against known breaches (`startEnrollmentAction`),
+  // so no network call is made here.
+  .superRefine((value, ctx) => {
+    if (value.password === null) return;
+    const problem = adminPasswordProblem(value.password, value.email);
+    if (problem) ctx.addIssue({ code: "custom", path: ["password"], message: describeAdminPasswordProblem(problem) });
+  });
 
 export function generateTempPassword(): string {
   return randomBytes(15).toString("base64url");

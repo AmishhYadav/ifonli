@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assertProductionEnv, productionEnvProblems } from "@/lib/env";
+import { assertProductionEnv, parseServerEnv, productionEnvProblems } from "@/lib/env";
 
 const good = {
   NEXT_PUBLIC_SITE_URL: "https://ifonli.in",
@@ -78,5 +78,29 @@ describe("productionEnvProblems", () => {
 
   it("does not require ORDER_TOKEN_SECRET", () => {
     expect(productionEnvProblems({ ...good, ORDER_TOKEN_SECRET: undefined })).toEqual([]);
+  });
+});
+
+describe("ADMIN_ALLOWED_IPS", () => {
+  it("is optional: unset or blank means no filtering", () => {
+    expect(parseServerEnv({ DATABASE_URL: "postgres://x" }).ADMIN_ALLOWED_IPS).toBeUndefined();
+    expect(parseServerEnv({ DATABASE_URL: "postgres://x", ADMIN_ALLOWED_IPS: "  " }).ADMIN_ALLOWED_IPS).toBeUndefined();
+    expect(productionEnvProblems({ ...good, ADMIN_ALLOWED_IPS: "" })).toEqual([]);
+  });
+
+  it("accepts addresses and IPv4 ranges", () => {
+    const value = "203.0.113.7, 198.51.100.0/24, 2001:db8::1";
+    expect(parseServerEnv({ DATABASE_URL: "postgres://x", ADMIN_ALLOWED_IPS: value }).ADMIN_ALLOWED_IPS).toBe(value);
+    expect(productionEnvProblems({ ...good, ADMIN_ALLOWED_IPS: value })).toEqual([]);
+  });
+
+  it("refuses a list with an entry it cannot read, naming the entry (a half-read list would lock out or let in)", () => {
+    expect(() => parseServerEnv({ DATABASE_URL: "postgres://x", ADMIN_ALLOWED_IPS: "203.0.113.7, 300.1.1.1" })).toThrow(/300\.1\.1\.1/);
+    expect(() => parseServerEnv({ DATABASE_URL: "postgres://x", ADMIN_ALLOWED_IPS: "0.0.0.0/0" })).toThrow(/0\.0\.0\.0\/0/);
+    expect(() => parseServerEnv({ DATABASE_URL: "postgres://x", ADMIN_ALLOWED_IPS: " , " })).toThrow(/lists no address/);
+    const text = productionEnvProblems({ ...good, ADMIN_ALLOWED_IPS: "203.0.113.7, nope" }).join("\n");
+    expect(text).toContain("ADMIN_ALLOWED_IPS");
+    expect(text).toContain("nope");
+    expect(productionEnvProblems({ ...good, ADMIN_ALLOWED_IPS: " , " }).join("\n")).toContain("lists no address");
   });
 });

@@ -20,7 +20,16 @@ describe("template registry", () => {
 
   it("classifies the audience: admin alerts vs customer mail", () => {
     const admin = TEMPLATE_NAMES.filter((t) => TEMPLATES[t].audience === "admin").sort();
-    expect(admin).toEqual(["low_stock_digest", "new_contact", "new_order", "new_support_case", "outbox_failure", "payment_anomaly"]);
+    expect(admin).toEqual([
+      "admin_login_locked",
+      "admin_new_sign_in",
+      "low_stock_digest",
+      "new_contact",
+      "new_order",
+      "new_support_case",
+      "outbox_failure",
+      "payment_anomaly",
+    ]);
   });
 
   it.each(TEMPLATE_NAMES)("%s renders html + plain text from its fixture", async (name) => {
@@ -135,6 +144,50 @@ describe("template registry", () => {
     const fail = await renderTemplate("outbox_failure", FIXTURE_PAYLOADS.outbox_failure, fixtureContext());
     expect(fail.text).toContain("rate_limit_exceeded");
     expect(fail.text).toContain("order_confirmed");
+  });
+
+  it("admin_login_locked states who, how many, when (IST) and until when, and carries no password", async () => {
+    const r = await renderTemplate("admin_login_locked", FIXTURE_PAYLOADS.admin_login_locked, fixtureContext());
+    expect(r.subject).toBe("Admin sign-in locked: owner@ifonli.example.test");
+    for (const body of [r.html, r.text]) {
+      expect(body).toContain("owner@ifonli.example.test");
+      expect(body).toContain("after 10 wrong passwords");
+      expect(body).toContain("Sign-in from other addresses still works");
+      expect(body).toContain("26 Nov 2026, 3:00 pm IST"); // 09:30 UTC
+      expect(body).toContain("27 Nov 2026, 5:30 am IST"); // 00:00 UTC next day
+      expect(body).toContain("203.0.113.45");
+    }
+    expect(r.text.toLowerCase()).not.toMatch(/utc|gmt/);
+    const noIp = await renderTemplate("admin_login_locked", { ...FIXTURE_PAYLOADS.admin_login_locked, ip: null }, fixtureContext());
+    expect(noIp.text).toContain("unknown");
+    const everywhere = await renderTemplate(
+      "admin_login_locked",
+      { ...FIXTURE_PAYLOADS.admin_login_locked, scope: "account", failures: 100 },
+      fixtureContext(),
+    );
+    expect(everywhere.text).toContain("after 100 wrong passwords from several addresses");
+    expect(everywhere.text).toContain("Every address");
+  });
+
+  it("admin_new_sign_in tells the person what happened and what to do if it was not them", async () => {
+    const r = await renderTemplate("admin_new_sign_in", FIXTURE_PAYLOADS.admin_new_sign_in, fixtureContext());
+    expect(r.subject).toBe("New sign-in to your IfOnli admin account");
+    for (const body of [r.html, r.text]) {
+      expect(body).toContain("26 Nov 2026, 3:00 pm IST");
+      expect(body).toContain("203.0.113.45");
+      expect(body).toContain("Chrome/130");
+      expect(body).toContain("owner@ifonli.example.test");
+    }
+    expect(r.text).toContain("ask an owner to revoke your sessions and reset your password and two-factor");
+    const bare = await renderTemplate("admin_new_sign_in", { ...FIXTURE_PAYLOADS.admin_new_sign_in, ip: null, userAgent: null }, fixtureContext());
+    expect(bare.text).not.toMatch(/undefined|null/);
+  });
+
+  it("the admin security payloads refuse an over-long user agent and a missing account", () => {
+    const ok = FIXTURE_PAYLOADS.admin_new_sign_in;
+    expect(() => payloadSchemas.admin_new_sign_in.parse({ ...ok, userAgent: "x".repeat(201) })).toThrow(ZodError);
+    expect(() => payloadSchemas.admin_new_sign_in.parse({ ...ok, account: undefined })).toThrow(ZodError);
+    expect(() => payloadSchemas.admin_login_locked.parse({ ...FIXTURE_PAYLOADS.admin_login_locked, failures: 0 })).toThrow(ZodError);
   });
 
   it("contact_reply greets by first name, keeps the reply's line breaks, quotes the original and escapes markup", async () => {

@@ -72,7 +72,7 @@ test.describe("full flow", () => {
 
   const stamp = Date.now();
   const email = `e2e-admin-${stamp}@ifonli.local`;
-  const password = `E2e-Admin-${stamp}!`;
+  const password = `E2e-Staff-${stamp}!`;
   const productName = `E2E Test Charm ${stamp}`;
   const slug = `e2e-test-charm-${stamp}`;
   let secret = "";

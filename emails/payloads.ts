@@ -125,6 +125,34 @@ export const payloadSchemas = {
     error: text(400),
     orderRef: text(40).nullable().optional(),
   }),
+  /**
+   * Sign-in to an admin account was locked after repeated wrong passwords. Never carries a password.
+   * Times are ISO 8601 instants; the template prints them in IST.
+   */
+  admin_login_locked: z.object({
+    /** E-mail address of the admin account that was targeted. */
+    account: text(200),
+    /** `address`: only that address is locked out of the account; `account`: locked from everywhere. */
+    scope: z.enum(["account", "address"]).default("account"),
+    /** Wrong passwords counted in the window. */
+    failures: z.number().int().positive(),
+    /** When the lock was triggered. */
+    at: text(40),
+    /** When sign-in works again (end of the counting window). */
+    lockedUntil: text(40),
+    /** Address the last wrong password came from. */
+    ip: text(64).nullable(),
+  }),
+  /** A completed admin sign-in from an address not seen in the last 30 days. */
+  admin_new_sign_in: z.object({
+    /** E-mail address of the admin account. */
+    account: text(200),
+    role: text(20),
+    at: text(40),
+    ip: text(64).nullable(),
+    /** Browser user agent, already truncated to 200 characters by the sender. */
+    userAgent: text(200).nullable(),
+  }),
 } as const;
 
 export type PayloadSchemas = typeof payloadSchemas;

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -14,6 +16,101 @@ process.env.BETTER_AUTH_SECRET ||= "integration-test-secret-integration-test-sec
 afterEach(() => vi.restoreAllMocks());
 
 const PASSWORD = "Correct-Horse-Battery-9";
+
+const sha1 = (value: string) => createHash("sha1").update(value).digest("hex").toUpperCase();
+
+/**
+ * Answers Have I Been Pwned's range API from memory, so these tests need no network: `breached`
+ * passwords are listed in the answer for their hash prefix, `down` answers 503. Any other request
+ * goes to the real `fetch`. Restored by `afterEach(vi.restoreAllMocks)`.
+ */
+function stubPwnedPasswords(opts: { breached?: string[]; down?: boolean } = {}) {
+  const realFetch = globalThis.fetch;
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const url = String(input instanceof Request ? input.url : input);
+    if (!url.startsWith("https://api.pwnedpasswords.com/range/")) return realFetch(input, init);
+    if (opts.down) return new Response("unavailable", { status: 503 });
+    const prefix = url.slice(-5).toUpperCase();
+    const lines = (opts.breached ?? [])
+      .map(sha1)
+      .filter((hash) => hash.startsWith(prefix))
+      .map((hash) => `${hash.slice(5)}:42`);
+    return new Response(lines.join("\r\n"), { status: 200, headers: { "content-type": "text/plain" } });
+  });
+}
+
+describe("sessions", () => {
+  it("last 12 hours and slide hourly (Better Auth's default was 7 days); freshness stays at 24 hours", async () => {
+    const ctx = await getAuth().$context;
+    expect(ctx.sessionConfig).toMatchObject({ expiresIn: 12 * 3600, updateAge: 3600, freshAge: 24 * 3600 });
+  });
+});
+
+describe("known-breached passwords (haveIBeenPwned plugin)", () => {
+  const BREACHED = "Summer-Breeze-Pwned-77";
+  const FRESH = "A-Brand-New-Passphrase-1";
+
+  async function signedIn() {
+    await upsertAdminUser(getDb(), { email: "boss@example.com", role: "owner", password: PASSWORD });
+    const res = await getAuth().api.signInEmail({
+      body: { email: "boss@example.com", password: PASSWORD },
+      returnHeaders: true,
+    });
+    return new Headers({ cookie: res.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ") });
+  }
+  const change = (headers: Headers, newPassword: string) =>
+    getAuth().api.changePassword({ body: { currentPassword: PASSWORD, newPassword }, headers });
+
+  it("refuses a password found in a breach, with the clear message, and keeps the old one", async () => {
+    stubPwnedPasswords({ breached: [BREACHED] });
+    const headers = await signedIn();
+    await expect(change(headers, BREACHED)).rejects.toMatchObject({
+      statusCode: 400,
+      body: { code: "PASSWORD_COMPROMISED", message: expect.stringContaining("appears in known data breaches") },
+    });
+    await expect(
+      getAuth().api.signInEmail({ body: { email: "boss@example.com", password: PASSWORD } }),
+    ).resolves.toBeDefined();
+  });
+
+  it("accepts a password that is not in the list", async () => {
+    stubPwnedPasswords({ breached: [BREACHED] });
+    const headers = await signedIn();
+    await expect(change(headers, FRESH)).resolves.toBeDefined();
+  });
+
+  it("fails closed when the service is unreachable: nothing changes, the caller can simply try again", async () => {
+    stubPwnedPasswords({ down: true });
+    const headers = await signedIn();
+    await expect(change(headers, FRESH)).rejects.toMatchObject({ statusCode: 500 });
+    await expect(
+      getAuth().api.signInEmail({ body: { email: "boss@example.com", password: PASSWORD } }),
+    ).resolves.toBeDefined();
+  });
+
+  it("does not touch the passwords our own code generates or writes directly (temporary staff passwords)", async () => {
+    stubPwnedPasswords({ down: true });
+    await seedStaffOwner();
+    const created = await createStaffUser(
+      getDb(),
+      { name: "New Hire", email: "hire2@example.com", role: "admin" },
+      { id: "owner-actor", role: "owner" },
+    );
+    await expect(
+      getAuth().api.signInEmail({ body: { email: "hire2@example.com", password: created.tempPassword! } }),
+    ).resolves.toBeDefined();
+  });
+});
+
+async function seedStaffOwner() {
+  await getDb().insert(user).values({
+    id: "owner-actor",
+    name: "Owner",
+    email: "actor@example.com",
+    role: "owner",
+    twoFactorEnabled: true,
+  });
+}
 
 describe("D-AUTH-1: credential sign-in is for admins only", () => {
   it("lets an admin sign in with a password (no TOTP enrolled yet: plain session)", async () => {
@@ -231,6 +328,7 @@ describe("temporary staff passwords", () => {
   });
 
   it("changing the password mid-enrolment keeps the enrolling session and drops the others", async () => {
+    stubPwnedPasswords();
     await seedActor();
     const created = await createStaffUser(
       getDb(),

@@ -1,4 +1,5 @@
 import { formatINR } from "@/lib/money";
+import { formatIstDateTime } from "@/server/domain/ist";
 
 import { Layout, FONT_STACK } from "../layout";
 import { Cta, Facts, P } from "../parts";
@@ -162,6 +163,63 @@ export function LowStockDigest({ payload, ctx }: TemplateProps<"low_stock_digest
         </P>
       ) : null}
       <Cta href={`${ctx.siteUrl}/admin/inventory`} ctx={ctx}>Open inventory</Cta>
+    </Layout>
+  );
+}
+
+/** Prints an ISO instant in IST; falls back to the raw text for a value that is not a date. */
+function istTime(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : formatIstDateTime(d);
+}
+
+export function AdminLoginLocked({ payload, ctx }: TemplateProps<"admin_login_locked">) {
+  return (
+    <Layout ctx={ctx} preview={`Sign-in locked for ${payload.account}`} heading="Admin sign-in locked">
+      <P ctx={ctx}>
+        {payload.scope === "address"
+          ? `Sign-in for the admin account ${payload.account} was locked for the address below after ${payload.failures} wrong passwords from it. Until the lock ends, every attempt from that address is refused, even with the right password. Sign-in from other addresses still works.`
+          : `Sign-in for the admin account ${payload.account} was locked after ${payload.failures} wrong passwords from several addresses. Until the lock ends, every sign-in attempt for this account is refused, even with the right password.`}
+      </P>
+      <Facts
+        rows={[
+          ["Account", payload.account],
+          ["Wrong passwords", String(payload.failures)],
+          ["Locked at", istTime(payload.at)],
+          ["Works again", istTime(payload.lockedUntil)],
+          ["Locked for", payload.scope === "address" ? "This address only" : "Every address"],
+          ["Last address", payload.ip ?? "unknown"],
+        ]}
+        ctx={ctx}
+      />
+      <P ctx={ctx} muted>
+        If this was you, wait until the time above. If it was not, someone is guessing this password: the account is safe
+        for now (they also need the authenticator code), but ask an owner to reset the password under Admin, Users. An
+        owner can lift the lock early; see the runbook section on rate limits.
+      </P>
+    </Layout>
+  );
+}
+
+export function AdminNewSignIn({ payload, ctx }: TemplateProps<"admin_new_sign_in">) {
+  return (
+    <Layout ctx={ctx} preview="New sign-in to your IfOnli admin account" heading="New sign-in to your IfOnli admin account">
+      <P ctx={ctx}>
+        The admin account {payload.account} was just signed in to from an address not seen in the last 30 days.
+      </P>
+      <Facts
+        rows={[
+          ["Account", `${payload.account} (${payload.role})`],
+          ["Time", istTime(payload.at)],
+          ["IP address", payload.ip ?? "unknown"],
+          ["Browser", payload.userAgent ?? "unknown"],
+        ]}
+        ctx={ctx}
+      />
+      <P ctx={ctx}>
+        If this was you, there is nothing to do. If this was not you, ask an owner to revoke your sessions and reset your
+        password and two-factor (Admin, Users).
+      </P>
     </Layout>
   );
 }

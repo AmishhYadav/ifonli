@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 
 import { formatINR } from "@/lib/money";
 
-import { LowStockDigest, NewContact, NewOrder, NewSupportCase, OutboxFailure, PaymentAnomaly, ANOMALY_LABEL } from "../../../emails/admin/alerts";
+import { AdminLoginLocked, AdminNewSignIn, LowStockDigest, NewContact, NewOrder, NewSupportCase, OutboxFailure, PaymentAnomaly, ANOMALY_LABEL } from "../../../emails/admin/alerts";
 import { CodPlaced, OrderCancelled, OrderConfirmed, OrderDelivered, OrderShipped, PaymentFailed } from "../../../emails/customer/order";
 import { LoginOtp } from "../../../emails/customer/otp";
 import { LateCaptureRefunded, RefundInitiated, RefundProcessed } from "../../../emails/customer/refund";
@@ -141,6 +141,18 @@ export const TEMPLATES: { [T in TemplateName]: TemplateDef<T> } = {
     attachInvoice: false,
     subject: (p) => `Email could not be sent: ${p.template}`,
     Component: OutboxFailure,
+  }),
+  admin_login_locked: def({
+    audience: "admin",
+    attachInvoice: false,
+    subject: (p) => `Admin sign-in locked: ${p.account}`,
+    Component: AdminLoginLocked,
+  }),
+  admin_new_sign_in: def({
+    audience: "admin",
+    attachInvoice: false,
+    subject: () => "New sign-in to your IfOnli admin account",
+    Component: AdminNewSignIn,
   }),
 };
 

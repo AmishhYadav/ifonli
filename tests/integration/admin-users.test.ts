@@ -137,7 +137,7 @@ describe("admin users: create", () => {
         name: "Fulfil",
         email: "new.ful@example.com",
         role: "fulfilment",
-        password: "a-long-enough-password",
+        password: "a-long-enough-phrase-7",
       },
       owner,
     );
@@ -149,6 +149,13 @@ describe("admin users: create", () => {
         owner,
       ),
     ).rejects.toBeInstanceOf(ZodError);
+    // Easy-to-guess owner-chosen passwords are refused too (and nothing is created).
+    for (const weak of ["my-admin-login-123", "Ifonli-Store-2026", "aaaaaaaaaaaaaa", "x.guesser-long-enough"]) {
+      await expect(
+        createStaffUser(db(), { name: "X", email: "x.guesser-long-enough@example.com", role: "admin", password: weak }, owner),
+      ).rejects.toBeInstanceOf(ZodError);
+    }
+    expect(await db().select().from(user).where(eq(user.email, "x.guesser-long-enough@example.com"))).toHaveLength(0);
     await expect(
       createStaffUser(db(), { name: "X", email: "x@example.com", role: "customer" }, owner),
     ).rejects.toBeInstanceOf(ZodError);
