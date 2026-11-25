@@ -118,6 +118,7 @@ async function main() {
         .update(variants)
         .set({ pricePaise: p.price * 100, mrpPaise: p.price * 100 })
         .where(eq(variants.productId, existingId));
+      await db.update(products).set({ gstRateBp: 0 }).where(eq(products.id, existingId));
       await db.delete(productVibes).where(eq(productVibes.productId, existingId));
       await db.insert(productVibes).values({
         productId: existingId,

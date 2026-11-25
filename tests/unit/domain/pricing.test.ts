@@ -404,6 +404,18 @@ describe("priceCart: shipping", () => {
     expect(priceCart(input(cart(60_000), { shipping, zone: "north_east" })).shippingPaise).toBe(0);
   });
 
+  it("ships free to a free-shipping pincode below the threshold", () => {
+    const shipping = { flatFeePaise: 6_000, freeThresholdPaise: 50_000, freePincodes: ["560064"] };
+    const r = priceCart(input(cart(10_000), { shipping, pincode: "560064" }));
+    expect(r.shippingPaise).toBe(0);
+    expect(r.shippingDiscountPaise).toBe(0);
+    expect(r.freeShippingRemainingPaise).toBe(0);
+    expect(r.totalPaise).toBe(10_000);
+    expect(r.messages).toEqual([
+      { code: "free_shipping_pincode", text: "Free shipping to your pincode." },
+    ]);
+  });
+
   it("emits no progress message when the fee is zero", () => {
     const r = priceCart(
       input(cart(10_000), { shipping: { flatFeePaise: 0, freeThresholdPaise: 50_000 } }),
