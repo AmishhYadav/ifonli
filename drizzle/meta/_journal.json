@@ -71,6 +71,13 @@
       "when": 1793812800000,
       "tag": "0009_short_store_address",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793899200000,
+      "tag": "0010_store_values_applied",
+      "breakpoints": true
     }
   ]
 }
