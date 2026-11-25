@@ -57,7 +57,8 @@ function policyFilter(argv: readonly string[]): string[] | null {
     .filter(Boolean);
   const present = argv.some((a) => a.startsWith("--policy="));
   if (!present) return null;
-  if (slugs.length === 0) throw new Error("--policy needs at least one policy slug, e.g. --policy=terms");
+  if (slugs.length === 0)
+    throw new Error("--policy needs at least one policy slug, e.g. --policy=terms");
   return [...new Set(slugs)];
 }
 
@@ -68,7 +69,9 @@ async function main() {
     const { POLICY_SLUGS } = await import("../../src/server/content/policies");
     const unknown = only.filter((slug) => !(POLICY_SLUGS as readonly string[]).includes(slug));
     if (unknown.length > 0) {
-      throw new Error(`Unknown policy slug(s): ${unknown.join(", ")}. Known: ${POLICY_SLUGS.join(", ")}`);
+      throw new Error(
+        `Unknown policy slug(s): ${unknown.join(", ")}. Known: ${POLICY_SLUGS.join(", ")}`,
+      );
     }
   }
   if (!checkOnly) {
@@ -453,10 +456,15 @@ async function checkPolicies(db: Db, slugs: readonly string[]): Promise<number> 
   return failures;
 }
 
-async function runCheck(db: Db, schema: Schema, only: readonly string[] | null = null): Promise<number> {
+async function runCheck(
+  db: Db,
+  schema: Schema,
+  only: readonly string[] | null = null,
+): Promise<number> {
   const { POLICY_SLUGS } = await import("../../src/server/content/policies");
   // --policy=<slug>: only the named policies are checked (nothing else was touched).
   if (only) return checkPolicies(db, only);
+  const { eq } = await import("drizzle-orm");
   const { getLaunchReadiness, LAUNCH_CATEGORY_LABELS } =
     await import("../../src/server/services/admin/launch");
   const { listBanners } = await import("../../src/server/services/admin/banners");
@@ -525,7 +533,9 @@ async function runCheck(db: Db, schema: Schema, only: readonly string[] | null =
         a: schema.productTypes.definition,
         b: schema.productTypes.seoDesc,
       })
-      .from(schema.productTypes)),
+      .from(schema.productTypes)
+      // A switched-off type (e.g. hippers, retired in 0007) is never shown, so its copy does not matter.
+      .where(eq(schema.productTypes.active, true))),
   ];
   const bad = copyRows.filter((r) => /PLACEHOLDER/i.test(`${r.a} ${r.b}`) || !r.a);
   console.log(
